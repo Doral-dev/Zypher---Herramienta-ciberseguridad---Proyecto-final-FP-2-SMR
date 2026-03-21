@@ -142,7 +142,7 @@ img {
 }
 
 .section-title-dark {
-  background: linear-gradient(90deg, #2f2550 0%, #6f4ed6 35%, #a98fff 60%, #2f2550 100%);
+  background: linear-gradient(90deg, #2f2550 0%, #5d3fc8 35%, #7a5be4 60%, #2f2550 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -243,7 +243,7 @@ img {
   font-size: 2.15rem;
   line-height: 1.15;
   margin-bottom: 12px;
-  background: linear-gradient(90deg, #6f4ed6 0%, #b299ff 35%, #6f4ed6 70%, #d5c6ff 100%);
+  background: linear-gradient(90deg, #4c31a8 0%, #6f4ed6 35%, #8d72ee 70%, #4c31a8 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -252,7 +252,7 @@ img {
 
 .card p {
   font-size: 1.2rem;
-  color: var(--text-soft);
+  color: #4f4377;
   max-width: 320px;
   margin: 0 auto;
 }
@@ -282,10 +282,10 @@ img {
 
 .module-title {
   text-align: center;
-  font-size: 1.5rem;
-  line-height: 1.2;
-  min-height: 62px;
-  margin-bottom: 16px;
+  font-size: 1.05rem;
+  line-height: 1.15;
+  min-height: 52px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -347,7 +347,7 @@ img {
 .availability-title {
   font-size: 1.9rem;
   margin-bottom: 12px;
-  background: linear-gradient(90deg, #6f4ed6 0%, #b299ff 35%, #6f4ed6 70%, #d5c6ff 100%);
+  background: linear-gradient(90deg, #4c31a8 0%, #6f4ed6 35%, #8d72ee 70%, #4c31a8 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -449,7 +449,7 @@ img {
 
 .footer-lines p,
 .footer-right a {
-  color: var(--text-soft);
+  color: #4f4377;
   font-size: 1rem;
   text-decoration: none;
   margin-bottom: 6px;
@@ -525,10 +525,14 @@ img {
   }
 
   .card-title,
-  .module-title,
   .availability-title,
   .step-title {
     font-size: 1.6rem;
+  }
+
+  .module-title {
+    font-size: 0.95rem;
+    min-height: 46px;
   }
 
   .platform-icon {
