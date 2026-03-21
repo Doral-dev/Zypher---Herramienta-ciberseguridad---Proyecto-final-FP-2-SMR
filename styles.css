@@ -471,7 +471,8 @@ img {
   object-fit: contain;
 }
 
-.footer-lines p,
+.footer-lines a,
+.footer-center p,
 .footer-right a {
   color: #4f4377;
   font-size: 1rem;
@@ -479,7 +480,14 @@ img {
   margin-bottom: 6px;
 }
 
-.footer-right a:hover {
+.footer-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-right a:hover,
+.footer-lines a:hover {
   color: var(--purple-main);
 }
 
