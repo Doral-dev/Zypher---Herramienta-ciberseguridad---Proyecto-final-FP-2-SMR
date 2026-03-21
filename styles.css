@@ -8,10 +8,7 @@
   --purple-main: #6f4ed6;
   --purple-soft: #8e74ea;
   --purple-light: #c7b8ff;
-  --purple-bg: #f1ebff;
-  --purple-bg-2: #e8defd;
   --white-bg: #fbfaff;
-  --card-white: #ffffff;
   --text-dark: #2f2550;
   --text-soft: #5f547e;
   --line-soft: rgba(111, 78, 214, 0.14);
@@ -49,13 +46,6 @@ img {
     linear-gradient(180deg, #7b60df 0%, #6f4ed6 100%);
 }
 
-.section-purple h2,
-.section-purple h3,
-.section-purple p,
-.section-purple .arrow {
-  color: #ffffff;
-}
-
 .header {
   background: rgba(255, 255, 255, 0.88);
   border-bottom: 1px solid var(--line-soft);
@@ -83,7 +73,6 @@ img {
   width: 52px;
   height: 52px;
   object-fit: contain;
-  display: block;
 }
 
 .logo {
@@ -131,6 +120,33 @@ img {
   box-shadow: 0 12px 24px rgba(111, 78, 214, 0.24);
 }
 
+.section-title,
+.card h3,
+.module-box h3,
+.availability-card h3,
+.step-card h3,
+.logo {
+  background: linear-gradient(90deg, #ffffff 0%, #eadfff 20%, #cdb9ff 40%, #ffffff 60%, #dbc9ff 80%, #ffffff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
+}
+
+.dark-title {
+  background: linear-gradient(90deg, #2f2550 0%, #6f4ed6 20%, #9f88f5 45%, #2f2550 70%, #6f4ed6 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 3.2rem;
+  margin-bottom: 32px;
+  line-height: 1.1;
+}
+
 .hero {
   padding: 82px 0 64px;
 }
@@ -176,12 +192,6 @@ img {
   padding: 64px 0;
 }
 
-.about h2 {
-  text-align: center;
-  font-size: 3rem;
-  margin-bottom: 24px;
-}
-
 .about-text {
   max-width: 980px;
   margin: 0 auto;
@@ -224,14 +234,12 @@ img {
   width: 180px;
   height: 180px;
   object-fit: contain;
-  display: block;
   filter: drop-shadow(0 10px 18px rgba(111, 78, 214, 0.14));
 }
 
 .card h3 {
-  font-size: 2.15rem;
+  font-size: 3.2rem;
   margin-bottom: 12px;
-  color: var(--purple-main);
 }
 
 .card p {
@@ -245,15 +253,6 @@ img {
   padding: 78px 0;
 }
 
-.modules h2,
-.availability h2,
-.steps h2,
-.footer h2 {
-  text-align: center;
-  font-size: 3.2rem;
-  margin-bottom: 32px;
-}
-
 .modules-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -265,7 +264,7 @@ img {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 22px;
-  padding: 22px;
+  padding: 22px 22px 0 22px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -275,27 +274,27 @@ img {
 
 .module-box h3 {
   text-align: center;
-  font-size: 1.5rem;
-  line-height: 1.3;
+  font-size: 3.2rem;
+  line-height: 1.15;
   min-height: 62px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .module-image-placeholder {
-  width: 100%;
-  flex: 1;
-  min-height: 180px;
-  height: 180px;
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.08);
+  width: calc(100% + 44px);
+  margin-left: -22px;
+  margin-right: -22px;
+  margin-top: auto;
+  height: 190px;
+  min-height: 190px;
   overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
+  border-top: 1px dashed rgba(255, 255, 255, 0.25);
 }
 
 .module-image {
@@ -303,18 +302,10 @@ img {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  border-radius: 16px;
 }
 
 .availability {
   padding: 86px 0;
-}
-
-.availability h2 {
-  text-align: center;
-  font-size: 4rem;
-  margin-bottom: 42px;
-  color: var(--text-dark);
 }
 
 .availability-grid {
@@ -336,14 +327,12 @@ img {
   width: 200px;
   height: 200px;
   object-fit: contain;
-  display: block;
   margin: 0 auto 18px;
 }
 
 .availability-card h3 {
-  font-size: 2.2rem;
+  font-size: 3.2rem;
   margin-bottom: 12px;
-  color: var(--purple-main);
 }
 
 .status {
@@ -383,7 +372,7 @@ img {
 
 .step-card h3 {
   text-align: center;
-  font-size: 1.65rem;
+  font-size: 3.2rem;
   min-height: 48px;
   margin-bottom: 18px;
   display: flex;
@@ -403,6 +392,7 @@ img {
 .arrow {
   align-self: center;
   font-size: 2.5rem;
+  color: #ffffff;
 }
 
 .footer {
@@ -410,16 +400,14 @@ img {
   border-top: 1px solid var(--line-soft);
 }
 
-.footer h2 {
-  text-align: left;
-  color: var(--purple-main);
-  margin-bottom: 24px;
+.contact-title {
+  text-align: center;
 }
 
 .footer-content {
   display: flex;
-  justify-content: space-between;
-  gap: 40px;
+  justify-content: center;
+  gap: 120px;
   align-items: flex-start;
 }
 
@@ -445,6 +433,15 @@ img {
 
 .footer-right a:hover {
   color: var(--purple-main);
+}
+
+@keyframes shineText {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 220% center;
+  }
 }
 
 @media (max-width: 1100px) {
@@ -499,8 +496,12 @@ img {
     height: 150px;
   }
 
-  .availability h2 {
-    font-size: 3rem;
+  .section-title,
+  .card h3,
+  .module-box h3,
+  .availability-card h3,
+  .step-card h3 {
+    font-size: 2.2rem;
   }
 
   .platform-icon {
