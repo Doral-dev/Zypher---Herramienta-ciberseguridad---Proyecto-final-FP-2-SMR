@@ -455,8 +455,9 @@ img {
 .footer-content {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 60px;
+  min-height: 110px;
 }
 
 .footer-left,
@@ -468,13 +469,13 @@ img {
 .footer-left {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
-  justify-content: flex-start;
 }
 
 .footer-center {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   text-align: center;
 }
@@ -482,7 +483,8 @@ img {
 .footer-right {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
 }
 
 .footer-contact-icon {
@@ -498,6 +500,10 @@ img {
   font-size: 1rem;
   text-decoration: none;
   margin-bottom: 8px;
+}
+
+.footer-right a:last-child {
+  margin-bottom: 0;
 }
 
 .footer-right a:hover,
