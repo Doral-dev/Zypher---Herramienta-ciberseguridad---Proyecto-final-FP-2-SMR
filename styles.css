@@ -78,7 +78,11 @@ img {
 .logo {
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--purple-main);
+  background: linear-gradient(90deg, #6f4ed6 0%, #a98fff 35%, #6f4ed6 70%, #cdbbff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .menu {
@@ -120,31 +124,29 @@ img {
   box-shadow: 0 12px 24px rgba(111, 78, 214, 0.24);
 }
 
-.section-title,
-.card h3,
-.module-box h3,
-.availability-card h3,
-.step-card h3,
-.logo {
-  background: linear-gradient(90deg, #ffffff 0%, #eadfff 20%, #cdb9ff 40%, #ffffff 60%, #dbc9ff 80%, #ffffff 100%);
+.section-title {
+  text-align: center;
+  font-size: 3.2rem;
+  line-height: 1.1;
+  margin: 0 0 32px 0;
+  display: block;
+  width: 100%;
+}
+
+.section-title-light {
+  background: linear-gradient(90deg, #ffffff 0%, #f2eaff 30%, #ffffff 60%, #ddd0ff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shineText 5s linear infinite;
 }
 
-.dark-title {
-  background: linear-gradient(90deg, #2f2550 0%, #6f4ed6 20%, #9f88f5 45%, #2f2550 70%, #6f4ed6 100%);
+.section-title-dark {
+  background: linear-gradient(90deg, #2f2550 0%, #6f4ed6 35%, #a98fff 60%, #2f2550 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-.section-title {
-  text-align: center;
-  font-size: 3.2rem;
-  margin-bottom: 32px;
-  line-height: 1.1;
+  animation: shineText 5s linear infinite;
 }
 
 .hero {
@@ -237,9 +239,15 @@ img {
   filter: drop-shadow(0 10px 18px rgba(111, 78, 214, 0.14));
 }
 
-.card h3 {
-  font-size: 3.2rem;
+.card-title {
+  font-size: 2.15rem;
+  line-height: 1.15;
   margin-bottom: 12px;
+  background: linear-gradient(90deg, #6f4ed6 0%, #b299ff 35%, #6f4ed6 70%, #d5c6ff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .card p {
@@ -272,15 +280,21 @@ img {
   overflow: hidden;
 }
 
-.module-box h3 {
+.module-title {
   text-align: center;
-  font-size: 3.2rem;
-  line-height: 1.15;
+  font-size: 1.5rem;
+  line-height: 1.2;
   min-height: 62px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(90deg, #ffffff 0%, #eee5ff 40%, #ffffff 70%, #d9caff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .module-image-placeholder {
@@ -330,9 +344,14 @@ img {
   margin: 0 auto 18px;
 }
 
-.availability-card h3 {
-  font-size: 3.2rem;
+.availability-title {
+  font-size: 1.9rem;
   margin-bottom: 12px;
+  background: linear-gradient(90deg, #6f4ed6 0%, #b299ff 35%, #6f4ed6 70%, #d5c6ff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .status {
@@ -370,14 +389,19 @@ img {
   flex-direction: column;
 }
 
-.step-card h3 {
+.step-title {
   text-align: center;
-  font-size: 3.2rem;
+  font-size: 1.65rem;
   min-height: 48px;
   margin-bottom: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(90deg, #ffffff 0%, #eee5ff 40%, #ffffff 70%, #d9caff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .step-image-placeholder {
@@ -496,12 +520,15 @@ img {
     height: 150px;
   }
 
-  .section-title,
-  .card h3,
-  .module-box h3,
-  .availability-card h3,
-  .step-card h3 {
-    font-size: 2.2rem;
+  .section-title {
+    font-size: 2.3rem;
+  }
+
+  .card-title,
+  .module-title,
+  .availability-title,
+  .step-title {
+    font-size: 1.6rem;
   }
 
   .platform-icon {
