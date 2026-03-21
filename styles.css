@@ -173,8 +173,8 @@ img {
 .hero,
 .about,
 .features,
-.modules,
 .availability,
+.modules,
 .steps,
 .internal,
 .footer {
@@ -295,69 +295,8 @@ img {
   animation: fadeSlideUp 0.55s ease-out both;
 }
 
-.modules {
-  padding: 78px 0;
-}
-
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
-
-.module-box {
-  min-height: 300px;
-  background: #ffffff;
-  border: 1px solid rgba(111, 78, 214, 0.16);
-  border-radius: 22px;
-  padding: 22px 22px 0 22px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  box-shadow: 0 10px 24px rgba(40, 15, 120, 0.10);
-  overflow: hidden;
-  animation: fadeSlideUp 0.5s ease-out both;
-}
-
-.module-title {
-  text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.15;
-  min-height: 52px;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(90deg, #4c31a8 0%, #6f4ed6 35%, #8d72ee 70%, #4c31a8 100%);
-  background-size: 220% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shineText 5s linear infinite, fadeSlideUp 0.5s ease-out both;
-}
-
-.module-image-placeholder {
-  width: calc(100% + 44px);
-  margin-left: -22px;
-  margin-right: -22px;
-  margin-top: auto;
-  height: 190px;
-  min-height: 190px;
-  overflow: hidden;
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  border-top: 1px solid rgba(111, 78, 214, 0.10);
-}
-
-.module-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
 .availability {
-  padding: 86px 0;
+  padding: 86px 0 78px;
 }
 
 .availability-grid {
@@ -405,6 +344,80 @@ img {
 
 .unavailable {
   color: #c63939;
+}
+
+.modules {
+  padding: 82px 0;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 34px;
+}
+
+.module-box {
+  min-height: 360px;
+  background: #ffffff;
+  border: 1px solid rgba(111, 78, 214, 0.16);
+  border-radius: 22px;
+  padding: 24px 24px 0 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-shadow: 0 10px 24px rgba(40, 15, 120, 0.10);
+  overflow: hidden;
+  animation: fadeSlideUp 0.5s ease-out both;
+}
+
+.module-head {
+  padding: 6px 10px 18px;
+  text-align: center;
+}
+
+.module-title {
+  text-align: center;
+  font-size: 1.18rem;
+  line-height: 1.2;
+  min-height: 48px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, #4c31a8 0%, #6f4ed6 35%, #8d72ee 70%, #4c31a8 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite, fadeSlideUp 0.5s ease-out both;
+}
+
+.module-desc {
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: #5a4d83;
+  max-width: 310px;
+  margin: 0 auto;
+}
+
+.module-image-placeholder {
+  width: calc(100% + 48px);
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-top: auto;
+  height: 180px;
+  min-height: 180px;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  border-top: 1px solid rgba(111, 78, 214, 0.10);
+}
+
+.module-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .steps {
@@ -630,8 +643,8 @@ img {
     flex-direction: column;
   }
 
-  .modules-grid,
-  .availability-grid {
+  .availability-grid,
+  .modules-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -680,8 +693,8 @@ img {
     font-size: 1.35rem;
   }
 
-  .modules-grid,
-  .availability-grid {
+  .availability-grid,
+  .modules-grid {
     grid-template-columns: 1fr;
   }
 
@@ -701,8 +714,12 @@ img {
   }
 
   .module-title {
-    font-size: 0.95rem;
-    min-height: 46px;
+    font-size: 1.05rem;
+    min-height: auto;
+  }
+
+  .module-desc {
+    font-size: 0.94rem;
   }
 
   .platform-icon {
