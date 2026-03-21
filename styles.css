@@ -286,39 +286,47 @@ body {
 }
 
 .availability {
-  padding: 76px 0;
+  padding: 86px 0;
+}
+
+.availability h2 {
+  text-align: center;
+  font-size: 4rem;
+  margin-bottom: 42px;
+  color: var(--text-dark);
 }
 
 .availability-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 40px;
+  align-items: start;
 }
 
 .availability-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f8f4ff 100%);
-  border: 1px solid var(--line-soft);
-  border-radius: 22px;
-  padding: 28px 24px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
   text-align: center;
-  box-shadow: var(--shadow-soft);
 }
 
 .platform-icon {
-  width: 120px;
-  height: 120px;
+  width: 170px;
+  height: 170px;
   object-fit: contain;
-  margin-bottom: 14px;
+  display: block;
+  margin: 0 auto 18px;
 }
 
 .availability-card h3 {
-  font-size: 1.9rem;
-  margin-bottom: 10px;
+  font-size: 2.2rem;
+  margin-bottom: 12px;
   color: var(--purple-main);
 }
 
 .status {
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 
@@ -468,5 +476,18 @@ body {
   .feature-icon {
     width: 150px;
     height: 150px;
+  }
+
+  .availability h2 {
+    font-size: 3rem;
+  }
+
+  .platform-icon {
+    width: 140px;
+    height: 140px;
+  }
+
+  .status {
+    font-size: 1.3rem;
   }
 }
