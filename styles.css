@@ -389,6 +389,11 @@ body {
   border-top: 1px solid var(--line-soft);
 }
 
+.platform-icon {
+  width: 200px;
+  height: 200px;
+}
+
 .footer h2 {
   text-align: left;
   color: var(--purple-main);
