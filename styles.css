@@ -65,8 +65,8 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 34px;
-  padding: 0 6px;
+  gap: 52px;
+  padding: 0 16px;
 }
 
 .brand {
@@ -74,7 +74,7 @@ img {
   align-items: center;
   gap: 12px;
   flex: 0 0 auto;
-  margin-right: 10px;
+  margin-right: 26px;
 }
 
 .brand-logo {
@@ -102,7 +102,7 @@ img {
   flex-wrap: nowrap;
   white-space: nowrap;
   flex: 1 1 auto;
-  padding: 0 24px;
+  padding: 0 38px;
 }
 
 .menu a {
@@ -123,7 +123,7 @@ img {
   align-items: center;
   gap: 14px;
   flex: 0 0 auto;
-  margin-left: 10px;
+  margin-left: 26px;
 }
 
 .btn {
