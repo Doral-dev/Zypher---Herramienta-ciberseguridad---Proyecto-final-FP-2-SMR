@@ -443,32 +443,37 @@ img {
   color: #ffffff;
 }
 
-.footer {
-  padding: 48px 0 60px;
-  border-top: 1px solid var(--line-soft);
-}
-
-.contact-title {
-  text-align: center;
-}
-
 .footer-content {
   display: flex;
-  justify-content: center;
-  gap: 120px;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 60px;
+}
+
+.footer-left,
+.footer-center,
+.footer-right {
+  flex: 1;
 }
 
 .footer-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  justify-content: flex-start;
 }
 
-.footer-contact-icon {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
+.footer-center {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: center;
+}
+
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .footer-lines a,
@@ -477,8 +482,9 @@ img {
   color: #4f4377;
   font-size: 1rem;
   text-decoration: none;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
+
 
 .footer-center {
   display: flex;
