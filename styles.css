@@ -307,8 +307,8 @@ img {
 
 .module-box {
   min-height: 300px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #ffffff;
+  border: 1px solid rgba(111, 78, 214, 0.16);
   border-radius: 22px;
   padding: 22px 22px 0 22px;
   display: flex;
@@ -328,8 +328,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  background: linear-gradient(90deg, #ffffff 0%, #eee5ff 40%, #ffffff 70%, #d9caff 100%);
+  background: linear-gradient(90deg, #4c31a8 0%, #6f4ed6 35%, #8d72ee 70%, #4c31a8 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -347,7 +346,7 @@ img {
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  border-top: 1px dashed rgba(255, 255, 255, 0.25);
+  border-top: 1px solid rgba(111, 78, 214, 0.10);
 }
 
 .module-image {
