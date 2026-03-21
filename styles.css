@@ -5,16 +5,16 @@
 }
 
 :root {
-  --bg-main: #16131f;
-  --bg-soft: #201a2d;
-  --bg-card: #2a2338;
-  --bg-card-2: #241e31;
-  --purple: #7a5ce6;
-  --purple-2: #9b84ff;
-  --purple-3: #c8b9ff;
-  --text-main: #f2ecff;
-  --text-soft: #d8cff7;
-  --line: rgba(122, 92, 230, 0.30);
+  --bg-main: #f7f4fc;
+  --bg-soft: #efe9fb;
+  --card-bg: #ffffff;
+  --card-bg-2: #f9f6ff;
+  --purple: #6f4ed6;
+  --purple-2: #8b6df0;
+  --purple-3: #b8a5ff;
+  --text-main: #2d2450;
+  --text-soft: #5b507d;
+  --line: rgba(111, 78, 214, 0.16);
 }
 
 body {
@@ -22,10 +22,10 @@ body {
   line-height: 1.5;
   color: var(--text-main);
   background:
-    radial-gradient(circle at 10% 10%, rgba(122, 92, 230, 0.18), transparent 22%),
-    radial-gradient(circle at 90% 10%, rgba(122, 92, 230, 0.16), transparent 20%),
-    radial-gradient(circle at 50% 80%, rgba(122, 92, 230, 0.10), transparent 28%),
-    linear-gradient(180deg, #14111b 0%, #1b1626 45%, #15121c 100%);
+    radial-gradient(circle at 10% 10%, rgba(139, 109, 240, 0.12), transparent 22%),
+    radial-gradient(circle at 90% 12%, rgba(139, 109, 240, 0.10), transparent 18%),
+    radial-gradient(circle at 50% 85%, rgba(111, 78, 214, 0.08), transparent 28%),
+    linear-gradient(180deg, #fcfbff 0%, #f6f1fd 48%, #f3eefb 100%);
 }
 
 .container {
@@ -35,8 +35,8 @@ body {
 }
 
 .header {
-  background: rgba(21, 18, 28, 0.94);
-  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid rgba(111, 78, 214, 0.12);
   backdrop-filter: blur(10px);
 }
 
@@ -70,12 +70,11 @@ body {
 .card h3,
 .module-box h3,
 .step-card h3 {
-  background: linear-gradient(90deg, #cbbcff 0%, #a58cff 35%, #7a5ce6 60%, #cbbcff 100%);
+  background: linear-gradient(90deg, #b49cff 0%, #8b6df0 35%, #6f4ed6 60%, #b49cff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: glowmove 4.5s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(122, 92, 230, 0.22));
 }
 
 .logo {
@@ -91,14 +90,13 @@ body {
 
 .menu a {
   text-decoration: none;
-  color: var(--purple-3);
+  color: var(--text-main);
   font-size: 1.1rem;
   transition: 0.25s ease;
 }
 
 .menu a:hover {
-  color: #f0eaff;
-  text-shadow: 0 0 12px rgba(122, 92, 230, 0.45);
+  color: var(--purple);
 }
 
 .nav-buttons {
@@ -111,20 +109,20 @@ body {
   text-decoration: none;
   padding: 12px 22px;
   border-radius: 10px;
-  border: 1px solid rgba(122, 92, 230, 0.60);
-  background: linear-gradient(180deg, #7a5ce6 0%, #6248c3 100%);
+  border: 1px solid rgba(111, 78, 214, 0.22);
+  background: linear-gradient(180deg, #8a6df0 0%, #6f4ed6 100%);
   color: #ffffff;
-  box-shadow: 0 0 14px rgba(122, 92, 230, 0.18);
+  box-shadow: 0 8px 22px rgba(111, 78, 214, 0.18);
   transition: 0.25s ease;
 }
 
 .btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 18px rgba(122, 92, 230, 0.35);
+  box-shadow: 0 12px 26px rgba(111, 78, 214, 0.24);
 }
 
 .hero {
-  padding: 76px 0 60px;
+  padding: 82px 0 64px;
 }
 
 .hero-content {
@@ -157,47 +155,47 @@ body {
 
 .hero-image img {
   width: 100%;
-  max-width: 520px;
-  filter: drop-shadow(0 0 18px rgba(122, 92, 230, 0.24));
+  max-width: 540px;
+  filter: drop-shadow(0 16px 30px rgba(111, 78, 214, 0.18));
 }
 
 .features {
-  padding: 20px 0 65px;
+  padding: 24px 0 72px;
 }
 
 .cards {
   display: flex;
-  gap: 26px;
+  gap: 28px;
   justify-content: space-between;
 }
 
 .card {
   flex: 1;
-  min-height: 320px;
-  background: linear-gradient(180deg, rgba(42, 35, 56, 0.97) 0%, rgba(31, 25, 43, 0.98) 100%);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 28px 24px 30px;
+  min-height: 340px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f4ff 100%);
+  border: 1px solid rgba(111, 78, 214, 0.12);
+  border-radius: 24px;
+  padding: 30px 24px 32px;
   text-align: center;
   box-shadow:
-    0 0 18px rgba(122, 92, 230, 0.08),
-    inset 0 0 14px rgba(122, 92, 230, 0.04);
+    0 12px 28px rgba(111, 78, 214, 0.08),
+    0 2px 8px rgba(111, 78, 214, 0.04);
 }
 
 .card-icon-wrap {
-  height: 140px;
+  height: 170px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .feature-icon {
-  width: 120px;
-  height: 120px;
+  width: 160px;
+  height: 160px;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 0 14px rgba(122, 92, 230, 0.22));
+  filter: drop-shadow(0 10px 18px rgba(111, 78, 214, 0.14));
 }
 
 .card h3 {
@@ -213,7 +211,7 @@ body {
 }
 
 .modules {
-  padding: 15px 0 75px;
+  padding: 15px 0 78px;
 }
 
 .modules h2,
@@ -221,7 +219,7 @@ body {
 .footer h2 {
   text-align: center;
   font-size: 3.2rem;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .modules-grid {
@@ -231,17 +229,17 @@ body {
 }
 
 .module-box {
-  min-height: 290px;
-  background: linear-gradient(180deg, rgba(42, 35, 56, 0.97) 0%, rgba(31, 25, 43, 0.98) 100%);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  min-height: 300px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9f5ff 100%);
+  border: 1px solid rgba(111, 78, 214, 0.12);
+  border-radius: 22px;
   padding: 22px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   box-shadow:
-    0 0 14px rgba(122, 92, 230, 0.08),
-    inset 0 0 12px rgba(122, 92, 230, 0.04);
+    0 10px 24px rgba(111, 78, 214, 0.07),
+    0 2px 8px rgba(111, 78, 214, 0.04);
 }
 
 .module-box h3 {
@@ -258,16 +256,15 @@ body {
 .module-image-placeholder {
   width: 100%;
   flex: 1;
-  min-height: 170px;
-  border-radius: 16px;
-  border: 1px dashed rgba(180, 156, 255, 0.45);
+  min-height: 180px;
+  border-radius: 18px;
+  border: 1px dashed rgba(111, 78, 214, 0.26);
   background:
-    linear-gradient(135deg, rgba(122, 92, 230, 0.13), rgba(122, 92, 230, 0.04));
-  box-shadow: inset 0 0 12px rgba(122, 92, 230, 0.05);
+    linear-gradient(135deg, rgba(111, 78, 214, 0.08), rgba(139, 109, 240, 0.03));
 }
 
 .steps {
-  padding: 20px 0 80px;
+  padding: 20px 0 82px;
 }
 
 .steps-flow {
@@ -279,16 +276,16 @@ body {
 
 .step-card {
   width: 320px;
-  min-height: 285px;
-  background: linear-gradient(180deg, rgba(42, 35, 56, 0.97) 0%, rgba(31, 25, 43, 0.98) 100%);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  min-height: 290px;
+  background: linear-gradient(180deg, #ffffff 0%, #f9f5ff 100%);
+  border: 1px solid rgba(111, 78, 214, 0.12);
+  border-radius: 22px;
   padding: 22px;
   display: flex;
   flex-direction: column;
   box-shadow:
-    0 0 14px rgba(122, 92, 230, 0.08),
-    inset 0 0 12px rgba(122, 92, 230, 0.04);
+    0 10px 24px rgba(111, 78, 214, 0.07),
+    0 2px 8px rgba(111, 78, 214, 0.04);
 }
 
 .step-card h3 {
@@ -304,23 +301,22 @@ body {
 .step-image-placeholder {
   width: 100%;
   flex: 1;
-  min-height: 175px;
-  border-radius: 16px;
-  border: 1px dashed rgba(180, 156, 255, 0.45);
+  min-height: 180px;
+  border-radius: 18px;
+  border: 1px dashed rgba(111, 78, 214, 0.26);
   background:
-    linear-gradient(135deg, rgba(122, 92, 230, 0.13), rgba(122, 92, 230, 0.04));
+    linear-gradient(135deg, rgba(111, 78, 214, 0.08), rgba(139, 109, 240, 0.03));
 }
 
 .arrow {
   align-self: center;
-  font-size: 2.4rem;
-  color: var(--purple-3);
-  text-shadow: 0 0 12px rgba(122, 92, 230, 0.45);
+  font-size: 2.5rem;
+  color: var(--purple);
 }
 
 .footer {
-  padding: 46px 0 60px;
-  border-top: 1px solid rgba(122, 92, 230, 0.18);
+  padding: 48px 0 60px;
+  border-top: 1px solid rgba(111, 78, 214, 0.10);
 }
 
 .footer h2 {
@@ -356,7 +352,7 @@ body {
 }
 
 .footer-right a:hover {
-  color: #f0eaff;
+  color: var(--purple);
 }
 
 @keyframes glowmove {
@@ -411,5 +407,10 @@ body {
 
   .step-card {
     width: 100%;
+  }
+
+  .feature-icon {
+    width: 140px;
+    height: 140px;
   }
 }
