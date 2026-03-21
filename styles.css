@@ -15,6 +15,10 @@
   --shadow-soft: 0 12px 28px rgba(111, 78, 214, 0.08);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: Arial, sans-serif;
   line-height: 1.5;
@@ -89,6 +93,8 @@ img {
   display: flex;
   align-items: center;
   gap: 34px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .menu a {
@@ -147,6 +153,16 @@ img {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shineText 5s linear infinite;
+}
+
+.hero,
+.about,
+.features,
+.modules,
+.availability,
+.steps,
+.footer {
+  scroll-margin-top: 110px;
 }
 
 .hero {
