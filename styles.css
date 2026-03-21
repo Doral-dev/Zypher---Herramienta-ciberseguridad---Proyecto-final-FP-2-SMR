@@ -443,6 +443,15 @@ img {
   color: #ffffff;
 }
 
+.footer {
+  padding: 48px 0 60px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.contact-title {
+  text-align: center;
+}
+
 .footer-content {
   display: flex;
   justify-content: space-between;
@@ -476,6 +485,12 @@ img {
   align-items: flex-end;
 }
 
+.footer-contact-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
 .footer-lines a,
 .footer-center p,
 .footer-right a {
@@ -483,13 +498,6 @@ img {
   font-size: 1rem;
   text-decoration: none;
   margin-bottom: 8px;
-}
-
-
-.footer-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .footer-right a:hover,
@@ -521,6 +529,15 @@ img {
 
   .arrow {
     transform: rotate(90deg);
+  }
+
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
   }
 }
 
