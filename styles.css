@@ -33,6 +33,32 @@ body {
   margin: 0 auto;
 }
 
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.section-light {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(142, 116, 234, 0.10), transparent 18%),
+    linear-gradient(180deg, #fcfbff 0%, #f7f3ff 100%);
+}
+
+.section-purple {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 18%),
+    linear-gradient(180deg, #7b60df 0%, #6f4ed6 100%);
+}
+
+.header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--line-soft);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
 .nav {
   min-height: 88px;
   display: flex;
@@ -46,6 +72,23 @@ body {
   align-items: center;
   gap: 12px;
   flex: 0 0 auto;
+}
+
+.brand-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  margin-left: 0;
+}
+
+.logo {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg, #6f4ed6 0%, #a98fff 35%, #6f4ed6 70%, #cdbbff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shineText 5s linear infinite;
 }
 
 .menu {
@@ -64,6 +107,10 @@ body {
   font-size: 1.1rem;
   transition: 0.2s ease;
   white-space: nowrap;
+}
+
+.menu a:hover {
+  color: var(--purple-main);
 }
 
 .nav-buttons {
@@ -85,7 +132,6 @@ body {
   transition: 0.25s ease;
   white-space: nowrap;
 }
-
 
 .btn:hover {
   transform: translateY(-2px);
