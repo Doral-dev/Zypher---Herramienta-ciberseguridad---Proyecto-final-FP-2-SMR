@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - Zypher</title>
+  <link rel="stylesheet" href="registro.css">
+</head>
+<body>
+
+  <main class="register-page">
+    <div class="register-wrapper">
+      <div class="register-card">
+        <div class="logo-wrap">
+          <img src="img/logo-zypher.png" alt="Logo Zypher">
+          <div class="logo-text">Zypher</div>
+        </div>
+
+        <h1>Crear cuenta</h1>
+        <p class="subtitle">Regístrate para acceder a la plataforma de ciberseguridad Zypher</p>
+
+        <form action="register.php" method="POST" class="register-form">
+          <div class="form-group">
+            <label for="username">Usuario</label>
+            <input type="text" id="username" name="username" placeholder="Tu usuario" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="Tu contraseña" required>
+          </div>
+
+          <button type="submit" class="register-btn">Registrarse</button>
+        </form>
+
+        <p class="bottom-text">
+          ¿Ya tienes cuenta? <a href="#">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>
