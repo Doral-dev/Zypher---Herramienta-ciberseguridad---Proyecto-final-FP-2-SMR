@@ -34,7 +34,7 @@
   </header>
 
   <main>
-    <section id="inicio" class="hero section-light">
+    <section id="inicio" class="hero section-light reveal-left">
       <div class="container hero-content">
         <div class="hero-text">
           <span class="hero-tag">Ciberseguridad centralizada</span>
@@ -48,7 +48,7 @@
       </div>
     </section>
 
-    <section id="que-es" class="about section-purple">
+    <section id="que-es" class="about section-purple reveal-right">
       <div class="container">
         <h2 class="section-title section-title-light">¿Qué es Zypher?</h2>
         <p class="about-text">
@@ -57,7 +57,7 @@
       </div>
     </section>
 
-    <section id="caracteristicas" class="features section-light">
+    <section id="caracteristicas" class="features section-light reveal-left">
       <div class="container">
         <h2 class="section-title section-title-dark">Características</h2>
 
@@ -89,7 +89,7 @@
       </div>
     </section>
 
-    <section id="compatibilidad" class="availability section-purple">
+    <section id="compatibilidad" class="availability section-purple reveal-right">
       <div class="container">
         <h2 class="section-title section-title-light">Compatibilidad</h2>
 
@@ -115,7 +115,7 @@
       </div>
     </section>
 
-    <section id="modulos" class="modules section-light">
+    <section id="modulos" class="modules section-light reveal-left">
       <div class="container">
         <h2 class="section-title section-title-dark">Módulos</h2>
 
@@ -213,7 +213,7 @@
       </div>
     </section>
 
-    <section id="como-funciona" class="steps section-purple">
+    <section id="como-funciona" class="steps section-purple reveal-right">
       <div class="container">
         <h2 class="section-title section-title-light">Como usar Zypher</h2>
 
@@ -229,7 +229,7 @@
       </div>
     </section>
 
-    <section id="funcionamiento-interno" class="internal section-light">
+    <section id="funcionamiento-interno" class="internal section-light reveal-left">
       <div class="container">
         <h2 class="section-title section-title-dark">Funcionamiento interno del programa</h2>
 
@@ -254,7 +254,7 @@
     </section>
   </main>
 
-  <footer id="contacto" class="footer section-purple">
+  <footer id="contacto" class="footer section-purple reveal-right">
     <div class="container">
       <div class="footer-content">
         <div class="footer-left">
@@ -276,6 +276,24 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    const revealElements = document.querySelectorAll('.reveal-left, .reveal-right');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+        }
+      });
+    }, {
+      threshold: 0.18
+    });
+
+    revealElements.forEach(element => {
+      observer.observe(element);
+    });
+  </script>
 
 </body>
 </html>
