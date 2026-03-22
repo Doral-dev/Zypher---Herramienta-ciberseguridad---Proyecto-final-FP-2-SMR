@@ -435,72 +435,60 @@ img {
   padding: 78px 0 82px;
 }
 
-.steps-flow {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.steps-flow-4 .step-card {
-  width: 250px;
-}
-
-.step-card {
-  min-height: 290px;
+.guide-card {
+  max-width: 540px;
+  margin: 0 auto;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--line-soft-light);
-  border-radius: 22px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
+  border-radius: 24px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(40, 15, 120, 0.12);
   animation: fadeSlideUp 0.5s ease-out both;
 }
 
-.step-title {
-  text-align: center;
-  font-size: 1.65rem;
-  min-height: 48px;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(90deg, #ffffff 0%, #eee5ff 40%, #ffffff 70%, #d9caff 100%);
+.guide-title {
+  font-size: 2rem;
+  margin-bottom: 22px;
+  background: linear-gradient(90deg, #ffffff 0%, #f2eaff 30%, #ffffff 60%, #ddd0ff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shineText 5s linear infinite, fadeSlideUp 0.5s ease-out both;
 }
 
-.step-image-placeholder {
+.guide-image-wrap {
   width: 100%;
-  flex: 1;
-  min-height: 180px;
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 255, 255, 0.35);
+  height: 280px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  border: 1px dashed rgba(255, 255, 255, 0.30);
   background: rgba(255, 255, 255, 0.08);
 }
 
-.step-content-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+.guide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.step-content-box p {
-  color: #ffffff;
-  font-size: 1.5rem;
+.guide-button {
+  display: inline-block;
+  text-decoration: none;
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(180deg, #ffffff 0%, #f2eaff 100%);
+  color: #5d3fc8;
+  font-size: 1.05rem;
   font-weight: 700;
-  text-align: center;
+  transition: 0.25s ease;
 }
 
-.arrow {
-  align-self: center;
-  font-size: 2.5rem;
-  color: #ffffff;
-  animation: fadeSlideUp 0.45s ease-out both;
+.guide-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(40, 15, 120, 0.18);
 }
 
 .internal {
@@ -660,21 +648,6 @@ img {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .steps-flow {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .steps-flow-4 .step-card,
-  .step-card {
-    width: 100%;
-    max-width: 420px;
-  }
-
-  .arrow {
-    transform: rotate(90deg);
-  }
-
   .footer-left,
   .footer-center,
   .footer-right {
@@ -721,7 +694,7 @@ img {
 
   .card-title,
   .availability-title,
-  .step-title {
+  .guide-title {
     font-size: 1.6rem;
   }
 
@@ -741,6 +714,10 @@ img {
 
   .status {
     font-size: 1.3rem;
+  }
+
+  .guide-image-wrap {
+    height: 220px;
   }
 
   .internal-box {
