@@ -128,16 +128,16 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 34px;
-  padding: 0 8px;
+  gap: 60px;
+  padding: 0 20px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 22px;
   flex: 0 0 auto;
-  min-width: 220px;
+  min-width: 260px;
 }
 
 .brand-logo {
