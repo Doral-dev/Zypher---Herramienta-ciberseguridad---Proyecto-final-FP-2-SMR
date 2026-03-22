@@ -86,8 +86,8 @@ img {
 }
 
 .logo {
-  font-size: 2.2rem;
-  font-weight: 800;
+  font-size: 3.2rem;
+  font-weight: 1000;
   background: linear-gradient(90deg, #6f4ed6 0%, #a98fff 35%, #6f4ed6 70%, #cdbbff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
