@@ -209,9 +209,9 @@ img {
 .nav-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
   flex: 0 0 auto;
-  min-width: 220px;
+  min-width: 300px;
   justify-content: flex-end;
 }
 
