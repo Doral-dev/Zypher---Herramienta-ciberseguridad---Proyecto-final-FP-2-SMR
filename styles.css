@@ -696,6 +696,28 @@ img {
   transform: translateY(-1px);
 }
 
+/* ANIMACIONES AL HACER SCROLL */
+.reveal-left,
+.reveal-right {
+  opacity: 0;
+  transition: opacity 0.9s ease, transform 0.9s ease;
+  will-change: opacity, transform;
+}
+
+.reveal-left {
+  transform: translateX(-90px);
+}
+
+.reveal-right {
+  transform: translateX(90px);
+}
+
+.reveal-left.show,
+.reveal-right.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 @keyframes shineText {
   0% {
     background-position: 0% center;
@@ -835,5 +857,15 @@ img {
 
   .footer-content {
     gap: 26px;
+  }
+
+  .reveal-left,
+  .reveal-right {
+    transform: translateY(40px);
+  }
+
+  .reveal-left.show,
+  .reveal-right.show {
+    transform: translateY(0);
   }
 }
