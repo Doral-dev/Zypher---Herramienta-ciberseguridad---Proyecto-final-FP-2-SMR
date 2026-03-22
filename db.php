@@ -7,7 +7,7 @@ function getPDO(): PDO
     $port = '5432';
     $dbname = 'zypher_db_g2sb';
     $user = 'zypher_db_g2sb_user';
-    $password = 'TU_PASSWORD_NUEVA';
+    $password = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
     $dsn = "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require";
 
