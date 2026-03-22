@@ -12,6 +12,7 @@
   --text-dark: #2f2550;
   --text-soft: #5f547e;
   --line-soft: rgba(111, 78, 214, 0.14);
+  --line-soft-light: rgba(255, 255, 255, 0.18);
   --shadow-soft: 0 12px 28px rgba(111, 78, 214, 0.08);
 }
 
@@ -332,6 +333,13 @@ img {
   animation: shineText 5s linear infinite, fadeSlideUp 0.5s ease-out both;
 }
 
+.availability-title-light {
+  background: linear-gradient(90deg, #ffffff 0%, #f2eaff 30%, #ffffff 60%, #ddd0ff 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .status {
   font-size: 1.6rem;
   font-weight: 700;
@@ -339,11 +347,11 @@ img {
 }
 
 .available {
-  color: #178f3d;
+  color: #d5ffd8;
 }
 
 .unavailable {
-  color: #c63939;
+  color: #ffd5d5;
 }
 
 .modules {
@@ -439,7 +447,7 @@ img {
 .step-card {
   min-height: 290px;
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid var(--line-soft-light);
   border-radius: 22px;
   padding: 22px;
   display: flex;
@@ -521,7 +529,7 @@ img {
 
 .footer {
   padding: 48px 0 60px;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .footer-content {
@@ -568,7 +576,7 @@ img {
 .footer-lines a,
 .footer-center p,
 .footer-right a {
-  color: #4f4377;
+  color: #f7f4ff;
   font-size: 1rem;
   text-decoration: none;
   margin-bottom: 8px;
@@ -581,7 +589,7 @@ img {
 
 .footer-right a:hover,
 .footer-lines a:hover {
-  color: var(--purple-main);
+  color: #ffffff;
 }
 
 @keyframes shineText {
