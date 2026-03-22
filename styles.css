@@ -221,7 +221,7 @@ img {
 
 .hero-image img {
   width: 100%;
-  max-width: 540px;
+  max-width: 640px;
   margin: 0 auto;
   filter: drop-shadow(0 16px 30px rgba(111, 78, 214, 0.16));
 }
