@@ -700,7 +700,7 @@ img {
 .reveal-left,
 .reveal-right {
   opacity: 0;
-  transition: opacity 0.9s ease, transform 0.9s ease;
+  transition: opacity 1.4s ease, transform 1.4s ease;
   will-change: opacity, transform;
 }
 
