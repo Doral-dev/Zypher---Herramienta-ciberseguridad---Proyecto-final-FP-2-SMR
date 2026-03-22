@@ -334,10 +334,11 @@ img {
 }
 
 .availability-title-light {
-  background: linear-gradient(90deg, #ffffff 0%, #f2eaff 30%, #ffffff 60%, #ddd0ff 100%);
+  background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, #f2eaff 70%, #ffffff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.18);
 }
 
 .status {
@@ -347,11 +348,13 @@ img {
 }
 
 .available {
-  color: #d5ffd8;
+  color: #f3fff4;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.18);
 }
 
 .unavailable {
-  color: #ffd5d5;
+  color: #fff1f1;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.18);
 }
 
 .modules {
@@ -576,10 +579,11 @@ img {
 .footer-lines a,
 .footer-center p,
 .footer-right a {
-  color: #f7f4ff;
+  color: #ffffff;
   font-size: 1rem;
   text-decoration: none;
   margin-bottom: 8px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.22);
   animation: fadeSlideUp 0.45s ease-out both;
 }
 
@@ -589,7 +593,7 @@ img {
 
 .footer-right a:hover,
 .footer-lines a:hover {
-  color: #ffffff;
+  color: #f2eaff;
 }
 
 @keyframes shineText {
