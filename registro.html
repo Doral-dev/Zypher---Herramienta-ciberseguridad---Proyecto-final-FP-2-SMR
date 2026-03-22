@@ -22,17 +22,17 @@
         <form action="register.php" method="POST" class="register-form">
           <div class="form-group">
             <label for="username">Usuario</label>
-            <input type="text" id="username" name="username" placeholder="Tu usuario" required>
+            <input type="text" id="username" name="username" placeholder="Tu usuario" required minlength="3" maxlength="50">
           </div>
 
           <div class="form-group">
             <label for="email">Correo electrónico</label>
-            <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required>
+            <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required maxlength="255">
           </div>
 
           <div class="form-group">
             <label for="password">Contraseña</label>
-            <input type="password" id="password" name="password" placeholder="Tu contraseña" required>
+            <input type="password" id="password" name="password" placeholder="Tu contraseña" required minlength="6">
           </div>
 
           <button type="submit" class="register-btn">Registrarse</button>
