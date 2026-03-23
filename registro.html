@@ -19,12 +19,7 @@
         <h1>Crear cuenta</h1>
         <p class="subtitle">Regístrate para acceder a la plataforma de ciberseguridad Zypher</p>
 
-        <form action="register.php" method="POST" class="register-form">
-          <div class="form-group">
-            <label for="username">Usuario</label>
-            <input type="text" id="username" name="username" placeholder="Tu usuario" required minlength="3" maxlength="50">
-          </div>
-
+        <form action="/register.php" method="POST" class="register-form">
           <div class="form-group">
             <label for="email">Correo electrónico</label>
             <input type="email" id="email" name="email" placeholder="tuemail@ejemplo.com" required maxlength="255">
@@ -39,7 +34,7 @@
         </form>
 
         <p class="bottom-text">
-          ¿Ya tienes cuenta? <a href="/inicio-sesion.html">Inicia sesión</a>
+          ¿Ya tienes cuenta? <a href="/inicio_sesion.html">Inicia sesión</a>
         </p>
       </div>
     </div>
