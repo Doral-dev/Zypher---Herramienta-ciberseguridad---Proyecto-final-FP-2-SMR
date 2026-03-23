@@ -46,7 +46,7 @@ try {
         'password_hash' => $passwordHash
     ]);
 
-    header('Location: /inicio_sesion.html');
+    header('Location: /inicio-sesion.html');
     exit;
 
 } catch (Throwable $e) {
