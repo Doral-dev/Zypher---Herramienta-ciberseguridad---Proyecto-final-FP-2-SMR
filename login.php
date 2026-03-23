@@ -9,42 +9,44 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit('Acceso no permitido');
 }
 
-$username = trim($_POST['username'] ?? '');
+$email = trim($_POST['email'] ?? '');
 $password = trim($_POST['password'] ?? '');
 
-if ($username === '' || $password === '') {
+if ($email === '' || $password === '') {
     exit('Faltan campos');
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    exit('Correo no válido');
 }
 
 try {
     $pdo = getPDO();
 
     $stmt = $pdo->prepare('
-        SELECT id, username, email, password_hash
+        SELECT id, email, password_hash
         FROM users
-        WHERE username = :username OR email = :email
+        WHERE email = :email
         LIMIT 1
     ');
 
     $stmt->execute([
-        'username' => $username,
-        'email' => $username
+        'email' => $email
     ]);
 
     $user = $stmt->fetch();
 
     if (!$user) {
-        exit('Usuario o contraseña incorrectos');
+        exit('Correo o contraseña incorrectos');
     }
 
     if (!password_verify($password, $user['password_hash'])) {
-        exit('Usuario o contraseña incorrectos');
+        exit('Correo o contraseña incorrectos');
     }
 
     session_regenerate_id(true);
 
     $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['logged_in'] = true;
 
