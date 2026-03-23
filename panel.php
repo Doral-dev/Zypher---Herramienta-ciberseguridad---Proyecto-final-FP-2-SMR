@@ -8,7 +8,7 @@ if (empty($_SESSION['logged_in'])) {
     exit;
 }
 
-$username = $_SESSION['username'] ?? 'Usuario';
+$email = $_SESSION['email'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -29,7 +29,7 @@ $username = $_SESSION['username'] ?? 'Usuario';
         </div>
 
         <h1>Panel</h1>
-        <p class="subtitle">Has iniciado sesión correctamente como <?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?></p>
+        <p class="subtitle">Has iniciado sesión correctamente con <?php echo htmlspecialchars($email, ENT_QUOTES, 'UTF-8'); ?></p>
 
         <form action="/logout.php" method="POST" class="register-form">
           <button type="submit" class="register-btn">Cerrar sesión</button>
