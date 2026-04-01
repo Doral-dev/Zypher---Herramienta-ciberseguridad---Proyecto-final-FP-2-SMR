@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 session_start();
-
 require_once __DIR__ . '/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -24,7 +23,7 @@ try {
     $pdo = getPDO();
 
     $stmt = $pdo->prepare('
-        SELECT id, email, password_hash
+        SELECT id, email, password_hash, is_verified
         FROM users
         WHERE email = :email
         LIMIT 1
@@ -44,15 +43,17 @@ try {
         exit('Correo o contraseña incorrectos');
     }
 
-    session_regenerate_id(true);
+    if (!(bool)$user['is_verified']) {
+        exit('Debes verificar tu correo antes de iniciar sesión');
+    }
 
+    session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['logged_in'] = true;
 
     header('Location: /panel.php');
     exit;
-
 } catch (Throwable $e) {
     exit('Error al iniciar sesión: ' . $e->getMessage());
 }
