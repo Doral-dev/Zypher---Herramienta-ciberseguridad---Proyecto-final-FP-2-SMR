@@ -6,7 +6,7 @@ function sendVerificationEmail(string $to, string $token): void
     $baseUrl = 'https://zypher-herramienta-ciberseguridad.onrender.com';
     $verifyUrl = $baseUrl . '/verify.php?token=' . urlencode($token);
 
-    $apiKey = $_ENV['BREVO_API_KEY'] ?? getenv('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') ?: '';
+    $apiKey = $_ENV['BREVO_API_KEY'] ?? getenv('BREVO_API_KEY') ?: '';
 
     if ($apiKey === '') {
         throw new Exception('Falta la variable BREVO_API_KEY');
