@@ -26,27 +26,36 @@ $nombreEquipo = php_uname('n');
         }
 
         :root {
-            --bg-main: #f6f3ff;
-            --panel: #ffffff;
-            --panel-soft: #f8f5ff;
-            --border: #ddd4f5;
+            --bg-main: #f3efff;
+            --bg-soft: #fbf9ff;
+            --panel: rgba(255, 255, 255, 0.88);
+            --panel-strong: #ffffff;
+            --panel-soft: #f7f3ff;
+            --border: rgba(111, 78, 214, 0.16);
             --text: #2f2550;
             --text-soft: #6f6791;
             --purple: #6f4ed6;
             --purple-dark: #4b2cab;
+            --purple-soft: #8f74ea;
             --purple-light: #ede7ff;
-            --green-bg: #dff6e8;
-            --green-text: #247a46;
-            --yellow-bg: #fff4d8;
-            --yellow-text: #9a6a00;
-            --red-bg: #ffe1e1;
-            --red-text: #b42323;
-            --shadow: 0 14px 32px rgba(75, 44, 171, 0.10);
+            --blue-soft: #e8f2ff;
+            --blue-text: #225caa;
+            --green-bg: #def8e8;
+            --green-text: #1f8a4c;
+            --yellow-bg: #fff4d6;
+            --yellow-text: #a16b00;
+            --red-bg: #ffe3e3;
+            --red-text: #bf2d2d;
+            --shadow-soft: 0 16px 34px rgba(76, 49, 168, 0.10);
+            --shadow-strong: 0 20px 44px rgba(76, 49, 168, 0.16);
         }
 
         body {
             font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(180deg, #faf8ff 0%, #f1ebff 100%);
+            background:
+                radial-gradient(circle at 12% 18%, rgba(143, 116, 234, 0.18), transparent 18%),
+                radial-gradient(circle at 88% 14%, rgba(111, 78, 214, 0.12), transparent 18%),
+                linear-gradient(180deg, #fcfbff 0%, #f2edff 100%);
             color: var(--text);
             min-height: 100vh;
         }
@@ -58,7 +67,8 @@ $nombreEquipo = php_uname('n');
         }
 
         .sidebar {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
             border-right: 1px solid var(--border);
             padding: 24px 18px;
         }
@@ -73,13 +83,14 @@ $nombreEquipo = php_uname('n');
         }
 
         .brand img {
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             object-fit: contain;
+            filter: drop-shadow(0 8px 18px rgba(111, 78, 214, 0.18));
         }
 
         .brand-title {
-            font-size: 1.6rem;
+            font-size: 1.65rem;
             font-weight: 800;
             color: var(--purple-dark);
         }
@@ -87,36 +98,43 @@ $nombreEquipo = php_uname('n');
         .menu-section {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         .menu-item {
-            background: var(--panel);
+            background: linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(247,243,255,0.95) 100%);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 18px 16px;
             font-size: 1rem;
             font-weight: 700;
             color: var(--text);
             text-align: center;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-soft);
+            transition: 0.2s ease;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
         }
 
         .main {
-            padding: 24px;
+            padding: 28px;
         }
 
         .topbar {
-            background: var(--panel);
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
-            border-radius: 22px;
+            border-radius: 24px;
             padding: 18px 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 16px;
-            box-shadow: var(--shadow);
-            margin-bottom: 24px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 28px;
             flex-wrap: wrap;
         }
 
@@ -127,7 +145,7 @@ $nombreEquipo = php_uname('n');
         }
 
         .info-badge {
-            background: var(--panel-soft);
+            background: linear-gradient(180deg, #fbf9ff 0%, #f2edff 100%);
             border: 1px solid var(--border);
             color: var(--text);
             padding: 10px 14px;
@@ -147,11 +165,12 @@ $nombreEquipo = php_uname('n');
             height: 46px;
             border-radius: 14px;
             border: 1px solid var(--border);
-            background: var(--panel-soft);
+            background: linear-gradient(180deg, #fbf9ff 0%, #f2edff 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.15rem;
+            box-shadow: var(--shadow-soft);
         }
 
         .logout-form {
@@ -166,39 +185,72 @@ $nombreEquipo = php_uname('n');
             color: #ffffff;
             font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 12px 24px rgba(111, 78, 214, 0.18);
+            transition: 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
         }
 
         .content {
             display: grid;
-            gap: 20px;
+            gap: 28px;
         }
 
         .card {
-            background: var(--panel);
+            background: rgba(255, 255, 255, 0.90);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
-            border-radius: 22px;
-            padding: 24px;
-            box-shadow: var(--shadow);
+            border-radius: 24px;
+            padding: 26px;
+            box-shadow: var(--shadow-soft);
         }
 
         .page-title {
             font-size: 2rem;
             font-weight: 800;
             color: var(--purple-dark);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .page-text {
             color: var(--text-soft);
-            line-height: 1.7;
+            line-height: 1.75;
             font-size: 1rem;
+            max-width: 900px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
 
         .section-title {
-            font-size: 1.08rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--purple-dark);
-            margin-bottom: 16px;
+        }
+
+        .section-btn {
+            text-decoration: none;
+            border: 1px solid rgba(111, 78, 214, 0.18);
+            background: linear-gradient(180deg, #f8f4ff 0%, #efe8ff 100%);
+            color: var(--purple-dark);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: 0.2s ease;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .section-btn:hover {
+            transform: translateY(-2px);
         }
 
         .status-grid {
@@ -208,10 +260,11 @@ $nombreEquipo = php_uname('n');
         }
 
         .status-box {
-            background: var(--panel-soft);
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(247,243,255,0.95) 100%);
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: 18px;
+            box-shadow: var(--shadow-soft);
         }
 
         .status-label {
@@ -221,10 +274,10 @@ $nombreEquipo = php_uname('n');
         }
 
         .status-value {
-            font-size: 1.15rem;
+            font-size: 1.12rem;
             font-weight: 800;
             color: var(--purple-dark);
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .status-tag {
@@ -251,33 +304,39 @@ $nombreEquipo = php_uname('n');
             color: var(--red-text);
         }
 
+        .tag-info {
+            background: var(--blue-soft);
+            color: var(--blue-text);
+        }
+
         .list {
             display: grid;
-            gap: 12px;
+            gap: 14px;
         }
 
         .list-item {
-            background: var(--panel-soft);
+            background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,243,255,0.96) 100%);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px 16px;
+            border-radius: 18px;
+            padding: 16px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
             flex-wrap: wrap;
+            box-shadow: var(--shadow-soft);
         }
 
         .list-item-left strong {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             color: var(--text);
         }
 
         .list-item-left span {
             color: var(--text-soft);
             font-size: 0.93rem;
-            line-height: 1.5;
+            line-height: 1.55;
         }
 
         .severity-tag {
@@ -310,10 +369,11 @@ $nombreEquipo = php_uname('n');
         }
 
         .activity-box {
-            background: var(--panel-soft);
+            background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,243,255,0.96) 100%);
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: 18px;
+            box-shadow: var(--shadow-soft);
         }
 
         .activity-label {
@@ -334,6 +394,19 @@ $nombreEquipo = php_uname('n');
             color: var(--text-soft);
             font-size: 0.92rem;
             line-height: 1.5;
+        }
+
+        .mini-btn {
+            display: inline-block;
+            margin-top: 12px;
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: linear-gradient(180deg, #8a6df0 0%, #6f4ed6 100%);
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(111, 78, 214, 0.16);
         }
 
         @media (max-width: 1300px) {
@@ -366,6 +439,10 @@ $nombreEquipo = php_uname('n');
 
             .main {
                 padding: 16px;
+            }
+
+            .card {
+                padding: 20px;
             }
         }
     </style>
@@ -407,16 +484,20 @@ $nombreEquipo = php_uname('n');
                 <div class="card">
                     <div class="page-title">Resumen general</div>
                     <p class="page-text">
-                        La sección Inicio mostrará de forma resumida el estado general del sistema, notificaciones recientes y la actividad más importante realizada recientemente dentro de Zypher.
+                        La sección Inicio muestra de forma resumida el estado general del sistema, notificaciones recientes y la actividad más importante realizada recientemente dentro de Zypher.
                     </p>
                 </div>
 
                 <div class="card">
-                    <div class="section-title">1. Estado general</div>
+                    <div class="section-head">
+                        <div class="section-title">Estado general</div>
+                    </div>
+
                     <div class="status-grid">
                         <div class="status-box">
                             <div class="status-label">Nombre del equipo</div>
                             <div class="status-value"><?php echo htmlspecialchars($nombreEquipo, ENT_QUOTES, 'UTF-8'); ?></div>
+                            <span class="status-tag tag-info">Hostname</span>
                         </div>
 
                         <div class="status-box">
@@ -428,24 +509,31 @@ $nombreEquipo = php_uname('n');
                         <div class="status-box">
                             <div class="status-label">Protecciones activas</div>
                             <div class="status-value">3 módulos</div>
+                            <span class="status-tag tag-ok">Activas</span>
                         </div>
 
                         <div class="status-box">
                             <div class="status-label">Estado vulnerabilidades</div>
                             <div class="status-value">12 detectadas</div>
                             <span class="status-tag tag-alert">2 críticas</span>
+                            <a href="#" class="mini-btn">Ver todas las vulnerabilidades</a>
                         </div>
 
                         <div class="status-box">
                             <div class="status-label">Estado CIS</div>
                             <div class="status-value">87 / 120</div>
                             <span class="status-tag tag-ok">Cumplidas</span>
+                            <a href="#" class="mini-btn">Ver todas las políticas</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="section-title">2. Notificaciones recientes (últimas 24 horas)</div>
+                    <div class="section-head">
+                        <div class="section-title">Notificaciones recientes (últimas 24 horas)</div>
+                        <a href="#" class="section-btn">Ver todas las notificaciones</a>
+                    </div>
+
                     <div class="list">
                         <div class="list-item">
                             <div class="list-item-left">
@@ -474,7 +562,10 @@ $nombreEquipo = php_uname('n');
                 </div>
 
                 <div class="card">
-                    <div class="section-title">3. Actividad reciente (últimas 24 horas)</div>
+                    <div class="section-head">
+                        <div class="section-title">Actividad reciente (últimas 24 horas)</div>
+                    </div>
+
                     <div class="activity-grid">
                         <div class="activity-box">
                             <div class="activity-label">Último módulo visitado</div>
