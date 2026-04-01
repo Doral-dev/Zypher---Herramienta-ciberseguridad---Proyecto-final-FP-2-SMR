@@ -39,8 +39,6 @@ $nombreEquipo = php_uname('n');
             --green-text: #247a46;
             --yellow: #fff4d8;
             --yellow-text: #9a6a00;
-            --red: #ffe1e1;
-            --red-text: #b42323;
             --shadow: 0 14px 32px rgba(75, 44, 171, 0.10);
         }
 
@@ -102,12 +100,6 @@ $nombreEquipo = php_uname('n');
             box-shadow: var(--shadow);
         }
 
-        .menu-item.active {
-            background: linear-gradient(180deg, #7d60e4 0%, #6f4ed6 100%);
-            color: #ffffff;
-            border-color: #6f4ed6;
-        }
-
         .main {
             padding: 24px;
         }
@@ -120,31 +112,10 @@ $nombreEquipo = php_uname('n');
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 18px;
+            gap: 16px;
             box-shadow: var(--shadow);
             margin-bottom: 24px;
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 18px;
             flex-wrap: wrap;
-        }
-
-        .topbar-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            color: var(--purple-dark);
-            font-size: 1.2rem;
-        }
-
-        .topbar-logo img {
-            width: 34px;
-            height: 34px;
-            object-fit: contain;
         }
 
         .topbar-info {
@@ -163,7 +134,7 @@ $nombreEquipo = php_uname('n');
             font-weight: 600;
         }
 
-        .topbar-right {
+        .topbar-actions {
             display: flex;
             align-items: center;
             gap: 14px;
@@ -178,7 +149,7 @@ $nombreEquipo = php_uname('n');
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
         }
 
         .logout-form {
@@ -200,7 +171,6 @@ $nombreEquipo = php_uname('n');
             gap: 20px;
         }
 
-        .hero-card,
         .card {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -209,104 +179,58 @@ $nombreEquipo = php_uname('n');
             box-shadow: var(--shadow);
         }
 
-        .hero-card {
-            display: grid;
-            grid-template-columns: 1.6fr 1fr;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .hero-title {
+        .page-title {
             font-size: 2rem;
             font-weight: 800;
             color: var(--purple-dark);
             margin-bottom: 10px;
         }
 
-        .hero-text {
+        .page-text {
             color: var(--text-soft);
             line-height: 1.7;
             font-size: 1rem;
-            margin-bottom: 18px;
         }
 
-        .hero-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .hero-tag {
-            background: var(--purple-light);
-            color: var(--purple-dark);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 9px 14px;
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
-
-        .hero-side {
-            background: linear-gradient(180deg, #f8f5ff 0%, #efe8ff 100%);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-        }
-
-        .hero-side-title {
-            font-size: 1rem;
+        .section-title {
+            font-size: 1.08rem;
             font-weight: 800;
             color: var(--purple-dark);
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
-        .hero-side-list {
+        .summary-grid {
             display: grid;
-            gap: 12px;
-        }
-
-        .hero-side-item {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px 14px;
-            color: var(--text);
-            font-size: 0.95rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 18px;
         }
 
-        .stat-card {
-            background: var(--panel);
+        .summary-box {
+            background: var(--panel-soft);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow);
+            border-radius: 18px;
+            padding: 18px;
         }
 
-        .stat-label {
+        .summary-label {
             color: var(--text-soft);
             font-size: 0.92rem;
             margin-bottom: 8px;
         }
 
-        .stat-value {
-            font-size: 1.9rem;
+        .summary-value {
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--purple-dark);
             margin-bottom: 10px;
         }
 
-        .stat-status {
+        .summary-status {
             display: inline-block;
-            font-size: 0.85rem;
-            font-weight: 700;
             padding: 7px 10px;
             border-radius: 999px;
+            font-size: 0.84rem;
+            font-weight: 700;
         }
 
         .ok {
@@ -319,83 +243,31 @@ $nombreEquipo = php_uname('n');
             color: var(--yellow-text);
         }
 
-        .alert {
-            background: var(--red);
-            color: var(--red-text);
-        }
-
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 20px;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--purple-dark);
-            margin-bottom: 16px;
-        }
-
-        .activity-list {
+        .list {
             display: grid;
             gap: 12px;
         }
 
-        .activity-item {
-            border: 1px solid var(--border);
+        .list-item {
             background: var(--panel-soft);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 14px 16px;
         }
 
-        .activity-item strong {
+        .list-item strong {
             display: block;
             margin-bottom: 4px;
             color: var(--text);
         }
 
-        .activity-item span {
-            color: var(--text-soft);
-            font-size: 0.93rem;
-        }
-
-        .quick-grid {
-            display: grid;
-            gap: 12px;
-        }
-
-        .quick-item {
-            border: 1px solid var(--border);
-            background: var(--panel-soft);
-            border-radius: 16px;
-            padding: 16px;
-        }
-
-        .quick-item-title {
-            font-weight: 800;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-
-        .quick-item-text {
+        .list-item span {
             color: var(--text-soft);
             font-size: 0.93rem;
             line-height: 1.5;
         }
 
-        @media (max-width: 1150px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .bottom-grid,
-            .hero-card {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 980px) {
+        @media (max-width: 1000px) {
             .layout {
                 grid-template-columns: 1fr;
             }
@@ -405,23 +277,8 @@ $nombreEquipo = php_uname('n');
                 border-bottom: 1px solid var(--border);
             }
 
-            .topbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .topbar-right {
-                justify-content: space-between;
-            }
-        }
-
-        @media (max-width: 650px) {
-            .stats-grid {
+            .summary-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .main {
-                padding: 16px;
             }
         }
     </style>
@@ -435,7 +292,7 @@ $nombreEquipo = php_uname('n');
             </div>
 
             <div class="menu-section">
-                <div class="menu-item active">Evaluación y refuerzo de la seguridad</div>
+                <div class="menu-item">Evaluación y refuerzo de la seguridad</div>
                 <div class="menu-item">Análisis de amenazas y supervisión</div>
                 <div class="menu-item">Continuidad y recuperación</div>
                 <div class="menu-item">Revisión, apoyo y documentación</div>
@@ -445,19 +302,12 @@ $nombreEquipo = php_uname('n');
 
         <main class="main">
             <div class="topbar">
-                <div class="topbar-left">
-                    <div class="topbar-logo">
-                        <img src="img/logo-zypher.png" alt="Logo Zypher">
-                        <span>Zypher</span>
-                    </div>
-
-                    <div class="topbar-info">
-                        <div class="info-badge">Equipo: <?php echo htmlspecialchars($nombreEquipo, ENT_QUOTES, 'UTF-8'); ?></div>
-                        <div class="info-badge">Usuario: <?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></div>
-                    </div>
+                <div class="topbar-info">
+                    <div class="info-badge">Equipo: <?php echo htmlspecialchars($nombreEquipo, ENT_QUOTES, 'UTF-8'); ?></div>
+                    <div class="info-badge">Usuario: <?php echo htmlspecialchars($nombreUsuario, ENT_QUOTES, 'UTF-8'); ?></div>
                 </div>
 
-                <div class="topbar-right">
+                <div class="topbar-actions">
                     <div class="notify">🔔</div>
 
                     <form action="/logout.php" method="POST" class="logout-form">
@@ -467,95 +317,67 @@ $nombreEquipo = php_uname('n');
             </div>
 
             <section class="content">
-                <div class="hero-card">
-                    <div>
-                        <div class="hero-title">Resumen general del entorno</div>
-                        <p class="hero-text">
-                            Aquí puedes ver de un vistazo el estado general del sistema, la actividad reciente y los accesos rápidos a las áreas principales de Zypher.
-                        </p>
+                <div class="card">
+                    <div class="page-title">Resumen general</div>
+                    <p class="page-text">
+                        Aquí puedes ver el estado general del entorno, la actividad más reciente y los avisos principales de Zypher en una sola vista.
+                    </p>
+                </div>
 
-                        <div class="hero-tags">
-                            <div class="hero-tag">Vista principal</div>
-                            <div class="hero-tag">Estado general</div>
-                            <div class="hero-tag">Actividad reciente</div>
-                            <div class="hero-tag">Acceso rápido</div>
+                <div class="card">
+                    <div class="section-title">Estado general</div>
+                    <div class="summary-grid">
+                        <div class="summary-box">
+                            <div class="summary-label">Estado del sistema</div>
+                            <div class="summary-value">Estable</div>
+                            <span class="summary-status ok">Correcto</span>
                         </div>
-                    </div>
 
-                    <div class="hero-side">
-                        <div class="hero-side-title">Qué puedes hacer desde aquí</div>
-                        <div class="hero-side-list">
-                            <div class="hero-side-item">Revisar el estado general del sistema</div>
-                            <div class="hero-side-item">Ver alertas y avisos recientes</div>
-                            <div class="hero-side-item">Acceder rápidamente a módulos clave</div>
+                        <div class="summary-box">
+                            <div class="summary-label">Alertas recientes</div>
+                            <div class="summary-value">3</div>
+                            <span class="summary-status warn">Revisar</span>
+                        </div>
+
+                        <div class="summary-box">
+                            <div class="summary-label">Última revisión</div>
+                            <div class="summary-value">Hoy</div>
+                            <span class="summary-status ok">Actualizado</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Estado del sistema</div>
-                        <div class="stat-value">Estable</div>
-                        <span class="stat-status ok">Correcto</span>
-                    </div>
+                <div class="card">
+                    <div class="section-title">Actividad reciente</div>
+                    <div class="list">
+                        <div class="list-item">
+                            <strong>Análisis completado</strong>
+                            <span>Se ha terminado una revisión general del sistema.</span>
+                        </div>
 
-                    <div class="stat-card">
-                        <div class="stat-label">Alertas recientes</div>
-                        <div class="stat-value">3</div>
-                        <span class="stat-status warn">Revisar</span>
-                    </div>
+                        <div class="list-item">
+                            <strong>Nueva notificación registrada</strong>
+                            <span>Se ha añadido un nuevo aviso pendiente de revisión.</span>
+                        </div>
 
-                    <div class="stat-card">
-                        <div class="stat-label">Último análisis</div>
-                        <div class="stat-value">Hoy</div>
-                        <span class="stat-status ok">Actualizado</span>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">Copias de seguridad</div>
-                        <div class="stat-value">1</div>
-                        <span class="stat-status ok">Disponible</span>
+                        <div class="list-item">
+                            <strong>Acceso al panel</strong>
+                            <span>Se ha iniciado sesión correctamente en Zypher.</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bottom-grid">
-                    <div class="card">
-                        <div class="card-title">Actividad reciente</div>
-                        <div class="activity-list">
-                            <div class="activity-item">
-                                <strong>Análisis completado</strong>
-                                <span>Se ha terminado una revisión general del sistema.</span>
-                            </div>
-
-                            <div class="activity-item">
-                                <strong>Nueva notificación registrada</strong>
-                                <span>Se ha añadido un nuevo aviso pendiente de revisión.</span>
-                            </div>
-
-                            <div class="activity-item">
-                                <strong>Acceso al panel</strong>
-                                <span>Has iniciado sesión correctamente en Zypher.</span>
-                            </div>
+                <div class="card">
+                    <div class="section-title">Avisos principales</div>
+                    <div class="list">
+                        <div class="list-item">
+                            <strong>Revisión recomendada</strong>
+                            <span>Hay elementos pendientes de comprobar en el entorno.</span>
                         </div>
-                    </div>
 
-                    <div class="card">
-                        <div class="card-title">Accesos rápidos</div>
-                        <div class="quick-grid">
-                            <div class="quick-item">
-                                <div class="quick-item-title">Ver alertas</div>
-                                <div class="quick-item-text">Consulta los últimos avisos y eventos importantes.</div>
-                            </div>
-
-                            <div class="quick-item">
-                                <div class="quick-item-title">Revisar estado</div>
-                                <div class="quick-item-text">Comprueba el estado general del entorno protegido.</div>
-                            </div>
-
-                            <div class="quick-item">
-                                <div class="quick-item-title">Abrir módulos</div>
-                                <div class="quick-item-text">Accede a las áreas principales del sistema desde un punto central.</div>
-                            </div>
+                        <div class="list-item">
+                            <strong>Estado operativo</strong>
+                            <span>La plataforma está disponible y funcionando con normalidad.</span>
                         </div>
                     </div>
                 </div>
