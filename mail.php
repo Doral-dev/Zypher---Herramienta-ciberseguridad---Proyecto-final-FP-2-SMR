@@ -1,26 +1,36 @@
 <?php
 declare(strict_types=1);
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
 function sendVerificationEmail(string $to, string $token): void
 {
     $baseUrl = 'https://zypher-herramienta-ciberseguridad.onrender.com';
     $verifyUrl = $baseUrl . '/verify.php?token=' . urlencode($token);
 
-    $subject = 'Verifica tu cuenta de Zypher';
+    $mail = new PHPMailer(true);
 
-    $message = "Hola,\n\n";
-    $message .= "Pulsa este enlace para verificar tu cuenta:\n\n";
-    $message .= $verifyUrl . "\n\n";
-    $message .= "Si no has sido tú, ignora este correo.\n";
+    try {
+        $mail->isSMTP();
+        $mail->Host = 'smtp-relay.brevo.com';
+        $mail->Port = 587;
+        $mail->SMTPAuth = true;
+        $mail->Username = 'a6d6b9001@smtp-brevo.com';
+        $mail->Password = 'PON_AQUI_TU_SMTP_KEY';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
-    $headers = [];
-    $headers[] = 'MIME-Version: 1.0';
-    $headers[] = 'Content-type: text/plain; charset=UTF-8';
-    $headers[] = 'From: Zypher <adoral296@gmail.com>';
+        $mail->CharSet = 'UTF-8';
+        $mail->setFrom('a6d6b9001@smtp-brevo.com', 'Zypher');
+        $mail->addAddress($to);
 
-    $sent = mail($to, $subject, $message, implode("\r\n", $headers));
+        $mail->Subject = 'Verifica tu cuenta de Zypher';
+        $mail->Body = "Hola,\n\nPulsa este enlace para verificar tu cuenta de Zypher:\n\n{$verifyUrl}\n\nSi no has sido tú, ignora este correo.";
 
-    if (!$sent) {
-        throw new Exception('No se pudo enviar el correo de verificación');
+        $mail->send();
+    } catch (Exception $e) {
+        throw new Exception('No se pudo enviar el correo: ' . $mail->ErrorInfo);
     }
 }
