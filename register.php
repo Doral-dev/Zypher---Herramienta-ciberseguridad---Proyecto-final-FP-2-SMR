@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/mail.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit('Acceso no permitido');
@@ -35,20 +36,22 @@ try {
     }
 
     $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+    $verificationToken = bin2hex(random_bytes(32));
 
     $stmt = $pdo->prepare('
         INSERT INTO users (username, email, password_hash, is_verified, verification_token)
-        VALUES (NULL, :email, :password_hash, TRUE, NULL)
+        VALUES (NULL, :email, :password_hash, FALSE, :verification_token)
     ');
 
     $stmt->execute([
         'email' => $email,
-        'password_hash' => $passwordHash
+        'password_hash' => $passwordHash,
+        'verification_token' => $verificationToken
     ]);
 
-    header('Location: /inicio-sesion.html');
-    exit;
+    sendVerificationEmail($email, $verificationToken);
 
+    exit('Registro completado. Revisa tu correo para verificar la cuenta.');
 } catch (Throwable $e) {
     exit('Error al registrar: ' . $e->getMessage());
 }
