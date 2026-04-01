@@ -40,7 +40,7 @@ try {
 
     $stmt = $pdo->prepare('
         INSERT INTO users (username, email, password_hash, is_verified, verification_token)
-        VALUES (NULL, :email, :password_hash, FALSE, :verification_token)
+        VALUES (NULL, :email, :password_hash, TRUE, :verification_token)
     ');
 
     $stmt->execute([
@@ -49,7 +49,7 @@ try {
         'verification_token' => $verificationToken
     ]);
 
-    sendVerificationEmail($email, $verificationToken);
+    // sendVerificationEmail($email, $verificationToken);
 
     exit('Registro completado. Revisa tu correo para verificar la cuenta.');
 } catch (Throwable $e) {
