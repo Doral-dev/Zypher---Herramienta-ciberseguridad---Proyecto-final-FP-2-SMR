@@ -6,7 +6,11 @@ function sendVerificationEmail(string $to, string $token): void
     $baseUrl = 'https://zypher-herramienta-ciberseguridad.onrender.com';
     $verifyUrl = $baseUrl . '/verify.php?token=' . urlencode($token);
 
-    $apiKey = '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';
+    $apiKey = $_ENV['BREVO_API_KEY'] ?? getenv('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') ?: '';
+
+    if ($apiKey === '') {
+        throw new Exception('Falta la variable BREVO_API_KEY');
+    }
 
     $data = [
         'sender' => [
@@ -22,15 +26,13 @@ function sendVerificationEmail(string $to, string $token): void
         'textContent' => "Hola,\n\nPulsa este enlace para verificar tu cuenta de Zypher:\n\n{$verifyUrl}\n\nSi no has sido tú, ignora este correo."
     ];
 
-    $headers = [
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Accept: application/json',
         'Content-Type: application/json',
         'api-key: ' . $apiKey
-    ];
-
-    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 20);
@@ -40,7 +42,7 @@ function sendVerificationEmail(string $to, string $token): void
     if ($response === false) {
         $error = curl_error($ch);
         curl_close($ch);
-        throw new Exception('No se pudo conectar con la API de Brevo: ' . $error);
+        throw new Exception('No se pudo conectar con Brevo: ' . $error);
     }
 
     $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
