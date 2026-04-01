@@ -9,7 +9,7 @@ if (empty($_SESSION['logged_in'])) {
 }
 
 $email = $_SESSION['email'] ?? 'usuario@zypher.local';
-$nombreUsuario = explode('@', $email)[0];
+$nombreUsuario = explode('@', $email)[0] ?: 'usuario';
 $nombreEquipo = php_uname('n');
 ?>
 <!DOCTYPE html>
@@ -26,7 +26,7 @@ $nombreEquipo = php_uname('n');
         }
 
         :root {
-            --bg: #f6f3ff;
+            --bg-main: #f6f3ff;
             --panel: #ffffff;
             --panel-soft: #f8f5ff;
             --border: #ddd4f5;
@@ -35,10 +35,12 @@ $nombreEquipo = php_uname('n');
             --purple: #6f4ed6;
             --purple-dark: #4b2cab;
             --purple-light: #ede7ff;
-            --green: #dff6e8;
+            --green-bg: #dff6e8;
             --green-text: #247a46;
-            --yellow: #fff4d8;
+            --yellow-bg: #fff4d8;
             --yellow-text: #9a6a00;
+            --red-bg: #ffe1e1;
+            --red-text: #b42323;
             --shadow: 0 14px 32px rgba(75, 44, 171, 0.10);
         }
 
@@ -161,7 +163,7 @@ $nombreEquipo = php_uname('n');
             border-radius: 14px;
             padding: 12px 18px;
             background: linear-gradient(180deg, #8a6df0 0%, #6f4ed6 100%);
-            color: #fff;
+            color: #ffffff;
             font-weight: 700;
             cursor: pointer;
         }
@@ -199,48 +201,54 @@ $nombreEquipo = php_uname('n');
             margin-bottom: 16px;
         }
 
-        .summary-grid {
+        .status-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 18px;
         }
 
-        .summary-box {
+        .status-box {
             background: var(--panel-soft);
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: 18px;
         }
 
-        .summary-label {
+        .status-label {
             color: var(--text-soft);
             font-size: 0.92rem;
             margin-bottom: 8px;
         }
 
-        .summary-value {
-            font-size: 1.6rem;
+        .status-value {
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--purple-dark);
-            margin-bottom: 10px;
+            line-height: 1.4;
         }
 
-        .summary-status {
+        .status-tag {
             display: inline-block;
+            margin-top: 10px;
             padding: 7px 10px;
             border-radius: 999px;
             font-size: 0.84rem;
             font-weight: 700;
         }
 
-        .ok {
-            background: var(--green);
+        .tag-ok {
+            background: var(--green-bg);
             color: var(--green-text);
         }
 
-        .warn {
-            background: var(--yellow);
+        .tag-warn {
+            background: var(--yellow-bg);
             color: var(--yellow-text);
+        }
+
+        .tag-alert {
+            background: var(--red-bg);
+            color: var(--red-text);
         }
 
         .list {
@@ -253,21 +261,88 @@ $nombreEquipo = php_uname('n');
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        .list-item strong {
+        .list-item-left strong {
             display: block;
             margin-bottom: 4px;
             color: var(--text);
         }
 
-        .list-item span {
+        .list-item-left span {
             color: var(--text-soft);
             font-size: 0.93rem;
             line-height: 1.5;
         }
 
-        @media (max-width: 1000px) {
+        .severity-tag {
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .severity-low {
+            background: var(--green-bg);
+            color: var(--green-text);
+        }
+
+        .severity-medium {
+            background: var(--yellow-bg);
+            color: var(--yellow-text);
+        }
+
+        .severity-high {
+            background: var(--red-bg);
+            color: var(--red-text);
+        }
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .activity-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .activity-label {
+            color: var(--text-soft);
+            font-size: 0.92rem;
+            margin-bottom: 8px;
+        }
+
+        .activity-value {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--purple-dark);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .activity-text {
+            color: var(--text-soft);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1300px) {
+            .status-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1100px) {
             .layout {
                 grid-template-columns: 1fr;
             }
@@ -277,8 +352,20 @@ $nombreEquipo = php_uname('n');
                 border-bottom: 1px solid var(--border);
             }
 
-            .summary-grid {
+            .activity-grid,
+            .status-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .status-grid,
+            .activity-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .main {
+                padding: 16px;
             }
         }
     </style>
@@ -320,64 +407,91 @@ $nombreEquipo = php_uname('n');
                 <div class="card">
                     <div class="page-title">Resumen general</div>
                     <p class="page-text">
-                        Aquí puedes ver el estado general del entorno, la actividad más reciente y los avisos principales de Zypher en una sola vista.
+                        La sección Inicio mostrará de forma resumida el estado general del sistema, notificaciones recientes y la actividad más importante realizada recientemente dentro de Zypher.
                     </p>
                 </div>
 
                 <div class="card">
-                    <div class="section-title">Estado general</div>
-                    <div class="summary-grid">
-                        <div class="summary-box">
-                            <div class="summary-label">Estado del sistema</div>
-                            <div class="summary-value">Estable</div>
-                            <span class="summary-status ok">Correcto</span>
+                    <div class="section-title">1. Estado general</div>
+                    <div class="status-grid">
+                        <div class="status-box">
+                            <div class="status-label">Nombre del equipo</div>
+                            <div class="status-value"><?php echo htmlspecialchars($nombreEquipo, ENT_QUOTES, 'UTF-8'); ?></div>
                         </div>
 
-                        <div class="summary-box">
-                            <div class="summary-label">Alertas recientes</div>
-                            <div class="summary-value">3</div>
-                            <span class="summary-status warn">Revisar</span>
+                        <div class="status-box">
+                            <div class="status-label">Estado del sistema</div>
+                            <div class="status-value">En riesgo</div>
+                            <span class="status-tag tag-warn">En riesgo</span>
                         </div>
 
-                        <div class="summary-box">
-                            <div class="summary-label">Última revisión</div>
-                            <div class="summary-value">Hoy</div>
-                            <span class="summary-status ok">Actualizado</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="section-title">Actividad reciente</div>
-                    <div class="list">
-                        <div class="list-item">
-                            <strong>Análisis completado</strong>
-                            <span>Se ha terminado una revisión general del sistema.</span>
+                        <div class="status-box">
+                            <div class="status-label">Protecciones activas</div>
+                            <div class="status-value">3 módulos</div>
                         </div>
 
-                        <div class="list-item">
-                            <strong>Nueva notificación registrada</strong>
-                            <span>Se ha añadido un nuevo aviso pendiente de revisión.</span>
+                        <div class="status-box">
+                            <div class="status-label">Estado vulnerabilidades</div>
+                            <div class="status-value">12 detectadas</div>
+                            <span class="status-tag tag-alert">2 críticas</span>
                         </div>
 
-                        <div class="list-item">
-                            <strong>Acceso al panel</strong>
-                            <span>Se ha iniciado sesión correctamente en Zypher.</span>
+                        <div class="status-box">
+                            <div class="status-label">Estado CIS</div>
+                            <div class="status-value">87 / 120</div>
+                            <span class="status-tag tag-ok">Cumplidas</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="section-title">Avisos principales</div>
+                    <div class="section-title">2. Notificaciones recientes (últimas 24 horas)</div>
                     <div class="list">
                         <div class="list-item">
-                            <strong>Revisión recomendada</strong>
-                            <span>Hay elementos pendientes de comprobar en el entorno.</span>
+                            <div class="list-item-left">
+                                <strong>Evento de seguridad detectado</strong>
+                                <span>Se ha registrado una notificación reciente dentro de las últimas 24 horas.</span>
+                            </div>
+                            <span class="severity-tag severity-low">Leve</span>
                         </div>
 
                         <div class="list-item">
-                            <strong>Estado operativo</strong>
-                            <span>La plataforma está disponible y funcionando con normalidad.</span>
+                            <div class="list-item-left">
+                                <strong>Cambio relevante en el sistema</strong>
+                                <span>Se ha detectado una modificación o aviso que requiere revisión.</span>
+                            </div>
+                            <span class="severity-tag severity-medium">Crítico</span>
+                        </div>
+
+                        <div class="list-item">
+                            <div class="list-item-left">
+                                <strong>Incidencia importante registrada</strong>
+                                <span>Se ha generado una notificación de alta prioridad en el entorno.</span>
+                            </div>
+                            <span class="severity-tag severity-high">Muy crítico</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-title">3. Actividad reciente (últimas 24 horas)</div>
+                    <div class="activity-grid">
+                        <div class="activity-box">
+                            <div class="activity-label">Último módulo visitado</div>
+                            <div class="activity-value">Análisis de amenazas</div>
+                            <div class="activity-text">Último acceso registrado dentro del panel.</div>
+                        </div>
+
+                        <div class="activity-box">
+                            <div class="activity-label">Último análisis ejecutado</div>
+                            <div class="activity-value">Revisión general</div>
+                            <div class="activity-text">Último análisis realizado dentro de Zypher.</div>
+                        </div>
+
+                        <div class="activity-box">
+                            <div class="activity-label">Última copia de seguridad</div>
+                            <div class="activity-value">Hoy a las 10:30</div>
+                            <div class="activity-text">Última copia de seguridad registrada en la plataforma.</div>
                         </div>
                     </div>
                 </div>
