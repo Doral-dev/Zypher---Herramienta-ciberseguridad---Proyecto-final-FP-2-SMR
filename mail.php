@@ -6,7 +6,7 @@ function sendVerificationEmail(string $to, string $token): void
     $baseUrl = 'https://zypher-herramienta-ciberseguridad.onrender.com';
     $verifyUrl = $baseUrl . '/verify.php?token=' . urlencode($token);
 
-    $apiKey = 'PEGA_AQUI_LA_API_KEY_NUEVA_COMPLETA';
+    $apiKey = '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';
 
     $data = [
         'sender' => [
