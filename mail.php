@@ -19,7 +19,7 @@ function sendVerificationEmail(string $to, string $token): void
         $mail->Port = 587;
         $mail->SMTPAuth = true;
         $mail->Username = 'a6d6b9001@smtp-brevo.com';
-        $mail->Password = 'PON_AQUI_TU_SMTP_KEY';
+        $mail->Password = 'xsmtpsib-c9902f680740616a3af1d49c7a7444b4772e24f136f7fee89cc142504b57aac3-CXpqCKviEU2udyZP';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 
         $mail->CharSet = 'UTF-8';
