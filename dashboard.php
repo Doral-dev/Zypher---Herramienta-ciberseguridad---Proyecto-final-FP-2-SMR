@@ -26,21 +26,27 @@ $nombreEquipo = php_uname('n');
         }
 
         :root {
-            --bg: #f4f1ff;
+            --bg: #f6f3ff;
             --panel: #ffffff;
-            --panel-soft: #f8f6ff;
-            --border: #d9d0f3;
+            --panel-soft: #f8f5ff;
+            --border: #ddd4f5;
             --text: #2f2550;
-            --text-soft: #6e6492;
+            --text-soft: #6f6791;
             --purple: #6f4ed6;
             --purple-dark: #4b2cab;
-            --purple-light: #ece6ff;
-            --shadow: 0 14px 30px rgba(75, 44, 171, 0.10);
+            --purple-light: #ede7ff;
+            --green: #dff6e8;
+            --green-text: #247a46;
+            --yellow: #fff4d8;
+            --yellow-text: #9a6a00;
+            --red: #ffe1e1;
+            --red-text: #b42323;
+            --shadow: 0 14px 32px rgba(75, 44, 171, 0.10);
         }
 
         body {
             font-family: "Segoe UI", Arial, sans-serif;
-            background: linear-gradient(180deg, #f8f6ff 0%, #efeaff 100%);
+            background: linear-gradient(180deg, #faf8ff 0%, #f1ebff 100%);
             color: var(--text);
             min-height: 100vh;
         }
@@ -172,7 +178,7 @@ $nombreEquipo = php_uname('n');
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
         }
 
         .logout-form {
@@ -194,6 +200,7 @@ $nombreEquipo = php_uname('n');
             gap: 20px;
         }
 
+        .hero-card,
         .card {
             background: var(--panel);
             border: 1px solid var(--border);
@@ -202,49 +209,193 @@ $nombreEquipo = php_uname('n');
             box-shadow: var(--shadow);
         }
 
-        .card-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            color: var(--purple-dark);
+        .hero-card {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 20px;
+            align-items: center;
         }
 
-        .welcome-title {
+        .hero-title {
             font-size: 2rem;
             font-weight: 800;
-            margin-bottom: 10px;
             color: var(--purple-dark);
+            margin-bottom: 10px;
         }
 
-        .welcome-text {
+        .hero-text {
             color: var(--text-soft);
             line-height: 1.7;
             font-size: 1rem;
+            margin-bottom: 18px;
         }
 
-        .notifications-list {
-            padding-left: 18px;
-            color: var(--text);
-            line-height: 1.9;
+        .hero-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        .modules-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-
-        .module-box {
-            background: var(--panel-soft);
+        .hero-tag {
+            background: var(--purple-light);
+            color: var(--purple-dark);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 18px;
-            text-align: center;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-size: 0.92rem;
             font-weight: 700;
+        }
+
+        .hero-side {
+            background: linear-gradient(180deg, #f8f5ff 0%, #efe8ff 100%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .hero-side-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--purple-dark);
+            margin-bottom: 14px;
+        }
+
+        .hero-side-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .hero-side-item {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 14px;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            color: var(--text-soft);
+            font-size: 0.92rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--purple-dark);
+            margin-bottom: 10px;
+        }
+
+        .stat-status {
+            display: inline-block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 7px 10px;
+            border-radius: 999px;
+        }
+
+        .ok {
+            background: var(--green);
+            color: var(--green-text);
+        }
+
+        .warn {
+            background: var(--yellow);
+            color: var(--yellow-text);
+        }
+
+        .alert {
+            background: var(--red);
+            color: var(--red-text);
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--purple-dark);
+            margin-bottom: 16px;
+        }
+
+        .activity-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .activity-item {
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+            border-radius: 16px;
+            padding: 14px 16px;
+        }
+
+        .activity-item strong {
+            display: block;
+            margin-bottom: 4px;
             color: var(--text);
         }
 
-        @media (max-width: 1050px) {
+        .activity-item span {
+            color: var(--text-soft);
+            font-size: 0.93rem;
+        }
+
+        .quick-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .quick-item {
+            border: 1px solid var(--border);
+            background: var(--panel-soft);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .quick-item-title {
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .quick-item-text {
+            color: var(--text-soft);
+            font-size: 0.93rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1150px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .bottom-grid,
+            .hero-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 980px) {
             .layout {
                 grid-template-columns: 1fr;
             }
@@ -254,10 +405,6 @@ $nombreEquipo = php_uname('n');
                 border-bottom: 1px solid var(--border);
             }
 
-            .modules-row {
-                grid-template-columns: 1fr;
-            }
-
             .topbar {
                 flex-direction: column;
                 align-items: stretch;
@@ -265,6 +412,16 @@ $nombreEquipo = php_uname('n');
 
             .topbar-right {
                 justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .main {
+                padding: 16px;
             }
         }
     </style>
@@ -278,8 +435,7 @@ $nombreEquipo = php_uname('n');
             </div>
 
             <div class="menu-section">
-                <div class="menu-item active">Inicio</div>
-                <div class="menu-item">Evaluación y refuerzo de la seguridad</div>
+                <div class="menu-item active">Evaluación y refuerzo de la seguridad</div>
                 <div class="menu-item">Análisis de amenazas y supervisión</div>
                 <div class="menu-item">Continuidad y recuperación</div>
                 <div class="menu-item">Revisión, apoyo y documentación</div>
@@ -311,28 +467,96 @@ $nombreEquipo = php_uname('n');
             </div>
 
             <section class="content">
-                <div class="card">
-                    <div class="welcome-title">Inicio</div>
-                    <p class="welcome-text">
-                        Zypher es una plataforma de ciberseguridad pensada para analizar, reforzar y supervisar la seguridad básica del sistema de forma simple e intuitiva.
-                    </p>
+                <div class="hero-card">
+                    <div>
+                        <div class="hero-title">Resumen general del entorno</div>
+                        <p class="hero-text">
+                            Aquí puedes ver de un vistazo el estado general del sistema, la actividad reciente y los accesos rápidos a las áreas principales de Zypher.
+                        </p>
+
+                        <div class="hero-tags">
+                            <div class="hero-tag">Vista principal</div>
+                            <div class="hero-tag">Estado general</div>
+                            <div class="hero-tag">Actividad reciente</div>
+                            <div class="hero-tag">Acceso rápido</div>
+                        </div>
+                    </div>
+
+                    <div class="hero-side">
+                        <div class="hero-side-title">Qué puedes hacer desde aquí</div>
+                        <div class="hero-side-list">
+                            <div class="hero-side-item">Revisar el estado general del sistema</div>
+                            <div class="hero-side-item">Ver alertas y avisos recientes</div>
+                            <div class="hero-side-item">Acceder rápidamente a módulos clave</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">Notificaciones</div>
-                    <ul class="notifications-list">
-                        <li>Aviso o evento reciente 1</li>
-                        <li>Aviso o evento reciente 2</li>
-                        <li>Aviso o evento reciente 3</li>
-                    </ul>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Estado del sistema</div>
+                        <div class="stat-value">Estable</div>
+                        <span class="stat-status ok">Correcto</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Alertas recientes</div>
+                        <div class="stat-value">3</div>
+                        <span class="stat-status warn">Revisar</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Último análisis</div>
+                        <div class="stat-value">Hoy</div>
+                        <span class="stat-status ok">Actualizado</span>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-label">Copias de seguridad</div>
+                        <div class="stat-value">1</div>
+                        <span class="stat-status ok">Disponible</span>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-title">Módulos usados recientemente</div>
-                    <div class="modules-row">
-                        <div class="module-box">Módulo 1</div>
-                        <div class="module-box">Módulo 2</div>
-                        <div class="module-box">Módulo 3</div>
+                <div class="bottom-grid">
+                    <div class="card">
+                        <div class="card-title">Actividad reciente</div>
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <strong>Análisis completado</strong>
+                                <span>Se ha terminado una revisión general del sistema.</span>
+                            </div>
+
+                            <div class="activity-item">
+                                <strong>Nueva notificación registrada</strong>
+                                <span>Se ha añadido un nuevo aviso pendiente de revisión.</span>
+                            </div>
+
+                            <div class="activity-item">
+                                <strong>Acceso al panel</strong>
+                                <span>Has iniciado sesión correctamente en Zypher.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">Accesos rápidos</div>
+                        <div class="quick-grid">
+                            <div class="quick-item">
+                                <div class="quick-item-title">Ver alertas</div>
+                                <div class="quick-item-text">Consulta los últimos avisos y eventos importantes.</div>
+                            </div>
+
+                            <div class="quick-item">
+                                <div class="quick-item-title">Revisar estado</div>
+                                <div class="quick-item-text">Comprueba el estado general del entorno protegido.</div>
+                            </div>
+
+                            <div class="quick-item">
+                                <div class="quick-item-title">Abrir módulos</div>
+                                <div class="quick-item-text">Accede a las áreas principales del sistema desde un punto central.</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
