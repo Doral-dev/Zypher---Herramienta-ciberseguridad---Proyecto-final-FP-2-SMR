@@ -638,12 +638,8 @@ a {
   height: 88px;
 }
 
-.feature-card {
-  text-align: center;
-}
-
-.feature-icon-wrap {
-  justify-content: center;
+.hero-image {
+  width: 600px;
 }
 
 
