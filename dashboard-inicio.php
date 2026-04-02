@@ -1,3 +1,4 @@
+
 <?php
 declare(strict_types=1);
 session_start();
@@ -15,26 +16,24 @@ $nombreEquipo = php_uname('n');
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Zypher</title>
+    <title>Zypher Panel</title>
     <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
 
-<div class="layout">
-
+<div class="app">
     <?php include __DIR__ . '/includes/sidebar.php'; ?>
 
-    <main class="main">
+    <div class="main-area">
         <?php include __DIR__ . '/includes/topbar.php'; ?>
 
-        <section class="content">
+        <div class="content">
             <div class="card">
                 <h1>Panel principal</h1>
                 <p>Bienvenido a Zypher.</p>
             </div>
-        </section>
-
-    </main>
+        </div>
+    </div>
 </div>
 
 <script src="/js/menu.js"></script>
