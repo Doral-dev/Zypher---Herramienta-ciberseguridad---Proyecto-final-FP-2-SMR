@@ -634,14 +634,14 @@ a {
 }
 
 .feature-icon {
-  width: 130px;
-  height: 130px;
+  width: 150px;
+  height: 150px;
   object-fit: contain;
 }
 
 .large-icon .feature-icon {
-  width: 130px;
-  height: 130px;
+  width: 150px;
+  height: 150px;
 }
 
 
