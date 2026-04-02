@@ -25,10 +25,11 @@ $nombreEquipo = php_uname('n');
     <?php require_once __DIR__ . '/includes/sidebar.php'; ?>
 
     <div class="dashboard-main" id="dashboardMain">
-        <?php include __DIR__ . '/includes/topbar.php'; ?>
+        <?php require_once __DIR__ . '/includes/topbar.php'; ?>
 
         <main class="main">
             <section class="content">
+                <div class="card">
                     <div class="page-title">Centro de control</div>
                     <p class="page-text">
                         Desde aquí puedes ver de un vistazo el estado general del sistema, vulnerabilidades detectadas,
@@ -241,7 +242,7 @@ $nombreEquipo = php_uname('n');
                         </div>
                     </div>
                 </div>
-          </section>
+            </section>
         </main>
     </div>
 </div>
