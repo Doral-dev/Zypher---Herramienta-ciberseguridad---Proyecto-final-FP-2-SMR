@@ -8,7 +8,7 @@ function toggleSidebar() {
   const main = document.getElementById("dashboardMain");
   const button = document.getElementById("sidebarToggleBtn");
 
-  sidebar.classList.toggle("is-hidden");
-  main.classList.toggle("is-full");
-  button.classList.toggle("is-collapsed");
+  if (sidebar) sidebar.classList.toggle("is-hidden");
+  if (main) main.classList.toggle("is-full");
+  if (button) button.classList.toggle("is-collapsed");
 }
