@@ -1,29 +1,25 @@
-/**
- * Control de submenús del Dashboard Zypher
- */
-function toggleSubmenu(button) {
-    const submenu = button.nextElementSibling;
+// Función para abrir/cerrar submenús
+function zyToggleMenu(button) {
+    const container = button.nextElementSibling;
+    const arrow = button.querySelector('.zy-arrow');
     
-    // 1. Obtener todos los submenús abiertos
-    const allSubmenus = document.querySelectorAll('.nav-submenu');
-    
-    // 2. Cerrar los que no sean el actual (efecto acordeón)
-    allSubmenus.forEach(menu => {
-        if (menu !== submenu) {
-            menu.classList.remove('is-open');
-        }
-    });
-
-    // 3. Alternar el estado del submenú actual
-    if (submenu && submenu.classList.contains('nav-submenu')) {
-        submenu.classList.toggle('is-open');
+    // Toggle de la clase is-open
+    if (container.classList.contains('is-open')) {
+        container.classList.remove('is-open');
+        if(arrow) arrow.style.transform = "rotate(0deg)";
+    } else {
+        container.classList.add('is-open');
+        if(arrow) arrow.style.transform = "rotate(180deg)";
     }
 }
 
-// Opcional: Cerrar submenús si se hace click fuera del sidebar
-document.addEventListener('click', function(event) {
-    const sidebar = document.getElementById('dashboardSidebar');
-    if (sidebar && !sidebar.contains(event.target)) {
-        // Lógica opcional para cerrar menús al perder el foco
+// Función para esconder el sidebar completo
+function zyToggleSidebar() {
+    const sidebar = document.getElementById('sidebarWrapper');
+    const main = document.getElementById('dashboardMain');
+    
+    sidebar.classList.toggle('is-closed');
+    if (main) {
+        main.classList.toggle('full-width');
     }
-});
+}
