@@ -206,8 +206,7 @@ body::after {
   color: #ffffff;
 }
 
-.main-area {
-  flex: 1;
+.dashboard-main {
   min-width: 0;
 }
 
