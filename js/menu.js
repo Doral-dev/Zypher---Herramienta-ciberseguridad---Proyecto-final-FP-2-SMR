@@ -1,22 +1,29 @@
-// Maneja la apertura de submenús individuales
+/**
+ * Control de submenús del Dashboard Zypher
+ */
 function toggleSubmenu(button) {
-  const submenu = button.nextElementSibling;
-  
-  // Cerramos otros submenús si quieres un efecto acordeón (opcional)
-  // document.querySelectorAll('.nav-submenu').forEach(s => s.classList.remove('is-open'));
+    const submenu = button.nextElementSibling;
+    
+    // 1. Obtener todos los submenús abiertos
+    const allSubmenus = document.querySelectorAll('.nav-submenu');
+    
+    // 2. Cerrar los que no sean el actual (efecto acordeón)
+    allSubmenus.forEach(menu => {
+        if (menu !== submenu) {
+            menu.classList.remove('is-open');
+        }
+    });
 
-  if (submenu) {
-    submenu.classList.toggle('is-open');
-  }
+    // 3. Alternar el estado del submenú actual
+    if (submenu && submenu.classList.contains('nav-submenu')) {
+        submenu.classList.toggle('is-open');
+    }
 }
 
-// Maneja la apertura/cierre del sidebar completo
-function toggleSidebar() {
-  const sidebar = document.getElementById('dashboardSidebar');
-  const main = document.getElementById('dashboardMain');
-
-  if (sidebar && main) {
-    sidebar.classList.toggle('is-hidden');
-    main.classList.toggle('is-full');
-  }
-}
+// Opcional: Cerrar submenús si se hace click fuera del sidebar
+document.addEventListener('click', function(event) {
+    const sidebar = document.getElementById('dashboardSidebar');
+    if (sidebar && !sidebar.contains(event.target)) {
+        // Lógica opcional para cerrar menús al perder el foco
+    }
+});
