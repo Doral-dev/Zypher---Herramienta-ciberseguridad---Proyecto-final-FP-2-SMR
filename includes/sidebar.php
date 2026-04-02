@@ -52,6 +52,3 @@
     </div>
 </aside>
 
-<button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
-    ▶
-</button>
