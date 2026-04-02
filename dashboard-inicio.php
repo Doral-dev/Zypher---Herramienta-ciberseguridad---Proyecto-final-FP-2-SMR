@@ -22,7 +22,7 @@ $nombreEquipo = php_uname('n');
 <body>
 
 <div class="dashboard-layout">
-    <?php include __DIR__ . '/includes/sidebar.php'; ?>
+    <?php require_once __DIR__ . '/includes/sidebar.php'; ?>
 
     <div class="dashboard-main" id="dashboardMain">
         <?php include __DIR__ . '/includes/topbar.php'; ?>
