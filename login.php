@@ -52,7 +52,7 @@ try {
     $_SESSION['email'] = $user['email'];
     $_SESSION['logged_in'] = true;
 
-    header('Location: /dashboard.php');
+    header('Location: /dashboard-inicio.php');
     exit;
 } catch (Throwable $e) {
     exit('Error al iniciar sesión: ' . $e->getMessage());
