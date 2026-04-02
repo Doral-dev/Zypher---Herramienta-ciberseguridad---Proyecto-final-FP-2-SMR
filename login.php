@@ -1,7 +1,17 @@
 <?php
 declare(strict_types=1);
 
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
 session_start();
+
 require_once __DIR__ . '/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -48,7 +58,7 @@ try {
     }
 
     session_regenerate_id(true);
-    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_id'] = (int)$user['id'];
     $_SESSION['email'] = $user['email'];
     $_SESSION['logged_in'] = true;
 
