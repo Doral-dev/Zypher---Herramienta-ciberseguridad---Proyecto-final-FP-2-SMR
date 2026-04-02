@@ -1,47 +1,57 @@
 <aside class="sidebar" id="sidebar">
+    <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
-  <div class="sidebar-toggle" onclick="toggleSidebar()">⬅</div>
-
-  <a class="menu-home" href="/dashboard-inicio.php">🏠 Inicio</a>
-
-  <div class="menu-category">
-    <div class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</div>
-    <div class="submenu">
-      <a href="/vulnerabilidades.php">Vulnerabilidades</a>
-      <a href="/cis.php">Políticas CIS</a>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>🛡️ Evaluación y refuerzo</span>
+        </button>
+        <div class="submenu">
+            <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
+            <a href="/cis.php">Aplicación de políticas CIS</a>
+        </div>
     </div>
-  </div>
 
-  <div class="menu-category">
-    <div class="menu-title" onclick="toggleMenu(this)">🔍 Amenazas y supervisión</div>
-    <div class="submenu">
-      <a href="/escaneo.php">Escaneo</a>
-      <a href="/monitorizacion.php">Monitorización</a>
-      <a href="/respuesta.php">Respuesta</a>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>🔍 Amenazas y supervisión</span>
+        </button>
+        <div class="submenu">
+            <a href="/escaneo.php">Escaneo de archivos y reputación</a>
+            <a href="/monitorizacion.php">Monitorización de eventos</a>
+            <a href="/respuesta.php">Respuesta ante eventos</a>
+        </div>
     </div>
-  </div>
 
-  <div class="menu-category">
-    <div class="menu-title" onclick="toggleMenu(this)">💾 Continuidad</div>
-    <div class="submenu">
-      <a href="/copias.php">Copias</a>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>💾 Continuidad</span>
+        </button>
+        <div class="submenu">
+            <a href="/copias.php">Copias de seguridad</a>
+        </div>
     </div>
-  </div>
 
-  <div class="menu-category">
-    <div class="menu-title" onclick="toggleMenu(this)">📋 Revisión</div>
-    <div class="submenu">
-      <a href="/recordatorios.php">Recordatorios</a>
-      <a href="/guia.php">Guía</a>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>📋 Revisión</span>
+        </button>
+        <div class="submenu">
+            <a href="/recordatorios.php">Recordatorio y guía de revisión</a>
+            <a href="/guia.php">Guía de uso de Zypher</a>
+        </div>
     </div>
-  </div>
 
-  <div class="menu-category">
-    <div class="menu-title" onclick="toggleMenu(this)">📊 Informes</div>
-    <div class="submenu">
-      <a href="/informes.php">Informes</a>
-      <a href="/acceso-remoto.php">Acceso remoto</a>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>📊 Informes</span>
+        </button>
+        <div class="submenu">
+            <a href="/informes.php">Generación de informes</a>
+            <a href="/acceso-remoto.php">Acceso remoto desde la nube</a>
+        </div>
     </div>
-  </div>
-
 </aside>
+
+<button type="button" class="sidebar-handle" id="sidebarHandle" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
+    <span class="handle-icon">▸</span>
+</button>
