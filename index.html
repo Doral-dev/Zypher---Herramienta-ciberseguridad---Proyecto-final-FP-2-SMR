@@ -30,17 +30,20 @@
         <a href="/inicio-sesion.html" class="btn btn-secondary">Iniciar sesión</a>
         <a href="/registro.html" class="btn btn-primary">Regístrate</a>
       </div>
+
+      <button class="menu-toggle" aria-label="Abrir menú">☰</button>
     </div>
   </header>
 
   <main>
     <section id="inicio" class="hero section reveal-up">
-      <div class="container hero-grid">
+      <div class="hero-bg"></div>
+      <div class="hero-grid container">
         <div class="hero-copy">
-          <span class="eyebrow">Plataforma de ciberseguridad centralizada</span>
-          <h1>Controla seguridad, análisis y respuesta desde un único entorno</h1>
+          <h1>Zypher</h1>
           <p class="hero-text">
-            Zypher reúne módulos de evaluación, supervisión, hardening, copias de seguridad e informes para gestionar equipos Windows desde una sola interfaz.
+            Plataforma web de ciberseguridad para centralizar módulos de análisis, supervisión, hardening,
+            copias de seguridad y gestión técnica desde una sola interfaz.
           </p>
 
           <div class="hero-actions">
@@ -48,82 +51,40 @@
             <a href="#modulos" class="btn btn-secondary">Ver módulos</a>
           </div>
         </div>
-
-        <div class="hero-panel">
-          <div class="hero-panel-head">
-            <span class="hero-panel-title">Vista general</span>
-            <span class="hero-dot"></span>
-          </div>
-
-          <div class="hero-panel-grid">
-            <div class="hero-mini-card">
-              <span class="mini-label">Entorno</span>
-              <strong>Windows</strong>
-            </div>
-
-            <div class="hero-mini-card">
-              <span class="mini-label">Acceso</span>
-              <strong>Web remota</strong>
-            </div>
-
-            <div class="hero-mini-card">
-              <span class="mini-label">Base de datos</span>
-              <strong>PostgreSQL</strong>
-            </div>
-
-            <div class="hero-mini-card">
-              <span class="mini-label">Despliegue</span>
-              <strong>Render</strong>
-            </div>
-          </div>
-
-          <div class="hero-terminal">
-            <div class="terminal-line">
-              <span class="terminal-key">Estado</span>
-              <span class="terminal-value ok">Operativo</span>
-            </div>
-            <div class="terminal-line">
-              <span class="terminal-key">Enfoque</span>
-              <span class="terminal-value">Protección y supervisión</span>
-            </div>
-            <div class="terminal-line">
-              <span class="terminal-key">Objetivo</span>
-              <span class="terminal-value">Centralizar módulos de seguridad</span>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
-    <section id="que-es" class="section section-dark-alt reveal-up">
+    <section id="que-es" class="section section-alt reveal-up">
       <div class="container overview-grid">
         <div class="section-heading left">
-          <span class="section-kicker">Qué es Zypher</span>
+          <p class="section-label">Qué es Zypher</p>
           <h2>Una plataforma pensada para unificar funciones de seguridad</h2>
           <p>
-            Zypher es una plataforma web de ciberseguridad diseñada para reunir en un solo entorno distintos módulos orientados a la protección, supervisión y refuerzo de ordenadores con Windows.
+            Zypher está planteado como un entorno web donde distintas funciones de ciberseguridad
+            conviven dentro de una estructura común. La idea es evitar herramientas dispersas,
+            reducir fricción operativa y tener una visión más clara del estado general del sistema.
           </p>
         </div>
 
         <div class="overview-boxes">
           <article class="overview-box">
             <span class="box-title">Centralización</span>
-            <p>Reúne análisis, políticas, monitorización, respuesta e informes en una sola aplicación.</p>
+            <p>Reúne análisis, monitorización, políticas, respuesta e informes dentro de un mismo panel.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Acceso remoto</span>
-            <p>Permite trabajar desde navegador sin depender de una consola aislada por módulo.</p>
+            <p>Permite trabajar desde navegador sin depender de una consola separada por cada función.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Visión conjunta</span>
-            <p>Presenta resultados, avisos y actividad reciente desde un punto de control común.</p>
+            <p>Presenta resultados, actividad reciente y puntos críticos desde una vista común.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Escalabilidad</span>
-            <p>Está planteado para crecer por módulos sin rehacer toda la plataforma.</p>
+            <p>Está preparado para ampliar módulos y capacidades sin rehacer toda la plataforma.</p>
           </article>
         </div>
       </div>
@@ -132,7 +93,7 @@
     <section id="caracteristicas" class="section reveal-up">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Características</span>
+          <p class="section-label">Características</p>
           <h2>Base visual simple, enfoque técnico serio</h2>
         </div>
 
@@ -142,15 +103,15 @@
               <img src="img/icono-gestion.png" alt="Gestión centralizada" class="feature-icon">
             </div>
             <h3>Gestión centralizada</h3>
-            <p>Concentra módulos, resultados y acciones dentro de un único panel.</p>
+            <p>Concentra módulos, acciones y resultados dentro de un único entorno operativo.</p>
           </article>
 
           <article class="feature-card">
             <div class="feature-icon-wrap">
-              <img src="img/icono-facil.png" alt="Fácil de usar" class="feature-icon">
+              <img src="img/icono-facil.png" alt="Uso claro" class="feature-icon">
             </div>
             <h3>Uso claro</h3>
-            <p>Interfaz pensada para navegar rápido entre secciones sin perder contexto.</p>
+            <p>Interfaz limpia para moverse entre secciones sin perder contexto ni saturar la vista.</p>
           </article>
 
           <article class="feature-card">
@@ -158,16 +119,16 @@
               <img src="img/icono-proteccion.png" alt="Protección integral" class="feature-icon">
             </div>
             <h3>Protección integral</h3>
-            <p>Combina prevención, detección, revisión y recuperación dentro del mismo entorno.</p>
+            <p>Combina prevención, revisión, refuerzo y respuesta dentro de una misma estructura.</p>
           </article>
         </div>
       </div>
     </section>
 
-    <section id="modulos" class="section section-dark-alt reveal-up">
+    <section id="modulos" class="section section-alt reveal-up">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Módulos</span>
+          <p class="section-label">Módulos</p>
           <h2>Bloques funcionales que se integran en una sola plataforma</h2>
         </div>
 
@@ -178,7 +139,7 @@
             </div>
             <div class="module-body">
               <h3>Análisis de vulnerabilidades</h3>
-              <p>Detecta fallos de seguridad y muestra riesgos presentes en el equipo analizado.</p>
+              <p>Detecta fallos de seguridad y muestra riesgos presentes en el sistema analizado.</p>
             </div>
           </article>
 
@@ -188,7 +149,7 @@
             </div>
             <div class="module-body">
               <h3>Aplicación de políticas CIS</h3>
-              <p>Permite aplicar configuraciones recomendadas basadas en guías CIS de seguridad.</p>
+              <p>Permite aplicar configuraciones recomendadas basadas en guías CIS.</p>
             </div>
           </article>
 
@@ -198,7 +159,7 @@
             </div>
             <div class="module-body">
               <h3>Hardening</h3>
-              <p>Refuerza la configuración del sistema para reducir la superficie de ataque.</p>
+              <p>Refuerza la configuración del sistema para reducir exposición y superficie de ataque.</p>
             </div>
           </article>
 
@@ -208,7 +169,7 @@
             </div>
             <div class="module-body">
               <h3>Escaneo de archivos</h3>
-              <p>Revisa archivos sospechosos y ayuda a detectar posibles amenazas o riesgos.</p>
+              <p>Revisa elementos sospechosos y ayuda a detectar posibles amenazas.</p>
             </div>
           </article>
 
@@ -218,7 +179,7 @@
             </div>
             <div class="module-body">
               <h3>Monitorización de eventos</h3>
-              <p>Supervisa actividad del sistema y registra eventos importantes de seguridad.</p>
+              <p>Supervisa actividad del sistema y registra eventos relevantes de seguridad.</p>
             </div>
           </article>
 
@@ -228,7 +189,7 @@
             </div>
             <div class="module-body">
               <h3>Respuesta ante eventos</h3>
-              <p>Permite actuar ante alertas y aplicar respuestas definidas automáticamente.</p>
+              <p>Permite actuar ante alertas y ejecutar respuestas definidas.</p>
             </div>
           </article>
 
@@ -238,7 +199,7 @@
             </div>
             <div class="module-body">
               <h3>Copias de seguridad</h3>
-              <p>Facilita la protección de datos mediante copias y recuperación básica.</p>
+              <p>Protege datos mediante tareas de respaldo y recuperación básica.</p>
             </div>
           </article>
 
@@ -248,7 +209,7 @@
             </div>
             <div class="module-body">
               <h3>Guía y recordatorio</h3>
-              <p>Ofrece ayuda visual y recordatorios para revisiones o tareas pendientes.</p>
+              <p>Ofrece apoyo visual y recordatorios para revisiones o tareas pendientes.</p>
             </div>
           </article>
 
@@ -258,7 +219,7 @@
             </div>
             <div class="module-body">
               <h3>Informes y acceso remoto</h3>
-              <p>Genera resultados resumidos y facilita acceso o revisión remota del sistema.</p>
+              <p>Resume resultados y facilita revisión técnica desde entorno web.</p>
             </div>
           </article>
         </div>
@@ -268,7 +229,7 @@
     <section id="compatibilidad" class="section reveal-up">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Compatibilidad</span>
+          <p class="section-label">Compatibilidad</p>
           <h2>Entorno principal orientado a Windows</h2>
         </div>
 
@@ -294,10 +255,10 @@
       </div>
     </section>
 
-    <section id="como-funciona" class="section section-dark-alt reveal-up">
+    <section id="como-funciona" class="section section-alt reveal-up">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Cómo funciona</span>
+          <p class="section-label">Cómo funciona</p>
           <h2>Flujo general de uso de la plataforma</h2>
         </div>
 
@@ -305,25 +266,25 @@
           <article class="step-card">
             <span class="step-number">01</span>
             <h3>Acceso al panel</h3>
-            <p>El usuario entra a Zypher desde navegador y accede al dashboard principal.</p>
+            <p>El usuario entra a Zypher desde navegador y accede al panel principal.</p>
           </article>
 
           <article class="step-card">
             <span class="step-number">02</span>
             <h3>Selección de módulo</h3>
-            <p>Desde la interfaz se abre el módulo que se quiera ejecutar o revisar.</p>
+            <p>Desde la interfaz se abre la función que se quiera ejecutar o revisar.</p>
           </article>
 
           <article class="step-card">
             <span class="step-number">03</span>
             <h3>Ejecución de lógica</h3>
-            <p>La parte funcional procesa análisis, políticas, eventos o copias de seguridad.</p>
+            <p>La parte funcional procesa análisis, políticas, eventos o copias.</p>
           </article>
 
           <article class="step-card">
             <span class="step-number">04</span>
             <h3>Visualización de resultados</h3>
-            <p>Los resultados vuelven a la interfaz y se muestran de forma integrada.</p>
+            <p>Los resultados se integran de nuevo en el panel para su revisión.</p>
           </article>
         </div>
 
@@ -344,7 +305,7 @@
     <section id="funcionamiento-interno" class="section reveal-up">
       <div class="container">
         <div class="section-heading center">
-          <span class="section-kicker">Arquitectura</span>
+          <p class="section-label">Arquitectura</p>
           <h2>Estructura general del sistema</h2>
         </div>
 
@@ -404,6 +365,15 @@
     }, { threshold: 0.12 });
 
     revealElements.forEach(element => observer.observe(element));
+
+    const menuToggle = document.querySelector('.menu-toggle');
+    const mainNav = document.querySelector('.main-nav');
+    const headerActions = document.querySelector('.header-actions');
+
+    menuToggle.addEventListener('click', () => {
+      mainNav.classList.toggle('is-open');
+      headerActions.classList.toggle('is-open');
+    });
   </script>
 
 </body>
