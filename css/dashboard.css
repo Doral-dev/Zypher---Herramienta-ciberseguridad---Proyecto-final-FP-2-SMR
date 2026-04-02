@@ -1,91 +1,114 @@
-/* Estructura Base del Sidebar */
+/* RESET BÁSICO */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Space Grotesk", Arial, sans-serif;
+    background-color: #040714;
+    color: #f5f7ff;
+    min-height: 100vh;
+}
+
+/* LAYOUT PRINCIPAL: Sidebar a la izquierda, Main a la derecha */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* SIDEBAR ESTANCO */
 .zy-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 280px;
-  height: 100vh;
-  background: #080d20;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease;
-  z-index: 1000;
+    width: 280px;
+    min-width: 280px;
+    height: 100vh;
+    background: #0a0e1a;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 18px;
+    z-index: 100;
 }
 
-.zy-sidebar.is-hidden {
-  transform: translateX(-100%);
+.sidebar-header {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #34c6ff;
+    margin-bottom: 30px;
+    text-align: center;
 }
 
-/* Contenedor Principal Ajustable */
-.dashboard-main {
-  margin-left: 280px;
-  transition: margin-left 0.3s ease;
-}
-
-.dashboard-main.is-full {
-  margin-left: 0;
-}
-
-/* Elementos del Menú */
-.sidebar-nav {
-  padding: 20px 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* BOTONES DEL MENÚ */
+.nav-group {
+    margin-bottom: 12px;
 }
 
 .nav-item {
-  width: 100%;
-  padding: 15px;
-  background: #6f4ed6;
-  border: none;
-  border-radius: 12px;
-  color: #fff;
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  text-decoration: none;
+    width: 100%;
+    padding: 14px 18px;
+    background: #6f4ed6;
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    transition: transform 0.2s;
 }
 
-/* Submenús */
+.nav-item:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* SUBMENÚS */
 .nav-submenu {
-  display: none;
-  flex-direction: column;
-  background: rgba(255, 255, 255, 0.05);
-  margin-top: -5px;
-  border-radius: 0 0 12px 12px;
-  padding: 10px 0;
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px 0 10px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0 0 12px 12px;
+    margin-top: -5px;
 }
 
 .nav-submenu.is-open {
-  display: flex;
+    display: flex;
 }
 
 .nav-submenu a {
-  padding: 10px 20px;
-  color: #b9c3ea;
-  text-decoration: none;
-  font-size: 0.9rem;
+    color: #b9c3ea;
+    text-decoration: none;
+    font-size: 0.95rem;
+    padding: 8px 0;
 }
 
 .nav-submenu a:hover {
-  color: #fff;
+    color: #ffffff;
 }
 
-/* Botón Flotante de Control */
-.sidebar-trigger {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  background: #ff38c7;
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  z-index: 1001;
+/* ÁREA DE CONTENIDO PRINCIPAL */
+.dashboard-main {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.main {
+    padding: 30px;
+}
+
+.card {
+    background: rgba(10, 18, 40, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: 28px;
+    margin-bottom: 28px;
 }
