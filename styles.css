@@ -1046,3 +1046,21 @@ a {
     font-size: 3rem;
   }
 }
+
+
+
+.hero-image {
+  width: 460px;
+  max-width: 100%;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 40px rgba(52, 198, 255, 0.25))
+    drop-shadow(0 0 60px rgba(139, 93, 255, 0.20));
+  animation: floatHero 6s ease-in-out infinite;
+}
+
+@keyframes floatHero {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
