@@ -54,10 +54,10 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
   background-size: 80px 80px;
-  mask-image: linear-gradient(180deg, rgba(255,255,255,0.65), transparent 92%);
+  mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 92%);
   pointer-events: none;
 }
 
@@ -84,11 +84,11 @@ body::after {
   position: fixed;
   top: 0;
   left: 0;
-  width: 300px;
+  width: var(--sidebar-width);
   height: 100vh;
-  padding: 26px 18px;
+  padding: 24px 18px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
     linear-gradient(180deg, rgba(8, 13, 32, 0.96), rgba(5, 9, 24, 0.96));
   border-right: 1px solid var(--line);
   backdrop-filter: blur(14px);
@@ -101,26 +101,10 @@ body::after {
   transform: translateX(-100%);
 }
 
-.dashboard-main {
-  margin-left: 300px;
-  min-height: 100vh;
-  transition: margin-left 0.28s ease;
-}
-
-.dashboard-main.is-full {
-  margin-left: 0;
-}
-
-.sidebar.collapsed .menu-home,
-.sidebar.collapsed .menu-category {
-  display: none;
-}
-
-
 .sidebar-toggle-btn {
   position: fixed;
   top: 50%;
-  left: 289px;
+  left: calc(var(--sidebar-width) - 11px);
   transform: translateY(-50%);
   width: 22px;
   height: 52px;
@@ -143,9 +127,16 @@ body::after {
   transform: translateY(-50%) rotate(180deg);
 }
 
+.dashboard-main {
+  margin-left: var(--sidebar-width);
+  min-width: 0;
+  min-height: 100vh;
+  transition: margin-left 0.28s ease;
+}
 
-
-
+.dashboard-main.is-full {
+  margin-left: 0;
+}
 
 .menu-home {
   display: block;
@@ -206,17 +197,13 @@ body::after {
   color: #ffffff;
 }
 
-.dashboard-main {
-  min-width: 0;
-}
-
 .main {
   padding: 28px;
 }
 
 .topbar {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, var(--panel), var(--panel-strong));
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
@@ -236,7 +223,7 @@ body::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(52,198,255,0.07), transparent 35%, rgba(255,56,199,0.05));
+  background: linear-gradient(135deg, rgba(52, 198, 255, 0.07), transparent 35%, rgba(255, 56, 199, 0.05));
   pointer-events: none;
 }
 
@@ -273,14 +260,14 @@ body::after {
 }
 
 .info-badge {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--line);
   color: var(--text);
   padding: 11px 15px;
   border-radius: 14px;
   font-size: 0.94rem;
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
 }
 
 .logout-form {
@@ -312,7 +299,7 @@ body::after {
 
 .card {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, var(--panel), var(--panel-strong));
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
@@ -326,7 +313,7 @@ body::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(52,198,255,0.08), transparent 35%, rgba(255,56,199,0.05));
+  background: linear-gradient(135deg, rgba(52, 198, 255, 0.08), transparent 35%, rgba(255, 56, 199, 0.05));
   pointer-events: none;
 }
 
@@ -357,7 +344,7 @@ body::after {
 }
 
 .hero-stat {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 18px;
@@ -394,7 +381,7 @@ body::after {
 .section-btn {
   text-decoration: none;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   padding: 10px 14px;
   border-radius: 12px;
@@ -416,7 +403,7 @@ body::after {
 
 .metric-box {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, rgba(12, 20, 46, 0.96), rgba(10, 16, 38, 0.98));
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -458,7 +445,7 @@ body::after {
 
 .status-box {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, rgba(12, 20, 46, 0.96), rgba(10, 16, 38, 0.98));
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -539,7 +526,7 @@ body::after {
 
 .list-item {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, rgba(12, 20, 46, 0.96), rgba(10, 16, 38, 0.98));
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -566,13 +553,12 @@ body::after {
 
 .activity-grid {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 14px;
 }
 
 .activity-box {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, rgba(12, 20, 46, 0.96), rgba(10, 16, 38, 0.98));
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -607,7 +593,7 @@ body::after {
 
 .progress-item {
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
     linear-gradient(180deg, rgba(12, 20, 46, 0.96), rgba(10, 16, 38, 0.98));
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -625,7 +611,7 @@ body::after {
 
 .progress-bar {
   height: 10px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -657,13 +643,16 @@ body::after {
 }
 
 @media (max-width: 1100px) {
-  .sidebar {
-    position: fixed;
-    z-index: 20;
+  .dashboard-sidebar {
+    transform: translateX(-100%);
   }
 
-  .main-area {
-    width: 100%;
+  .dashboard-main {
+    margin-left: 0;
+  }
+
+  .sidebar-toggle-btn {
+    left: 10px;
   }
 
   .hero-stats,
@@ -694,20 +683,5 @@ body::after {
 
   .topbar {
     margin: 14px 14px 0;
-  }
-}
-
-
-@media (max-width: 1100px) {
-  .dashboard-sidebar {
-    transform: translateX(-100%);
-  }
-
-  .dashboard-main {
-    margin-left: 0;
-  }
-
-  .sidebar-toggle-btn {
-    left: 10px;
   }
 }
