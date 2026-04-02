@@ -608,12 +608,18 @@ a {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+
+
+.feature-card {
+  text-align: center;
+}
+
 .feature-icon-wrap {
-  margin-bottom: 22px;
+  margin-bottom: 26px;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  width: auto;
+  justify-content: center;
+  width: 100%;
   height: auto;
   background: transparent;
   border: 0;
@@ -628,15 +634,16 @@ a {
 }
 
 .feature-icon {
-  width: 88px;
-  height: 88px;
+  width: 110px;
+  height: 110px;
   object-fit: contain;
 }
 
 .large-icon .feature-icon {
-  width: 88px;
-  height: 88px;
+  width: 110px;
+  height: 110px;
 }
+
 
 .hero-image {
   width: 600px;
