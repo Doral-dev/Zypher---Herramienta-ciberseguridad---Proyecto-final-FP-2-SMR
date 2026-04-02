@@ -83,3 +83,24 @@
   font-size: 22px;
   cursor: pointer;
 }
+
+
+.menu-category {
+  margin-bottom: 18px;
+}
+
+.menu-home {
+  display: block;
+  padding: 14px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+  background: linear-gradient(90deg,#6f4ed6,#8f74ea);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.menu-home:hover {
+  opacity: 0.9;
+}
