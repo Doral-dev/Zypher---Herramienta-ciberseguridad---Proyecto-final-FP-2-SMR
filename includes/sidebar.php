@@ -1,40 +1,45 @@
-<div class="zy-sidebar-wrapper" id="sidebarWrapper">
-    <div class="zy-sidebar-content">
-        <div class="zy-brand">ZYPHER</div>
-        
-        <nav class="zy-nav">
-            <div class="zy-nav-section">
-                <a href="/dashboard-inicio.php" class="zy-nav-btn">🏠 Inicio</a>
-            </div>
+<aside class="dashboard-sidebar" id="dashboardSidebar">
+    <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
-            <div class="zy-nav-section">
-                <button class="zy-nav-btn has-child" onclick="zyToggleMenu(this)">
-                    🛡️ Evaluación y refuerzo <span class="zy-arrow">▼</span>
-                </button>
-                <div class="zy-sub-container">
-                    <a href="/vulnerabilidades.php">Vulnerabilidades</a>
-                    <a href="/cis.php">Políticas CIS</a>
-                </div>
-            </div>
-
-            <div class="zy-nav-section">
-                <button class="zy-nav-btn has-child" onclick="zyToggleMenu(this)">
-                    🔍 Amenazas y supervisión <span class="zy-arrow">▼</span>
-                </button>
-                <div class="zy-sub-container">
-                    <a href="/escaneo.php">Escaneo</a>
-                    <a href="/monitorizacion.php">Eventos</a>
-                    <a href="/respuesta.php">Respuesta</a>
-                </div>
-            </div>
-
-            <div class="zy-nav-section">
-                <a href="/copias.php" class="zy-nav-btn">💾 Continuidad</a>
-            </div>
-        </nav>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</button>
+        <div class="submenu">
+            <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
+            <a href="/cis.php">Aplicación de políticas CIS</a>
+        </div>
     </div>
-</div>
 
-<button class="zy-menu-trigger" onclick="zyToggleSidebar()">
-    <span>☰</span>
-</button>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">🔍 Amenazas y supervisión</button>
+        <div class="submenu">
+            <a href="/escaneo.php">Escaneo de archivos y reputación</a>
+            <a href="/monitorizacion.php">Monitorización de eventos</a>
+            <a href="/respuesta.php">Respuesta ante eventos</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">💾 Continuidad</button>
+        <div class="submenu">
+            <a href="/copias.php">Copias de seguridad</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">📋 Revisión</button>
+        <div class="submenu">
+            <a href="/recordatorios.php">Recordatorio y guía de revisión</a>
+            <a href="/guia.php">Guía de uso de Zypher</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">📊 Informes</button>
+        <div class="submenu">
+            <a href="/informes.php">Generación de informes</a>
+            <a href="/acceso-remoto.php">Acceso remoto desde la nube</a>
+        </div>
+    </div>
+</aside>
+
+<button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">▶</button>
