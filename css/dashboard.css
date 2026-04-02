@@ -93,12 +93,23 @@ body::after {
   position: sticky;
   top: 0;
   height: 100vh;
-  transition: transform 0.28s ease;
+  overflow: hidden;
+  transition: width 0.28s ease, min-width 0.28s ease, padding 0.28s ease, border 0.28s ease;
 }
 
 .sidebar.collapsed {
-  transform: translateX(calc(-1 * var(--sidebar-width)));
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-right: 0;
 }
+
+.sidebar.collapsed .menu-home,
+.sidebar.collapsed .menu-category {
+  display: none;
+}
+
 
 .sidebar-handle {
   position: fixed;
