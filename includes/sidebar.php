@@ -1,6 +1,4 @@
 <aside class="dashboard-sidebar" id="dashboardSidebar">
-    <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">▶</button>
-
     <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
     <div class="menu-category">
@@ -43,3 +41,5 @@
         </div>
     </div>
 </aside>
+
+<button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">▶</button>
