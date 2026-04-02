@@ -1,9 +1,9 @@
-<aside class="sidebar" id="sidebar">
+<aside class="dashboard-sidebar" id="dashboardSidebar">
     <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">
-            <span>🛡️ Evaluación y refuerzo</span>
+            🛡️ Evaluación y refuerzo
         </button>
         <div class="submenu">
             <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
@@ -13,7 +13,7 @@
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">
-            <span>🔍 Amenazas y supervisión</span>
+            🔍 Amenazas y supervisión
         </button>
         <div class="submenu">
             <a href="/escaneo.php">Escaneo de archivos y reputación</a>
@@ -24,7 +24,7 @@
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">
-            <span>💾 Continuidad</span>
+            💾 Continuidad
         </button>
         <div class="submenu">
             <a href="/copias.php">Copias de seguridad</a>
@@ -33,7 +33,7 @@
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">
-            <span>📋 Revisión</span>
+            📋 Revisión
         </button>
         <div class="submenu">
             <a href="/recordatorios.php">Recordatorio y guía de revisión</a>
@@ -43,7 +43,7 @@
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">
-            <span>📊 Informes</span>
+            📊 Informes
         </button>
         <div class="submenu">
             <a href="/informes.php">Generación de informes</a>
@@ -52,6 +52,6 @@
     </div>
 </aside>
 
-<button type="button" class="sidebar-handle" id="sidebarHandle" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
-    <span class="handle-icon">▸</span>
+<button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
+    ▶
 </button>
