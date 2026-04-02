@@ -1,16 +1,57 @@
-<div class="topbar">
-  <div class="topbar-left">
-    <img src="/img/logo-zypher.png" class="top-logo">
-    <div class="top-title">Zypher</div>
-  </div>
+<aside class="sidebar" id="sidebar">
+    <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
-  <div class="topbar-info">
-    <div class="info-badge">Equipo: <?php echo htmlspecialchars($nombreEquipo); ?></div>
-    <div class="info-badge">Usuario: <?php echo htmlspecialchars($nombreUsuario); ?></div>
-    <div class="info-badge">Sesión activa</div>
-  </div>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>🛡️ Evaluación y refuerzo</span>
+        </button>
+        <div class="submenu">
+            <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
+            <a href="/cis.php">Aplicación de políticas CIS</a>
+        </div>
+    </div>
 
-  <form action="/logout.php" method="POST">
-    <button class="logout-btn">Cerrar sesión</button>
-  </form>
-</div>
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>🔍 Amenazas y supervisión</span>
+        </button>
+        <div class="submenu">
+            <a href="/escaneo.php">Escaneo de archivos y reputación</a>
+            <a href="/monitorizacion.php">Monitorización de eventos</a>
+            <a href="/respuesta.php">Respuesta ante eventos</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>💾 Continuidad</span>
+        </button>
+        <div class="submenu">
+            <a href="/copias.php">Copias de seguridad</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>📋 Revisión</span>
+        </button>
+        <div class="submenu">
+            <a href="/recordatorios.php">Recordatorio y guía de revisión</a>
+            <a href="/guia.php">Guía de uso de Zypher</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">
+            <span>📊 Informes</span>
+        </button>
+        <div class="submenu">
+            <a href="/informes.php">Generación de informes</a>
+            <a href="/acceso-remoto.php">Acceso remoto desde la nube</a>
+        </div>
+    </div>
+</aside>
+
+<button type="button" class="sidebar-handle" id="sidebarHandle" onclick="toggleSidebar()" aria-label="Mostrar u ocultar menú">
+    <span class="handle-icon">▸</span>
+</button>
