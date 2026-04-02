@@ -8,6 +8,10 @@
 </head>
 <body>
 
+  <div class="page-glow page-glow-1"></div>
+  <div class="page-glow page-glow-2"></div>
+  <div class="page-grid"></div>
+
   <header class="site-header">
     <div class="container header-inner">
       <a href="#inicio" class="brand">
@@ -15,7 +19,7 @@
         <span class="brand-name">Zypher</span>
       </a>
 
-      <nav class="main-nav">
+      <nav class="main-nav" id="mainNav">
         <a href="#inicio">Inicio</a>
         <a href="#que-es">Qué es</a>
         <a href="#caracteristicas">Características</a>
@@ -26,310 +30,319 @@
         <a href="#contacto">Contacto</a>
       </nav>
 
-      <div class="header-actions">
+      <div class="header-actions" id="headerActions">
         <a href="/inicio-sesion.html" class="btn btn-secondary">Iniciar sesión</a>
         <a href="/registro.html" class="btn btn-primary">Regístrate</a>
       </div>
 
-      <button class="menu-toggle" aria-label="Abrir menú">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
     </div>
   </header>
 
   <main>
     <section id="inicio" class="hero section reveal-up">
-      <div class="hero-bg"></div>
-      <div class="hero-grid container">
+      <div class="hero-overlay"></div>
+      <div class="hero-circuit hero-circuit-1"></div>
+      <div class="hero-circuit hero-circuit-2"></div>
+      <div class="hero-particles"></div>
+
+      <div class="container hero-grid">
         <div class="hero-copy">
+          <span class="hero-kicker">Plataforma web de ciberseguridad</span>
           <h1>Zypher</h1>
           <p class="hero-text">
-            Plataforma web de ciberseguridad para centralizar módulos de análisis, supervisión, hardening,
-            copias de seguridad y gestión técnica desde una sola interfaz.
+            Centraliza análisis, supervisión, hardening, respuesta e informes
+            en una sola interfaz con un enfoque claro, técnico y escalable.
           </p>
 
-          <div class="hero-actions">
+          <div class="hero-actions-row">
             <a href="/registro.html" class="btn btn-primary">Empezar ahora</a>
             <a href="#modulos" class="btn btn-secondary">Ver módulos</a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="shield-wrap">
+            <div class="shield-ring shield-ring-1"></div>
+            <div class="shield-ring shield-ring-2"></div>
+            <div class="shield-core">
+              <div class="shield-icon">⌂</div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <section id="que-es" class="section section-alt reveal-up">
+      <div class="container section-intro left">
+        <h2>Qué es Zypher</h2>
+        <p class="section-subtitle">Una plataforma pensada para unificar funciones de seguridad</p>
+      </div>
+
       <div class="container overview-grid">
-        <div class="section-heading left">
-          <p class="section-label">Qué es Zypher</p>
-          <h2>Una plataforma pensada para unificar funciones de seguridad</h2>
+        <div class="overview-copy">
           <p>
-            Zypher está planteado como un entorno web donde distintas funciones de ciberseguridad
-            conviven dentro de una estructura común. La idea es evitar herramientas dispersas,
-            reducir fricción operativa y tener una visión más clara del estado general del sistema.
+            Zypher es una plataforma web orientada a reunir en un solo entorno
+            distintos módulos de ciberseguridad para equipos Windows. La idea
+            es evitar herramientas dispersas y trabajar desde un punto de control
+            más claro, visual y útil.
           </p>
         </div>
 
         <div class="overview-boxes">
           <article class="overview-box">
             <span class="box-title">Centralización</span>
-            <p>Reúne análisis, monitorización, políticas, respuesta e informes dentro de un mismo panel.</p>
+            <p>Reúne análisis, monitorización, políticas, respuesta e informes dentro del mismo entorno.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Acceso remoto</span>
-            <p>Permite trabajar desde navegador sin depender de una consola separada por cada función.</p>
+            <p>Permite trabajar desde navegador sin depender de una consola separada por función.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Visión conjunta</span>
-            <p>Presenta resultados, actividad reciente y puntos críticos desde una vista común.</p>
+            <p>Presenta resultados, actividad y puntos críticos desde una sola vista común.</p>
           </article>
 
           <article class="overview-box">
             <span class="box-title">Escalabilidad</span>
-            <p>Está preparado para ampliar módulos y capacidades sin rehacer toda la plataforma.</p>
+            <p>Está preparado para crecer por módulos sin rehacer toda la base de la plataforma.</p>
           </article>
         </div>
       </div>
     </section>
 
     <section id="caracteristicas" class="section reveal-up">
-      <div class="container">
-        <div class="section-heading center">
-          <p class="section-label">Características</p>
-          <h2>Base visual simple, enfoque técnico serio</h2>
-        </div>
+      <div class="container section-intro center">
+        <h2>Características</h2>
+        <p class="section-subtitle">Base visual simple, enfoque técnico serio</p>
+      </div>
 
-        <div class="feature-grid">
-          <article class="feature-card">
-            <div class="feature-icon-wrap">
-              <img src="img/icono-gestion.png" alt="Gestión centralizada" class="feature-icon">
-            </div>
-            <h3>Gestión centralizada</h3>
-            <p>Concentra módulos, acciones y resultados dentro de un único entorno operativo.</p>
-          </article>
+      <div class="container feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon-wrap">
+            <img src="img/icono-gestion.png" alt="Gestión centralizada" class="feature-icon">
+          </div>
+          <h3>Gestión centralizada</h3>
+          <p>Concentra módulos, resultados y acciones dentro de un único panel operativo.</p>
+        </article>
 
-          <article class="feature-card">
-            <div class="feature-icon-wrap">
-              <img src="img/icono-facil.png" alt="Uso claro" class="feature-icon">
-            </div>
-            <h3>Uso claro</h3>
-            <p>Interfaz limpia para moverse entre secciones sin perder contexto ni saturar la vista.</p>
-          </article>
+        <article class="feature-card">
+          <div class="feature-icon-wrap">
+            <img src="img/icono-facil.png" alt="Uso claro" class="feature-icon">
+          </div>
+          <h3>Uso claro</h3>
+          <p>Interfaz diseñada para moverse rápido entre secciones sin perder contexto.</p>
+        </article>
 
-          <article class="feature-card">
-            <div class="feature-icon-wrap">
-              <img src="img/icono-proteccion.png" alt="Protección integral" class="feature-icon">
-            </div>
-            <h3>Protección integral</h3>
-            <p>Combina prevención, revisión, refuerzo y respuesta dentro de una misma estructura.</p>
-          </article>
-        </div>
+        <article class="feature-card">
+          <div class="feature-icon-wrap">
+            <img src="img/icono-proteccion.png" alt="Protección integral" class="feature-icon">
+          </div>
+          <h3>Protección integral</h3>
+          <p>Combina prevención, revisión, refuerzo y respuesta dentro de la misma plataforma.</p>
+        </article>
       </div>
     </section>
 
     <section id="modulos" class="section section-alt reveal-up">
-      <div class="container">
-        <div class="section-heading center">
-          <p class="section-label">Módulos</p>
-          <h2>Bloques funcionales que se integran en una sola plataforma</h2>
-        </div>
+      <div class="container section-intro center">
+        <h2>Módulos</h2>
+        <p class="section-subtitle">Bloques funcionales que se integran en una sola plataforma</p>
+      </div>
 
-        <div class="module-grid">
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-vulnerabilidades.png" alt="Módulo de análisis de vulnerabilidades" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Análisis de vulnerabilidades</h3>
-              <p>Detecta fallos de seguridad y muestra riesgos presentes en el sistema analizado.</p>
-            </div>
-          </article>
+      <div class="container module-grid">
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-vulnerabilidades.png" alt="Análisis de vulnerabilidades" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Análisis de vulnerabilidades</h3>
+            <p>Detecta fallos de seguridad y expone riesgos presentes en el sistema analizado.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-cis.png" alt="Módulo de aplicación de políticas CIS" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Aplicación de políticas CIS</h3>
-              <p>Permite aplicar configuraciones recomendadas basadas en guías CIS.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-cis.png" alt="Aplicación de políticas CIS" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Aplicación de políticas CIS</h3>
+            <p>Permite aplicar configuraciones recomendadas basadas en guías CIS.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-hardening.png" alt="Módulo de hardening" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Hardening</h3>
-              <p>Refuerza la configuración del sistema para reducir exposición y superficie de ataque.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-hardening.png" alt="Hardening" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Hardening</h3>
+            <p>Refuerza la configuración del sistema para reducir la superficie de ataque.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-archivos.png" alt="Módulo de escaneo de archivos" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Escaneo de archivos</h3>
-              <p>Revisa elementos sospechosos y ayuda a detectar posibles amenazas.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-archivos.png" alt="Escaneo de archivos" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Escaneo de archivos</h3>
+            <p>Revisa archivos sospechosos y ayuda a detectar amenazas o riesgos técnicos.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-eventos.png" alt="Módulo de monitorización de eventos" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Monitorización de eventos</h3>
-              <p>Supervisa actividad del sistema y registra eventos relevantes de seguridad.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-eventos.png" alt="Monitorización de eventos" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Monitorización de eventos</h3>
+            <p>Supervisa actividad del sistema y registra eventos relevantes de seguridad.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-respuesta.png" alt="Módulo de respuesta ante eventos" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Respuesta ante eventos</h3>
-              <p>Permite actuar ante alertas y ejecutar respuestas definidas.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-respuesta.png" alt="Respuesta ante eventos" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Respuesta ante eventos</h3>
+            <p>Permite actuar ante alertas y ejecutar respuestas definidas desde la plataforma.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-backup.png" alt="Módulo de copias de seguridad" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Copias de seguridad</h3>
-              <p>Protege datos mediante tareas de respaldo y recuperación básica.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-backup.png" alt="Copias de seguridad" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Copias de seguridad</h3>
+            <p>Facilita la protección de datos mediante respaldo y recuperación básica.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-guia.png" alt="Módulo de guía y recordatorio" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Guía y recordatorio</h3>
-              <p>Ofrece apoyo visual y recordatorios para revisiones o tareas pendientes.</p>
-            </div>
-          </article>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-guia.png" alt="Guía y recordatorio" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Guía y recordatorio</h3>
+            <p>Ofrece ayuda visual y recordatorios para revisiones o tareas pendientes.</p>
+          </div>
+        </article>
 
-          <article class="module-card">
-            <div class="module-image-wrap">
-              <img src="img/mod-informes.png" alt="Módulo de informes y acceso remoto" class="module-image">
-            </div>
-            <div class="module-body">
-              <h3>Informes y acceso remoto</h3>
-              <p>Resume resultados y facilita revisión técnica desde entorno web.</p>
-            </div>
-          </article>
-        </div>
+        <article class="module-card">
+          <div class="module-image-wrap">
+            <img src="img/mod-informes.png" alt="Informes y acceso remoto" class="module-image">
+          </div>
+          <div class="module-body">
+            <h3>Informes y acceso remoto</h3>
+            <p>Genera resultados resumidos y facilita revisión remota del entorno.</p>
+          </div>
+        </article>
       </div>
     </section>
 
     <section id="compatibilidad" class="section reveal-up">
-      <div class="container">
-        <div class="section-heading center">
-          <p class="section-label">Compatibilidad</p>
-          <h2>Entorno principal orientado a Windows</h2>
-        </div>
+      <div class="container section-intro center">
+        <h2>Compatibilidad</h2>
+        <p class="section-subtitle">Entorno principal orientado a Windows</p>
+      </div>
 
-        <div class="compat-grid">
-          <article class="compat-card available">
-            <img src="img/windows-logo.png" alt="Windows" class="platform-icon">
-            <h3>Windows</h3>
-            <p>Disponible</p>
-          </article>
+      <div class="container compat-grid">
+        <article class="compat-card available">
+          <img src="img/windows-logo.png" alt="Windows" class="platform-icon">
+          <h3>Windows</h3>
+          <p>Disponible</p>
+        </article>
 
-          <article class="compat-card unavailable">
-            <img src="img/mac-logo.png" alt="Mac" class="platform-icon">
-            <h3>Mac</h3>
-            <p>No disponible</p>
-          </article>
+        <article class="compat-card unavailable">
+          <img src="img/mac-logo.png" alt="Mac" class="platform-icon">
+          <h3>Mac</h3>
+          <p>No disponible</p>
+        </article>
 
-          <article class="compat-card unavailable">
-            <img src="img/linux-logo.png" alt="Linux" class="platform-icon">
-            <h3>Linux</h3>
-            <p>No disponible</p>
-          </article>
-        </div>
+        <article class="compat-card unavailable">
+          <img src="img/linux-logo.png" alt="Linux" class="platform-icon">
+          <h3>Linux</h3>
+          <p>No disponible</p>
+        </article>
       </div>
     </section>
 
     <section id="como-funciona" class="section section-alt reveal-up">
-      <div class="container">
-        <div class="section-heading center">
-          <p class="section-label">Cómo funciona</p>
-          <h2>Flujo general de uso de la plataforma</h2>
+      <div class="container section-intro center">
+        <h2>Cómo funciona</h2>
+        <p class="section-subtitle">Flujo general de uso de la plataforma</p>
+      </div>
+
+      <div class="container steps-grid">
+        <article class="step-card">
+          <span class="step-number">01</span>
+          <h3>Acceso al panel</h3>
+          <p>El usuario entra a Zypher desde navegador y accede al panel principal.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">02</span>
+          <h3>Selección de módulo</h3>
+          <p>Desde la interfaz se abre el módulo que se quiera ejecutar o revisar.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">03</span>
+          <h3>Ejecución interna</h3>
+          <p>La lógica procesa análisis, políticas, eventos o copias según el módulo elegido.</p>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">04</span>
+          <h3>Resultados integrados</h3>
+          <p>Los resultados vuelven al panel y se muestran de forma clara y centralizada.</p>
+        </article>
+      </div>
+
+      <div class="container guide-panel">
+        <div class="guide-copy">
+          <h3>Guía de Zypher</h3>
+          <p>Espacio para documentación interna, ayuda de uso y explicación funcional de módulos.</p>
+          <a href="zypher-guia.html" class="btn btn-primary">Leer guía</a>
         </div>
 
-        <div class="steps-grid">
-          <article class="step-card">
-            <span class="step-number">01</span>
-            <h3>Acceso al panel</h3>
-            <p>El usuario entra a Zypher desde navegador y accede al panel principal.</p>
-          </article>
-
-          <article class="step-card">
-            <span class="step-number">02</span>
-            <h3>Selección de módulo</h3>
-            <p>Desde la interfaz se abre la función que se quiera ejecutar o revisar.</p>
-          </article>
-
-          <article class="step-card">
-            <span class="step-number">03</span>
-            <h3>Ejecución de lógica</h3>
-            <p>La parte funcional procesa análisis, políticas, eventos o copias.</p>
-          </article>
-
-          <article class="step-card">
-            <span class="step-number">04</span>
-            <h3>Visualización de resultados</h3>
-            <p>Los resultados se integran de nuevo en el panel para su revisión.</p>
-          </article>
-        </div>
-
-        <div class="guide-panel">
-          <div class="guide-copy">
-            <h3>Guía de Zypher</h3>
-            <p>Espacio pensado para documentación interna, ayuda de uso y explicación de módulos.</p>
-            <a href="zypher-guia.html" class="btn btn-primary">Leer guía</a>
-          </div>
-
-          <div class="guide-visual">
-            <img src="img/guia-zypher.png" alt="Guía de Zypher" class="guide-image">
-          </div>
+        <div class="guide-visual">
+          <img src="img/guia-zypher.png" alt="Guía de Zypher" class="guide-image">
         </div>
       </div>
     </section>
 
     <section id="funcionamiento-interno" class="section reveal-up">
-      <div class="container">
-        <div class="section-heading center">
-          <p class="section-label">Arquitectura</p>
-          <h2>Estructura general del sistema</h2>
-        </div>
+      <div class="container section-intro center">
+        <h2>Arquitectura</h2>
+        <p class="section-subtitle">Estructura general del sistema</p>
+      </div>
 
-        <div class="architecture-grid">
-          <article class="arch-card">
-            <h3>Interfaz web</h3>
-            <p>HTML, CSS, JavaScript y PHP muestran paneles, navegación y resultados.</p>
-          </article>
+      <div class="container architecture-grid">
+        <article class="arch-card">
+          <h3>Interfaz web</h3>
+          <p>HTML, CSS, JavaScript y PHP muestran paneles, navegación y resultados.</p>
+        </article>
 
-          <article class="arch-card">
-            <h3>Módulos funcionales</h3>
-            <p>La lógica de seguridad puede ejecutarse en Python u otros procesos del servidor.</p>
-          </article>
+        <article class="arch-card">
+          <h3>Módulos funcionales</h3>
+          <p>La lógica de seguridad puede ejecutarse en Python u otros procesos del servidor.</p>
+        </article>
 
-          <article class="arch-card">
-            <h3>Persistencia</h3>
-            <p>PostgreSQL almacena usuarios, configuración, actividad y resultados.</p>
-          </article>
+        <article class="arch-card">
+          <h3>Persistencia</h3>
+          <p>PostgreSQL almacena usuarios, configuración, actividad y resultados.</p>
+        </article>
 
-          <article class="arch-card">
-            <h3>Despliegue</h3>
-            <p>Render mantiene la aplicación accesible y preparada para seguir creciendo.</p>
-          </article>
-        </div>
+        <article class="arch-card">
+          <h3>Despliegue</h3>
+          <p>Render mantiene la aplicación accesible y preparada para seguir creciendo.</p>
+        </article>
       </div>
     </section>
   </main>
@@ -366,9 +379,9 @@
 
     revealElements.forEach(element => observer.observe(element));
 
-    const menuToggle = document.querySelector('.menu-toggle');
-    const mainNav = document.querySelector('.main-nav');
-    const headerActions = document.querySelector('.header-actions');
+    const menuToggle = document.getElementById('menuToggle');
+    const mainNav = document.getElementById('mainNav');
+    const headerActions = document.getElementById('headerActions');
 
     menuToggle.addEventListener('click', () => {
       mainNav.classList.toggle('is-open');
