@@ -1,53 +1,47 @@
-<?php
-declare(strict_types=1);
-session_start();
+<aside class="sidebar" id="sidebar">
 
-if (empty($_SESSION['logged_in'])) {
-    header('Location: /inicio-sesion.html');
-    exit;
-}
+  <div class="sidebar-toggle" onclick="toggleSidebar()">⬅</div>
 
-$email = $_SESSION['email'] ?? 'usuario@zypher.local';
-$nombreUsuario = explode('@', $email)[0] ?: 'usuario';
-$nombreEquipo = php_uname('n');
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Zypher Panel</title>
-    <link rel="stylesheet" href="/css/dashboard.css">
-</head>
-<body>
+  <a class="menu-home" href="/dashboard-inicio.php">🏠 Inicio</a>
 
-<div class="app">
-    <?php include __DIR__ . '/includes/sidebar.php'; ?>
-
-    <div class="main-area">
-        <?php include __DIR__ . '/includes/topbar.php'; ?>
-
-        <div class="content">
-            <div class="card">
-                <h1>Panel principal</h1>
-                <p>Bienvenido a Zypher.</p>
-            </div>
-
-            <div class="card">
-                <h2>Estado del sistema</h2>
-                <p>Estado: En riesgo</p>
-                <p>Vulnerabilidades: 12</p>
-                <p>Políticas CIS: 87/120</p>
-            </div>
-
-            <div class="card">
-                <h2>Actividad reciente</h2>
-                <p>Último análisis: Hoy</p>
-                <p>Última copia: Hoy</p>
-            </div>
-        </div>
+  <div class="menu-category">
+    <div class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</div>
+    <div class="submenu">
+      <a href="/vulnerabilidades.php">Vulnerabilidades</a>
+      <a href="/cis.php">Políticas CIS</a>
     </div>
-</div>
+  </div>
 
-<script src="/js/menu.js"></script>
-</body>
-</html>
+  <div class="menu-category">
+    <div class="menu-title" onclick="toggleMenu(this)">🔍 Amenazas y supervisión</div>
+    <div class="submenu">
+      <a href="/escaneo.php">Escaneo</a>
+      <a href="/monitorizacion.php">Monitorización</a>
+      <a href="/respuesta.php">Respuesta</a>
+    </div>
+  </div>
+
+  <div class="menu-category">
+    <div class="menu-title" onclick="toggleMenu(this)">💾 Continuidad</div>
+    <div class="submenu">
+      <a href="/copias.php">Copias</a>
+    </div>
+  </div>
+
+  <div class="menu-category">
+    <div class="menu-title" onclick="toggleMenu(this)">📋 Revisión</div>
+    <div class="submenu">
+      <a href="/recordatorios.php">Recordatorios</a>
+      <a href="/guia.php">Guía</a>
+    </div>
+  </div>
+
+  <div class="menu-category">
+    <div class="menu-title" onclick="toggleMenu(this)">📊 Informes</div>
+    <div class="submenu">
+      <a href="/informes.php">Informes</a>
+      <a href="/acceso-remoto.php">Acceso remoto</a>
+    </div>
+  </div>
+
+</aside>
