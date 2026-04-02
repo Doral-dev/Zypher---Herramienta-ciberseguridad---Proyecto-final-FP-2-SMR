@@ -1,14 +1,22 @@
-function toggleMenu(element) {
-  const submenu = element.nextElementSibling;
-  submenu.classList.toggle("open");
+// Maneja la apertura de submenús individuales
+function toggleSubmenu(button) {
+  const submenu = button.nextElementSibling;
+  
+  // Cerramos otros submenús si quieres un efecto acordeón (opcional)
+  // document.querySelectorAll('.nav-submenu').forEach(s => s.classList.remove('is-open'));
+
+  if (submenu) {
+    submenu.classList.toggle('is-open');
+  }
 }
 
+// Maneja la apertura/cierre del sidebar completo
 function toggleSidebar() {
-  const sidebar = document.getElementById("dashboardSidebar");
-  const main = document.getElementById("dashboardMain");
-  const button = document.getElementById("sidebarToggleBtn");
+  const sidebar = document.getElementById('dashboardSidebar');
+  const main = document.getElementById('dashboardMain');
 
-  if (sidebar) sidebar.classList.toggle("is-hidden");
-  if (main) main.classList.toggle("is-full");
-  if (button) button.classList.toggle("is-collapsed");
+  if (sidebar && main) {
+    sidebar.classList.toggle('is-hidden');
+    main.classList.toggle('is-full');
+  }
 }
