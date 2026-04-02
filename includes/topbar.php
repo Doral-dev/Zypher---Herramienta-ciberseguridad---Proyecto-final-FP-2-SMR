@@ -1,6 +1,5 @@
 <div class="topbar">
   <div class="topbar-left">
-    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
     <img src="/img/logo-zypher.png" class="top-logo">
     <div class="top-title">Zypher</div>
   </div>
