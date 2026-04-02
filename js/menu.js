@@ -4,5 +4,9 @@ function toggleMenu(element) {
 }
 
 function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("collapsed");
+  const sidebar = document.getElementById("sidebar");
+  const handle = document.getElementById("sidebarHandle");
+
+  sidebar.classList.toggle("collapsed");
+  handle.classList.toggle("collapsed");
 }
