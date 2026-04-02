@@ -117,10 +117,10 @@ body::after {
 }
 
 
-.sidebar-handle {
+.sidebar-toggle-btn {
   position: fixed;
-  left: calc(var(--sidebar-width) - 11px);
   top: 50%;
+  left: 289px;
   transform: translateY(-50%);
   width: 22px;
   height: 52px;
@@ -131,27 +131,21 @@ body::after {
   cursor: pointer;
   z-index: 30;
   box-shadow: var(--shadow-soft);
-  transition: left 0.28s ease, transform 0.28s ease, background 0.22s ease;
+  transition: left 0.28s ease, background 0.22s ease, transform 0.22s ease;
 }
 
-.sidebar-handle:hover {
+.sidebar-toggle-btn:hover {
   background: linear-gradient(180deg, #9a80f5 0%, #7b59e2 100%);
 }
 
-.sidebar-handle.collapsed {
+.sidebar-toggle-btn.is-collapsed {
   left: 10px;
+  transform: translateY(-50%) rotate(180deg);
 }
 
-.handle-icon {
-  display: inline-block;
-  font-size: 12px;
-  line-height: 1;
-  transition: transform 0.28s ease;
-}
 
-.sidebar-handle.collapsed .handle-icon {
-  transform: rotate(180deg);
-}
+
+
 
 .menu-home {
   display: block;
