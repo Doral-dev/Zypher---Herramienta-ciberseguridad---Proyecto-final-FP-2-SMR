@@ -87,11 +87,8 @@ body::after {
   width: var(--sidebar-width);
   height: 100vh;
   padding: 24px 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
-    linear-gradient(180deg, rgba(8, 13, 32, 0.96), rgba(5, 9, 24, 0.96));
+  background: #080d20; /* Color sólido para evitar transparencias */
   border-right: 1px solid var(--line);
-  backdrop-filter: blur(14px);
   overflow-y: auto;
   transition: transform 0.28s ease;
   z-index: 20;
