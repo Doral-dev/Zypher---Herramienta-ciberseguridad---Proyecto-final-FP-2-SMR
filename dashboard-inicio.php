@@ -1,4 +1,3 @@
-
 <?php
 declare(strict_types=1);
 session_start();
@@ -31,6 +30,19 @@ $nombreEquipo = php_uname('n');
             <div class="card">
                 <h1>Panel principal</h1>
                 <p>Bienvenido a Zypher.</p>
+            </div>
+
+            <div class="card">
+                <h2>Estado del sistema</h2>
+                <p>Estado: En riesgo</p>
+                <p>Vulnerabilidades: 12</p>
+                <p>Políticas CIS: 87/120</p>
+            </div>
+
+            <div class="card">
+                <h2>Actividad reciente</h2>
+                <p>Último análisis: Hoy</p>
+                <p>Última copia: Hoy</p>
             </div>
         </div>
     </div>
