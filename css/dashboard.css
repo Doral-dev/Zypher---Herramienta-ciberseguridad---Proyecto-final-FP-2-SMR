@@ -74,35 +74,41 @@ body::after {
   pointer-events: none;
 }
 
-.app-shell {
-  display: flex;
+.dashboard-layout {
   min-height: 100vh;
   position: relative;
   z-index: 2;
 }
 
-.sidebar {
-  width: var(--sidebar-width);
-  min-width: var(--sidebar-width);
+.dashboard-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 100vh;
+  padding: 26px 18px;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
     linear-gradient(180deg, rgba(8, 13, 32, 0.96), rgba(5, 9, 24, 0.96));
   border-right: 1px solid var(--line);
-  padding: 26px 18px;
   backdrop-filter: blur(14px);
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
-  transition: width 0.28s ease, min-width 0.28s ease, padding 0.28s ease, border 0.28s ease;
+  overflow-y: auto;
+  transition: transform 0.28s ease;
+  z-index: 20;
 }
 
-.sidebar.collapsed {
-  width: 0;
-  min-width: 0;
-  padding-left: 0;
-  padding-right: 0;
-  border-right: 0;
+.dashboard-sidebar.is-hidden {
+  transform: translateX(-100%);
+}
+
+.dashboard-main {
+  margin-left: 300px;
+  min-height: 100vh;
+  transition: margin-left 0.28s ease;
+}
+
+.dashboard-main.is-full {
+  margin-left: 0;
 }
 
 .sidebar.collapsed .menu-home,
