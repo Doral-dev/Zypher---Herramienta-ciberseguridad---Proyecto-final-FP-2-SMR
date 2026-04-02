@@ -29,7 +29,6 @@ $nombreEquipo = php_uname('n');
             --bg-main: #f3efff;
             --bg-soft: #fbf9ff;
             --panel: rgba(255, 255, 255, 0.88);
-            --panel-strong: #ffffff;
             --panel-soft: #f7f3ff;
             --border: rgba(111, 78, 214, 0.16);
             --text: #2f2550;
@@ -37,15 +36,14 @@ $nombreEquipo = php_uname('n');
             --purple: #6f4ed6;
             --purple-dark: #4b2cab;
             --purple-soft: #8f74ea;
-            --purple-light: #ede7ff;
-            --blue-soft: #e8f2ff;
-            --blue-text: #225caa;
             --green-bg: #def8e8;
             --green-text: #1f8a4c;
             --yellow-bg: #fff4d6;
             --yellow-text: #a16b00;
             --red-bg: #ffe3e3;
             --red-text: #bf2d2d;
+            --blue-soft: #e8f2ff;
+            --blue-text: #225caa;
             --shadow-soft: 0 16px 34px rgba(76, 49, 168, 0.10);
             --shadow-strong: 0 20px 44px rgba(76, 49, 168, 0.16);
         }
@@ -255,8 +253,9 @@ $nombreEquipo = php_uname('n');
 
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 18px;
+            max-width: 900px;
         }
 
         .status-box {
@@ -364,8 +363,9 @@ $nombreEquipo = php_uname('n');
 
         .activity-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr;
             gap: 18px;
+            max-width: 900px;
         }
 
         .activity-box {
@@ -409,12 +409,6 @@ $nombreEquipo = php_uname('n');
             box-shadow: 0 10px 20px rgba(111, 78, 214, 0.16);
         }
 
-        @media (max-width: 1300px) {
-            .status-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
         @media (max-width: 1100px) {
             .layout {
                 grid-template-columns: 1fr;
@@ -424,16 +418,10 @@ $nombreEquipo = php_uname('n');
                 border-right: none;
                 border-bottom: 1px solid var(--border);
             }
-
-            .activity-grid,
-            .status-grid {
-                grid-template-columns: 1fr 1fr;
-            }
         }
 
         @media (max-width: 750px) {
-            .status-grid,
-            .activity-grid {
+            .status-grid {
                 grid-template-columns: 1fr;
             }
 
