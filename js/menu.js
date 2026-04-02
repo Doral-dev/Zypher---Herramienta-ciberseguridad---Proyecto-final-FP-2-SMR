@@ -4,9 +4,11 @@ function toggleMenu(element) {
 }
 
 function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const handle = document.getElementById("sidebarHandle");
+  const sidebar = document.getElementById("dashboardSidebar");
+  const main = document.getElementById("dashboardMain");
+  const button = document.getElementById("sidebarToggleBtn");
 
-  sidebar.classList.toggle("collapsed");
-  handle.classList.toggle("collapsed");
+  sidebar.classList.toggle("is-hidden");
+  main.classList.toggle("is-full");
+  button.classList.toggle("is-collapsed");
 }
