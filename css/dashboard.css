@@ -175,3 +175,22 @@ body {
 h1 {
   margin-bottom: 10px;
 }
+
+
+.sidebar-toggle {
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+.sidebar.collapsed .menu-title,
+.sidebar.collapsed .submenu,
+.sidebar.collapsed .menu-home {
+  display: none;
+}
