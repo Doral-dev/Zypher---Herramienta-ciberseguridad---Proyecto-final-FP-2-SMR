@@ -1,19 +1,17 @@
 <?php
 // cis.php
 
-
 $host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $port = '5432';
 $dbname = 'zypher_db_g2sb';
 $user = 'zypher_db_g2sb_user';
 $password = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
-
 try {
     $pdo = new PDO(
         "pgsql:host=$host;port=$port;dbname=$dbname",
         $user,
-        $pass,
+        $password,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
