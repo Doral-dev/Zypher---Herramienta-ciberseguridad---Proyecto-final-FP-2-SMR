@@ -1,11 +1,13 @@
 <?php
 // cis.php
 
-$host = 'TU_HOST';
+
+$host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $port = '5432';
 $dbname = 'zypher_db_g2sb';
-$user = 'TU_USUARIO';
-$pass = 'TU_PASSWORD';
+$user = 'zypher_db_g2sb_user';
+$password = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
+
 
 try {
     $pdo = new PDO(
