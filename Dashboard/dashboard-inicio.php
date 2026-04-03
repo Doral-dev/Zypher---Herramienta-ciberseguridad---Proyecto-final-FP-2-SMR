@@ -17,7 +17,7 @@ $nombreEquipo = php_uname('n');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Inicio - Zypher</title>
-    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/Dashboard/dashboard.css">
 </head>
 <body>
 
