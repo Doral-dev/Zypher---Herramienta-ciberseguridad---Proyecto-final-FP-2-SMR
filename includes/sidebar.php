@@ -5,7 +5,7 @@
         <button type="button" class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</button>
         <div class="submenu">
             <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
-            <a href="/cis.php">Aplicación de políticas CIS</a>
+            <a href="/CIS módulo/cis.php">Aplicación de políticas CIS</a>
         </div>
     </div>
 
