@@ -133,8 +133,14 @@ if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
                     method: 'POST'
                 });
 
-                if (!ejecutar.ok) {
-                    throw new Error('No se pudo ejecutar el análisis');
+                const data = await ejecutar.json();
+
+                if (!data.ok) {
+                    const salida = Array.isArray(data.output)
+                        ? data.output.join('\n')
+                        : String(data.output || 'Error desconocido');
+                    alert('Error real:\n' + salida);
+                    throw new Error(salida);
                 }
 
                 const tabla = await fetch('cis.php?tabla=1');
@@ -147,7 +153,6 @@ if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
                 document.getElementById('tabla-cis').outerHTML = htmlTabla;
 
             } catch (error) {
-                alert('Error al volver a analizar.');
                 console.error(error);
             } finally {
                 btn.disabled = false;
