@@ -14,7 +14,7 @@ if (!file_exists($script)) {
     exit;
 }
 
-$cmd = 'python3 ' . escapeshellarg($script) . ' 2>&1';
+$cmd = 'python ' . escapeshellarg($script) . ' 2>&1';
 exec($cmd, $output, $result);
 
 echo json_encode([
