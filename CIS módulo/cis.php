@@ -34,11 +34,11 @@ function mostrarEstado(string $estado): string
 {
     $estado = strtolower(trim($estado));
 
-    if ($estado === 'cumple') {
+    if ($estado === 'cumple' || $estado === 'completado') {
         return '✅';
     }
 
-    if ($estado === 'no cumple') {
+    if ($estado === 'no cumple' || $estado === 'no completado') {
         return '❌';
     }
 
