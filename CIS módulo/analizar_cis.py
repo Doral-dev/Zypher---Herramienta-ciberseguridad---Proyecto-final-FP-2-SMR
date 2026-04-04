@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+from datetime import datetime
+import sys
+
+import psycopg2
+
+
+DB_HOST = "dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com"
+DB_PORT = "5432"
+DB_NAME = "zypher_db_g2sb"
+DB_USER = "zypher_db_g2sb_user"
+DB_PASSWORD = "MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86"
+
+
+def main() -> int:
+    conn = None
+    cur = None
+
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+        )
+
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            UPDATE cis_policies
+            SET estado = %s,
+                fecha_ultimo_analisis = %s
+            """,
+            ("pendiente", datetime.now()),
+        )
+
+        conn.commit()
+        print("Análisis reiniciado correctamente.")
+        return 0
+
+    except Exception as e:
+        print(f"Error al reiniciar el análisis CIS: {e}")
+        return 1
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
