@@ -110,8 +110,6 @@ function renderizarResumen(array $resumen): void
     }
     ?>
     <div class="cis-resumen">
-        <h2 class="cis-total">Total de políticas: <?php echo $resumen['total']; ?></h2>
-
         <div class="cis-grafica-box">
             <div
                 class="cis-grafica"
@@ -127,10 +125,6 @@ function renderizarResumen(array $resumen): void
                 <div class="leyenda-item">
                     <span class="leyenda-color rojo"></span>
                     <span>No completadas: <?php echo $resumen['no_completadas']; ?> (<?php echo $resumen['porcentaje_no_completadas']; ?>%)</span>
-                </div>
-
-                <div class="leyenda-item pendiente-texto">
-                    <span>Pendientes: <?php echo $resumen['pendientes']; ?></span>
                 </div>
             </div>
         </div>
@@ -207,7 +201,7 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
         <h1>CIS Benchmark Políticas de cumplimiento</h1>
 
         <div class="top-actions">
-            <button class="btn-reset" id="btn-reanalizar" type="button">🔄 Volver a analizar</button>
+            <button class="btn-reset" id="btn-reanalizar" type="button">🔄</button>
         </div>
 
         <?php renderizarContenido($policies); ?>
@@ -218,7 +212,7 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
 
         btn.addEventListener('click', async function () {
             btn.disabled = true;
-            btn.textContent = '⏳ Analizando...';
+            btn.textContent = '⏳';
 
             try {
                 const ejecutar = await fetch('ejecutar_cis.php', {
@@ -248,7 +242,7 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
                 console.error(error);
             } finally {
                 btn.disabled = false;
-                btn.textContent = '🔄 Volver a analizar';
+                btn.textContent = '🔄';
             }
         });
     </script>
