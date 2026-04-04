@@ -32,7 +32,7 @@ def main() -> int:
 
         cur = conn.cursor()
 
-        fecha_madrid = datetime.now(ZoneInfo("Europe/Madrid"))
+        fecha_madrid = datetime.now(ZoneInfo("Europe/Madrid")).replace(tzinfo=None)
 
         cur.execute(
             """
