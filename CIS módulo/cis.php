@@ -55,9 +55,9 @@ function mostrarEstado(string $estado): string
     <div class="wrap">
         <h1>CIS Benchmark Políticas de cumplimiento</h1>
 
-        <div class="top-actions">
-            <button class="btn-reset" type="button">🔄 Volver a analizar</button>
-        </div>
+        <form class="top-actions" method="POST" action="ejecutar_cis.php">
+            <button class="btn-reset" type="submit">🔄 Volver a analizar</button>
+        </form>
 
         <div class="table-box">
             <table>
