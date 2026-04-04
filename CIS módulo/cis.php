@@ -119,12 +119,12 @@ function renderizarResumen(array $resumen): void
             <div class="cis-leyenda">
                 <div class="leyenda-item">
                     <span class="leyenda-color verde"></span>
-                    <span>Completadas: <?php echo $resumen['completadas']; ?> (<?php echo $resumen['porcentaje_completadas']; ?>%)</span>
+                    <span>Políticas aplicadas: <?php echo $resumen['completadas']; ?> (<?php echo $resumen['porcentaje_completadas']; ?>%)</span>
                 </div>
 
                 <div class="leyenda-item">
                     <span class="leyenda-color rojo"></span>
-                    <span>No completadas: <?php echo $resumen['no_completadas']; ?> (<?php echo $resumen['porcentaje_no_completadas']; ?>%)</span>
+                    <span>Políticas NO aplicadas: <?php echo $resumen['no_completadas']; ?> (<?php echo $resumen['porcentaje_no_completadas']; ?>%)</span>
                 </div>
             </div>
         </div>
