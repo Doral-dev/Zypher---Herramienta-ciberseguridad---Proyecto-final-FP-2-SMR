@@ -3,8 +3,11 @@
 from datetime import datetime
 import sys
 
-import psycopg2
-
+try:
+    import psycopg2
+except Exception as e:
+    print(f"Error importando psycopg2: {e}")
+    sys.exit(1)
 
 DB_HOST = "dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com"
 DB_PORT = "5432"
@@ -46,9 +49,9 @@ def main() -> int:
         return 1
 
     finally:
-        if cur:
+        if cur is not None:
             cur.close()
-        if conn:
+        if conn is not None:
             conn.close()
 
 
