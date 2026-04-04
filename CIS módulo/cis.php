@@ -1,6 +1,8 @@
 <?php
 // cis.php
 
+date_default_timezone_set('Europe/Madrid');
+
 $host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $port = '5432';
 $dbname = 'zypher_db_g2sb';
