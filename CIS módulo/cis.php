@@ -178,6 +178,11 @@ function renderizarContenido(array $policies): void
     ?>
     <div id="contenido-cis">
         <?php renderizarResumen($resumen); ?>
+
+        <div class="top-actions">
+            <button class="btn-reset" id="btn-reanalizar" type="button">🔄</button>
+        </div>
+
         <?php renderizarTabla($policies); ?>
     </div>
     <?php
@@ -199,52 +204,57 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
 <body>
     <div class="wrap">
         <h1>CIS Benchmark Políticas de cumplimiento</h1>
-
-        <div class="top-actions">
-            <button class="btn-reset" id="btn-reanalizar" type="button">🔄</button>
-        </div>
-
         <?php renderizarContenido($policies); ?>
     </div>
 
     <script>
-        const btn = document.getElementById('btn-reanalizar');
+        function bindReanalizarButton() {
+            const btn = document.getElementById('btn-reanalizar');
+            if (!btn) return;
 
-        btn.addEventListener('click', async function () {
-            btn.disabled = true;
-            btn.textContent = '⏳';
+            btn.onclick = async function () {
+                btn.disabled = true;
+                btn.textContent = '⏳';
 
-            try {
-                const ejecutar = await fetch('ejecutar_cis.php', {
-                    method: 'POST'
-                });
+                try {
+                    const ejecutar = await fetch('ejecutar_cis.php', {
+                        method: 'POST'
+                    });
 
-                const data = await ejecutar.json();
+                    const data = await ejecutar.json();
 
-                if (!data.ok) {
-                    const salida = Array.isArray(data.output)
-                        ? data.output.join('\n')
-                        : String(data.output || 'Error desconocido');
-                    alert('Error real:\n' + salida);
-                    throw new Error(salida);
+                    if (!data.ok) {
+                        const salida = Array.isArray(data.output)
+                            ? data.output.join('\n')
+                            : String(data.output || 'Error desconocido');
+                        alert('Error real:\n' + salida);
+                        throw new Error(salida);
+                    }
+
+                    const contenido = await fetch('cis.php?contenido=1');
+
+                    if (!contenido.ok) {
+                        throw new Error('No se pudo recargar el contenido');
+                    }
+
+                    const htmlContenido = await contenido.text();
+                    document.getElementById('contenido-cis').outerHTML = htmlContenido;
+
+                    bindReanalizarButton();
+
+                } catch (error) {
+                    console.error(error);
+                } finally {
+                    const nuevoBtn = document.getElementById('btn-reanalizar');
+                    if (nuevoBtn) {
+                        nuevoBtn.disabled = false;
+                        nuevoBtn.textContent = '🔄';
+                    }
                 }
+            };
+        }
 
-                const contenido = await fetch('cis.php?contenido=1');
-
-                if (!contenido.ok) {
-                    throw new Error('No se pudo recargar el contenido');
-                }
-
-                const htmlContenido = await contenido.text();
-                document.getElementById('contenido-cis').outerHTML = htmlContenido;
-
-            } catch (error) {
-                console.error(error);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🔄';
-            }
-        });
+        bindReanalizarButton();
     </script>
 </body>
 </html>
