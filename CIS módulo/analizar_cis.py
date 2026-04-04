@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import sys
 
 try:
@@ -31,13 +32,15 @@ def main() -> int:
 
         cur = conn.cursor()
 
+        fecha_madrid = datetime.now(ZoneInfo("Europe/Madrid"))
+
         cur.execute(
             """
             UPDATE cis_policies
             SET estado = %s,
                 fecha_ultimo_analisis = %s
             """,
-            ("pendiente", datetime.now()),
+            ("pendiente", fecha_madrid),
         )
 
         conn.commit()
