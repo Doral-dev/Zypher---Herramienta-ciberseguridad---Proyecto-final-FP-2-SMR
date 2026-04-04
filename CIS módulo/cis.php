@@ -59,10 +59,89 @@ function formatearFecha(?string $fecha): string
     return date('d/m/Y H:i:s', $timestamp);
 }
 
+function calcularResumen(array $policies): array
+{
+    $total = count($policies);
+    $completadas = 0;
+    $noCompletadas = 0;
+    $pendientes = 0;
+
+    foreach ($policies as $policy) {
+        $estado = strtolower(trim($policy['estado'] ?? ''));
+
+        if ($estado === 'cumple' || $estado === 'completado') {
+            $completadas++;
+        } elseif ($estado === 'no cumple' || $estado === 'no completado') {
+            $noCompletadas++;
+        } else {
+            $pendientes++;
+        }
+    }
+
+    $analizadas = $completadas + $noCompletadas;
+
+    if ($analizadas > 0) {
+        $porcentajeCompletadas = round(($completadas / $analizadas) * 100, 1);
+        $porcentajeNoCompletadas = round(($noCompletadas / $analizadas) * 100, 1);
+    } else {
+        $porcentajeCompletadas = 0;
+        $porcentajeNoCompletadas = 0;
+    }
+
+    return [
+        'total' => $total,
+        'completadas' => $completadas,
+        'no_completadas' => $noCompletadas,
+        'pendientes' => $pendientes,
+        'porcentaje_completadas' => $porcentajeCompletadas,
+        'porcentaje_no_completadas' => $porcentajeNoCompletadas
+    ];
+}
+
+function renderizarResumen(array $resumen): void
+{
+    $verde = $resumen['porcentaje_completadas'];
+    $rojo = $resumen['porcentaje_no_completadas'];
+
+    if (($verde + $rojo) <= 0) {
+        $gradosVerde = 0;
+    } else {
+        $gradosVerde = ($verde / 100) * 360;
+    }
+    ?>
+    <div class="cis-resumen">
+        <h2 class="cis-total">Total de políticas: <?php echo $resumen['total']; ?></h2>
+
+        <div class="cis-grafica-box">
+            <div
+                class="cis-grafica"
+                style="background: conic-gradient(#22c55e 0deg <?php echo $gradosVerde; ?>deg, #ef4444 <?php echo $gradosVerde; ?>deg 360deg);"
+            ></div>
+
+            <div class="cis-leyenda">
+                <div class="leyenda-item">
+                    <span class="leyenda-color verde"></span>
+                    <span>Completadas: <?php echo $resumen['completadas']; ?> (<?php echo $resumen['porcentaje_completadas']; ?>%)</span>
+                </div>
+
+                <div class="leyenda-item">
+                    <span class="leyenda-color rojo"></span>
+                    <span>No completadas: <?php echo $resumen['no_completadas']; ?> (<?php echo $resumen['porcentaje_no_completadas']; ?>%)</span>
+                </div>
+
+                <div class="leyenda-item pendiente-texto">
+                    <span>Pendientes: <?php echo $resumen['pendientes']; ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+
 function renderizarTabla(array $policies): void
 {
     ?>
-    <div class="table-box" id="tabla-cis">
+    <div class="table-box">
         <table>
             <thead>
                 <tr>
@@ -99,8 +178,19 @@ function renderizarTabla(array $policies): void
     <?php
 }
 
-if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
-    renderizarTabla($policies);
+function renderizarContenido(array $policies): void
+{
+    $resumen = calcularResumen($policies);
+    ?>
+    <div id="contenido-cis">
+        <?php renderizarResumen($resumen); ?>
+        <?php renderizarTabla($policies); ?>
+    </div>
+    <?php
+}
+
+if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
+    renderizarContenido($policies);
     exit;
 }
 ?>
@@ -120,7 +210,7 @@ if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
             <button class="btn-reset" id="btn-reanalizar" type="button">🔄 Volver a analizar</button>
         </div>
 
-        <?php renderizarTabla($policies); ?>
+        <?php renderizarContenido($policies); ?>
     </div>
 
     <script>
@@ -145,14 +235,14 @@ if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
                     throw new Error(salida);
                 }
 
-                const tabla = await fetch('cis.php?tabla=1');
+                const contenido = await fetch('cis.php?contenido=1');
 
-                if (!tabla.ok) {
-                    throw new Error('No se pudo recargar la tabla');
+                if (!contenido.ok) {
+                    throw new Error('No se pudo recargar el contenido');
                 }
 
-                const htmlTabla = await tabla.text();
-                document.getElementById('tabla-cis').outerHTML = htmlTabla;
+                const htmlContenido = await contenido.text();
+                document.getElementById('contenido-cis').outerHTML = htmlContenido;
 
             } catch (error) {
                 console.error(error);
