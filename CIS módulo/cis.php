@@ -18,7 +18,7 @@ try {
         ]
     );
 
-    $sql = "SELECT id_cis, titulo, descripcion, comando_remediacion, estado
+    $sql = "SELECT id_cis, titulo, descripcion, comando_remediacion, estado, fecha_ultimo_analisis
             FROM cis_policies
             ORDER BY id_cis ASC";
     $stmt = $pdo->query($sql);
@@ -42,6 +42,65 @@ function mostrarEstado(string $estado): string
 
     return '⏳';
 }
+
+function formatearFecha(?string $fecha): string
+{
+    if (empty($fecha)) {
+        return '-';
+    }
+
+    $timestamp = strtotime($fecha);
+    if ($timestamp === false) {
+        return $fecha;
+    }
+
+    return date('d/m/Y H:i:s', $timestamp);
+}
+
+function renderizarTabla(array $policies): void
+{
+    ?>
+    <div class="table-box" id="tabla-cis">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-id">ID Benchmark</th>
+                    <th class="col-titulo">Nombre política</th>
+                    <th class="col-descripcion">Descripción política</th>
+                    <th class="col-remediacion">Comando remediación</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-fecha">Último análisis</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($policies)): ?>
+                    <tr>
+                        <td colspan="6" class="empty">No hay políticas cargadas.</td>
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($policies as $policy): ?>
+                        <tr>
+                            <td class="col-id"><?php echo htmlspecialchars($policy['id_cis']); ?></td>
+                            <td class="col-titulo"><?php echo htmlspecialchars($policy['titulo']); ?></td>
+                            <td class="col-descripcion"><?php echo htmlspecialchars($policy['descripcion']); ?></td>
+                            <td class="col-remediacion">
+                                <pre><?php echo htmlspecialchars($policy['comando_remediacion']); ?></pre>
+                            </td>
+                            <td class="col-estado"><?php echo mostrarEstado($policy['estado']); ?></td>
+                            <td class="col-fecha"><?php echo htmlspecialchars(formatearFecha($policy['fecha_ultimo_analisis'])); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
+
+if (isset($_GET['tabla']) && $_GET['tabla'] === '1') {
+    renderizarTabla($policies);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -55,42 +114,46 @@ function mostrarEstado(string $estado): string
     <div class="wrap">
         <h1>CIS Benchmark Políticas de cumplimiento</h1>
 
-        <form class="top-actions" method="POST" action="ejecutar_cis.php">
-            <button class="btn-reset" type="submit">🔄 Volver a analizar</button>
-        </form>
-
-        <div class="table-box">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-id">ID Benchmark</th>
-                        <th class="col-titulo">Nombre política</th>
-                        <th class="col-descripcion">Descripción política</th>
-                        <th class="col-remediacion">Comando remediación</th>
-                        <th class="col-estado">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($policies)): ?>
-                        <tr>
-                            <td colspan="5" class="empty">No hay políticas cargadas.</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($policies as $policy): ?>
-                            <tr>
-                                <td class="col-id"><?php echo htmlspecialchars($policy['id_cis']); ?></td>
-                                <td class="col-titulo"><?php echo htmlspecialchars($policy['titulo']); ?></td>
-                                <td class="col-descripcion"><?php echo htmlspecialchars($policy['descripcion']); ?></td>
-                                <td class="col-remediacion">
-                                    <pre><?php echo htmlspecialchars($policy['comando_remediacion']); ?></pre>
-                                </td>
-                                <td class="col-estado"><?php echo mostrarEstado($policy['estado']); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+        <div class="top-actions">
+            <button class="btn-reset" id="btn-reanalizar" type="button">🔄 Volver a analizar</button>
         </div>
+
+        <?php renderizarTabla($policies); ?>
     </div>
+
+    <script>
+        const btn = document.getElementById('btn-reanalizar');
+
+        btn.addEventListener('click', async function () {
+            btn.disabled = true;
+            btn.textContent = '⏳ Analizando...';
+
+            try {
+                const ejecutar = await fetch('ejecutar_cis.php', {
+                    method: 'POST'
+                });
+
+                if (!ejecutar.ok) {
+                    throw new Error('No se pudo ejecutar el análisis');
+                }
+
+                const tabla = await fetch('cis.php?tabla=1');
+
+                if (!tabla.ok) {
+                    throw new Error('No se pudo recargar la tabla');
+                }
+
+                const htmlTabla = await tabla.text();
+                document.getElementById('tabla-cis').outerHTML = htmlTabla;
+
+            } catch (error) {
+                alert('Error al volver a analizar.');
+                console.error(error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Volver a analizar';
+            }
+        });
+    </script>
 </body>
 </html>
