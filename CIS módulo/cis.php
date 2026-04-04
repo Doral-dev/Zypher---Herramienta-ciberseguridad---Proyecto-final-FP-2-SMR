@@ -1,6 +1,4 @@
 <?php
-// cis.php
-
 date_default_timezone_set('Europe/Madrid');
 
 $host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
@@ -64,7 +62,6 @@ function calcularResumen(array $policies): array
     $total = count($policies);
     $completadas = 0;
     $noCompletadas = 0;
-    $pendientes = 0;
 
     foreach ($policies as $policy) {
         $estado = strtolower(trim($policy['estado'] ?? ''));
@@ -73,8 +70,6 @@ function calcularResumen(array $policies): array
             $completadas++;
         } elseif ($estado === 'no cumple' || $estado === 'no completado') {
             $noCompletadas++;
-        } else {
-            $pendientes++;
         }
     }
 
@@ -92,7 +87,6 @@ function calcularResumen(array $policies): array
         'total' => $total,
         'completadas' => $completadas,
         'no_completadas' => $noCompletadas,
-        'pendientes' => $pendientes,
         'porcentaje_completadas' => $porcentajeCompletadas,
         'porcentaje_no_completadas' => $porcentajeNoCompletadas
     ];
@@ -102,12 +96,7 @@ function renderizarResumen(array $resumen): void
 {
     $verde = $resumen['porcentaje_completadas'];
     $rojo = $resumen['porcentaje_no_completadas'];
-
-    if (($verde + $rojo) <= 0) {
-        $gradosVerde = 0;
-    } else {
-        $gradosVerde = ($verde / 100) * 360;
-    }
+    $gradosVerde = ($verde + $rojo) > 0 ? ($verde / 100) * 360 : 0;
     ?>
     <div class="cis-resumen">
         <div class="cis-grafica-box">
@@ -148,24 +137,16 @@ function renderizarTabla(array $policies): void
                 </tr>
             </thead>
             <tbody>
-                <?php if (empty($policies)): ?>
+                <?php foreach ($policies as $policy): ?>
                     <tr>
-                        <td colspan="6" class="empty">No hay políticas cargadas.</td>
+                        <td class="col-id"><?php echo htmlspecialchars($policy['id_cis']); ?></td>
+                        <td class="col-titulo"><?php echo htmlspecialchars($policy['titulo']); ?></td>
+                        <td class="col-descripcion"><?php echo htmlspecialchars($policy['descripcion']); ?></td>
+                        <td class="col-remediacion"><pre><?php echo htmlspecialchars($policy['comando_remediacion']); ?></pre></td>
+                        <td class="col-estado"><?php echo mostrarEstado($policy['estado']); ?></td>
+                        <td class="col-fecha"><?php echo htmlspecialchars(formatearFecha($policy['fecha_ultimo_analisis'])); ?></td>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($policies as $policy): ?>
-                        <tr>
-                            <td class="col-id"><?php echo htmlspecialchars($policy['id_cis']); ?></td>
-                            <td class="col-titulo"><?php echo htmlspecialchars($policy['titulo']); ?></td>
-                            <td class="col-descripcion"><?php echo htmlspecialchars($policy['descripcion']); ?></td>
-                            <td class="col-remediacion">
-                                <pre><?php echo htmlspecialchars($policy['comando_remediacion']); ?></pre>
-                            </td>
-                            <td class="col-estado"><?php echo mostrarEstado($policy['estado']); ?></td>
-                            <td class="col-fecha"><?php echo htmlspecialchars(formatearFecha($policy['fecha_ultimo_analisis'])); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
@@ -208,7 +189,7 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
     </div>
 
     <script>
-        function bindReanalizarButton() {
+        function bindRefreshButton() {
             const btn = document.getElementById('btn-reanalizar');
             if (!btn) return;
 
@@ -217,31 +198,10 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
                 btn.textContent = '⏳';
 
                 try {
-                    const ejecutar = await fetch('ejecutar_cis.php', {
-                        method: 'POST'
-                    });
-
-                    const data = await ejecutar.json();
-
-                    if (!data.ok) {
-                        const salida = Array.isArray(data.output)
-                            ? data.output.join('\n')
-                            : String(data.output || 'Error desconocido');
-                        alert('Error real:\n' + salida);
-                        throw new Error(salida);
-                    }
-
                     const contenido = await fetch('cis.php?contenido=1');
-
-                    if (!contenido.ok) {
-                        throw new Error('No se pudo recargar el contenido');
-                    }
-
                     const htmlContenido = await contenido.text();
                     document.getElementById('contenido-cis').outerHTML = htmlContenido;
-
-                    bindReanalizarButton();
-
+                    bindRefreshButton();
                 } catch (error) {
                     console.error(error);
                 } finally {
@@ -254,7 +214,7 @@ if (isset($_GET['contenido']) && $_GET['contenido'] === '1') {
             };
         }
 
-        bindReanalizarButton();
+        bindRefreshButton();
     </script>
 </body>
 </html>
