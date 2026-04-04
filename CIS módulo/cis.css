@@ -21,7 +21,7 @@ h1 {
 .top-actions {
     display: flex;
     justify-content: center;
-    margin-bottom: 30px;
+    margin: 10px 0 30px 0;
 }
 
 .btn-reset {
@@ -42,8 +42,8 @@ h1 {
 }
 
 .cis-resumen {
-    padding: 10px 0 30px 0;
-    margin-bottom: 20px;
+    padding: 10px 0 10px 0;
+    margin-bottom: 10px;
 }
 
 .cis-grafica-box {
