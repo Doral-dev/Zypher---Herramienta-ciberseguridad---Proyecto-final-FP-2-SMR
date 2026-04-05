@@ -5,18 +5,19 @@ $DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'zypher_db_g2sb_user';
 $DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
-function clasificar_grupo($severidad) {
-    $sev = trim((string)$severidad);
+function clasificar_grupo($fila) {
+    $cvss = isset($fila['cvss']) && is_numeric($fila['cvss']) ? (float)$fila['cvss'] : -1;
+    $sev = trim((string)($fila['severidad'] ?? ''));
 
-    if ($sev === 'Crítica') {
+    if ($cvss >= 9.0 || $sev === 'Crítica') {
         return 'Muy críticas';
     }
 
-    if ($sev === 'Alta') {
+    if ($cvss >= 7.0 || $sev === 'Alta') {
         return 'Críticas';
     }
 
-    if ($sev === 'Media') {
+    if ($cvss >= 4.0 || $sev === 'Media') {
         return 'Normales';
     }
 
@@ -60,10 +61,7 @@ $contadores = [
 ];
 
 foreach ($todas as $fila) {
-    $grupo = clasificar_grupo($fila['severidad']);
-    if (!isset($contadores[$grupo])) {
-        $contadores[$grupo] = 0;
-    }
+    $grupo = clasificar_grupo($fila);
     $contadores[$grupo]++;
 }
 
@@ -72,7 +70,7 @@ if (!array_key_exists($grupoSeleccionado, $contadores)) {
 }
 
 $filtradas = array_values(array_filter($todas, function ($fila) use ($grupoSeleccionado) {
-    return clasificar_grupo($fila['severidad']) === $grupoSeleccionado;
+    return clasificar_grupo($fila) === $grupoSeleccionado;
 }));
 
 $chartData = [
