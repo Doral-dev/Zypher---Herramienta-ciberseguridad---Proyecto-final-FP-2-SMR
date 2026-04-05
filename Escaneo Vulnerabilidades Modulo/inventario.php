@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'ok' => false,
         'error' => 'Metodo no permitido'
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -18,7 +18,7 @@ if (!is_array($data)) {
     echo json_encode([
         'ok' => false,
         'error' => 'JSON invalido'
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -37,7 +37,7 @@ foreach ($required as $field) {
         echo json_encode([
             'ok' => false,
             'error' => 'Falta campo obligatorio: ' . $field
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 }
@@ -57,20 +57,20 @@ if (!is_array($data['programas_instalados'])) {
     echo json_encode([
         'ok' => false,
         'error' => 'programas_instalados debe ser un array'
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
-
-$programas_instalados = json_encode($data['programas_instalados'], JSON_UNESCAPED_UNICODE);
 
 if ($agent_id === '' || $hostname === '' || $ip_objetivo === '' || $sistema === '' || $fecha_inventario === '') {
     http_response_code(400);
     echo json_encode([
         'ok' => false,
         'error' => 'Hay campos obligatorios vacios'
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+$programas_instalados = json_encode($data['programas_instalados'], JSON_UNESCAPED_UNICODE);
 
 $DB_HOST = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $DB_PORT = '5432';
