@@ -18,7 +18,7 @@ try {
         ]
     );
 
-    $sql = "SELECT id_cis, titulo, descripcion, comando_remediacion, estado, fecha_ultimo_analisis
+    $sql = "SELECT id_cis, titulo, descripcion, comando_remediacion, estado
             FROM cis_policies
             ORDER BY id_cis ASC";
     $stmt = $pdo->query($sql);
@@ -41,20 +41,6 @@ function mostrarEstado(string $estado): string
     }
 
     return '⏳';
-}
-
-function formatearFecha(?string $fecha): string
-{
-    if (empty($fecha)) {
-        return '-';
-    }
-
-    $timestamp = strtotime($fecha);
-    if ($timestamp === false) {
-        return $fecha;
-    }
-
-    return date('d/m/Y H:i:s', $timestamp);
 }
 
 function calcularResumen(array $policies): array
@@ -104,13 +90,11 @@ function renderizarResumen(array $resumen): void
                 class="cis-grafica"
                 style="background: conic-gradient(#22c55e 0deg <?php echo $gradosVerde; ?>deg, #ef4444 <?php echo $gradosVerde; ?>deg 360deg);"
             ></div>
-
             <div class="cis-leyenda">
                 <div class="leyenda-item">
                     <span class="leyenda-color verde"></span>
                     <span>Políticas aplicadas: <?php echo $resumen['completadas']; ?> (<?php echo $resumen['porcentaje_completadas']; ?>%)</span>
                 </div>
-
                 <div class="leyenda-item">
                     <span class="leyenda-color rojo"></span>
                     <span>Políticas NO aplicadas: <?php echo $resumen['no_completadas']; ?> (<?php echo $resumen['porcentaje_no_completadas']; ?>%)</span>
@@ -133,7 +117,6 @@ function renderizarTabla(array $policies): void
                     <th class="col-descripcion">Descripción política</th>
                     <th class="col-remediacion">Comando remediación</th>
                     <th class="col-estado">Estado</th>
-                    <th class="col-fecha">Último análisis</th>
                 </tr>
             </thead>
             <tbody>
@@ -144,7 +127,6 @@ function renderizarTabla(array $policies): void
                         <td class="col-descripcion"><?php echo htmlspecialchars($policy['descripcion']); ?></td>
                         <td class="col-remediacion"><pre><?php echo htmlspecialchars($policy['comando_remediacion']); ?></pre></td>
                         <td class="col-estado"><?php echo mostrarEstado($policy['estado']); ?></td>
-                        <td class="col-fecha"><?php echo htmlspecialchars(formatearFecha($policy['fecha_ultimo_analisis'])); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -159,11 +141,9 @@ function renderizarContenido(array $policies): void
     ?>
     <div id="contenido-cis">
         <?php renderizarResumen($resumen); ?>
-
         <div class="top-actions">
             <button class="btn-reset" id="btn-reanalizar" type="button">🔄</button>
         </div>
-
         <?php renderizarTabla($policies); ?>
     </div>
     <?php
