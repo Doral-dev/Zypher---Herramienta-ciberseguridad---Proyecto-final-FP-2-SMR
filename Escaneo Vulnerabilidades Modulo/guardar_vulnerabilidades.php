@@ -64,7 +64,12 @@ try {
             CURRENT_TIMESTAMP
         )
         ON CONFLICT (agent_id, cve, paquete, version_paquete)
-        DO NOTHING
+        DO UPDATE SET
+            severidad = EXCLUDED.severidad,
+            cvss = EXCLUDED.cvss,
+            descripcion = EXCLUDED.descripcion,
+            referencia = EXCLUDED.referencia,
+            actualizado_en = CURRENT_TIMESTAMP
     ";
 
     $stmt = $pdo->prepare($sql);
@@ -76,13 +81,13 @@ try {
             ':agent_name' => $v['agent_name'] ?? '',
             ':cve' => $v['cve'] ?? '',
             ':severidad' => $v['severity'] ?? '',
-            ':cvss' => (isset($v['score']) && is_numeric($v['score']) && $v['score'] >= 0) ? $v['score'] : null,
+            ':cvss' => (isset($v['score']) && is_numeric($v['score']) && $v['score'] !== '') ? $v['score'] : null,
             ':paquete' => $v['paquete'] ?? '',
             ':version_paquete' => $v['version_paquete'] ?? '',
             ':descripcion' => $v['descripcion'] ?? '',
             ':referencia' => $v['referencia'] ?? '',
-            ':remediacion' => 'Actualizar o desinstalar el paquete afectado',
-            ':estado' => 'Pendiente'
+            ':remediacion' => '',
+            ':estado' => ''
         ]);
 
         $guardadas++;
