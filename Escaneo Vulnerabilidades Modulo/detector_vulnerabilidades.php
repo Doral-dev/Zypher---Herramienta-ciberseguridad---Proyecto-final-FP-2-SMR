@@ -23,20 +23,6 @@ function clasificar_grupo($severidad) {
     return 'Leves';
 }
 
-function color_estado($estado) {
-    $valor = mb_strtolower(trim((string)$estado));
-
-    if ($valor === 'solucionado' || $valor === 'completado') {
-        return '#c8f7c5';
-    }
-
-    if ($valor === 'en progreso') {
-        return '#fff1b8';
-    }
-
-    return '#ffd6d6';
-}
-
 $grupoSeleccionado = isset($_GET['grupo']) ? trim($_GET['grupo']) : 'Leves';
 
 try {
@@ -48,18 +34,11 @@ try {
     $stmt = $pdo->query("
         SELECT
             id,
-            agent_id,
-            agent_name,
             cve,
             severidad,
             cvss,
             paquete,
-            version_paquete,
             descripcion,
-            referencia,
-            remediacion,
-            estado,
-            fecha_deteccion,
             actualizado_en
         FROM vulns_resultados
         ORDER BY actualizado_en DESC, id DESC
@@ -117,55 +96,50 @@ $chartData = [
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f3f3f3;
+            background: #f2f2f2;
             color: #111;
         }
 
         .contenedor {
-            max-width: 1280px;
+            width: 94%;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px 20px 40px;
+            padding: 10px 0 40px;
         }
 
         .titulo {
             text-align: center;
-            font-size: 38px;
-            margin: 10px 0 30px;
+            font-size: 34px;
+            margin: 0 0 10px;
+            font-weight: normal;
         }
 
         .bloque-superior {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 50px;
-            margin-bottom: 40px;
+            align-items: flex-start;
+            gap: 40px;
+            margin: 10px 0 25px;
             flex-wrap: wrap;
         }
 
-        .grafico-wrap {
-            display: flex;
-            align-items: center;
-            gap: 35px;
-        }
-
         #graficoPie {
-            width: 220px;
-            height: 220px;
-            background: #fff;
-            border-radius: 50%;
+            width: 250px;
+            height: 250px;
         }
 
         .leyenda {
+            margin-top: 30px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 24px;
             font-size: 18px;
         }
 
         .leyenda-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .cuadro {
@@ -175,33 +149,33 @@ $chartData = [
             display: inline-block;
         }
 
-        .c1 { background: #111; }
-        .c2 { background: #444; }
-        .c3 { background: #888; }
+        .c1 { background: #111111; }
+        .c2 { background: #444444; }
+        .c3 { background: #888888; }
         .c4 { background: #d9d9d9; }
 
         .filtro-wrap {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 16px;
-            margin: 10px 0 35px;
+            gap: 18px;
+            margin: 18px 0 35px;
             flex-wrap: wrap;
         }
 
         .filtro-wrap label {
-            font-size: 22px;
+            font-size: 18px;
         }
 
         .filtro-wrap select {
-            min-width: 220px;
+            width: 210px;
             height: 52px;
-            border: 4px solid #000;
+            border: 6px solid #000;
             background: #fff;
-            font-size: 20px;
+            font-size: 18px;
             text-align: center;
-            padding: 0 10px;
             appearance: none;
+            padding: 0 10px;
         }
 
         .tabla-wrap {
@@ -215,81 +189,75 @@ $chartData = [
         }
 
         th, td {
-            border: 4px solid #000;
+            border: 8px solid #000;
             padding: 14px 12px;
             vertical-align: top;
-            text-align: left;
         }
 
         th {
-            background: #f8f8f8;
             font-size: 20px;
-            font-weight: normal;
             text-align: center;
+            font-weight: normal;
+            background: #f8f8f8;
         }
 
         td {
-            font-size: 18px;
-            line-height: 1.4;
-            min-height: 110px;
+            font-size: 17px;
+            line-height: 1.45;
+            height: 118px;
         }
 
-        .col-id {
-            width: 22%;
-        }
-
-        .col-desc {
-            width: 46%;
-        }
-
-        .col-rem {
-            width: 22%;
-        }
-
-        .col-est {
-            width: 10%;
+        .col-cve {
+            width: 19%;
             text-align: center;
         }
 
-        .cve {
-            font-size: 22px;
-            margin-bottom: 8px;
+        .col-desc {
+            width: 33%;
         }
 
-        .mini {
-            font-size: 15px;
-            color: #333;
-            word-break: break-word;
+        .col-sev {
+            width: 17%;
+            text-align: center;
         }
 
-        .estado-badge {
-            display: inline-block;
-            min-width: 120px;
-            padding: 10px 12px;
-            border: 3px solid #000;
-            font-size: 16px;
-            background: #eee;
+        .col-paq {
+            width: 16%;
+            text-align: center;
+        }
+
+        .col-cvss {
+            width: 15%;
+            text-align: center;
         }
 
         .sin-datos {
             text-align: center;
-            padding: 40px;
             font-size: 22px;
             background: #fff;
-            border: 4px solid #000;
+            border: 8px solid #000;
+            padding: 40px 20px;
         }
 
         @media (max-width: 900px) {
             .titulo {
-                font-size: 30px;
+                font-size: 28px;
             }
 
-            th, td {
+            th {
                 font-size: 16px;
             }
 
-            .cve {
-                font-size: 18px;
+            td {
+                font-size: 15px;
+            }
+
+            th, td {
+                border-width: 5px;
+            }
+
+            .filtro-wrap select {
+                border-width: 4px;
             }
         }
     </style>
@@ -299,26 +267,24 @@ $chartData = [
         <h1 class="titulo">Detector de vulnerabilidades</h1>
 
         <div class="bloque-superior">
-            <div class="grafico-wrap">
-                <canvas id="graficoPie" width="220" height="220"></canvas>
+            <canvas id="graficoPie" width="250" height="250"></canvas>
 
-                <div class="leyenda">
-                    <div class="leyenda-item">
-                        <span class="cuadro c1"></span>
-                        <span>Muy críticas (<?php echo (int)$contadores['Muy críticas']; ?>)</span>
-                    </div>
-                    <div class="leyenda-item">
-                        <span class="cuadro c2"></span>
-                        <span>Críticas (<?php echo (int)$contadores['Críticas']; ?>)</span>
-                    </div>
-                    <div class="leyenda-item">
-                        <span class="cuadro c3"></span>
-                        <span>Normales (<?php echo (int)$contadores['Normales']; ?>)</span>
-                    </div>
-                    <div class="leyenda-item">
-                        <span class="cuadro c4"></span>
-                        <span>Leves (<?php echo (int)$contadores['Leves']; ?>)</span>
-                    </div>
+            <div class="leyenda">
+                <div class="leyenda-item">
+                    <span class="cuadro c1"></span>
+                    <span>Muy críticas (<?php echo (int)$contadores['Muy críticas']; ?>)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="cuadro c2"></span>
+                    <span>Críticas (<?php echo (int)$contadores['Críticas']; ?>)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="cuadro c3"></span>
+                    <span>Normales (<?php echo (int)$contadores['Normales']; ?>)</span>
+                </div>
+                <div class="leyenda-item">
+                    <span class="cuadro c4"></span>
+                    <span>Leves (<?php echo (int)$contadores['Leves']; ?>)</span>
                 </div>
             </div>
         </div>
@@ -340,37 +306,26 @@ $chartData = [
                 <table>
                     <thead>
                         <tr>
-                            <th class="col-id">Identificador vulnerabilidad</th>
-                            <th class="col-desc">Descripción vulnerabilidad</th>
-                            <th class="col-rem">Remediación</th>
-                            <th class="col-est">Estado</th>
+                            <th class="col-cve">CVE</th>
+                            <th class="col-desc">Descripción</th>
+                            <th class="col-sev">Severidad</th>
+                            <th class="col-paq">Paquete</th>
+                            <th class="col-cvss">CVSS</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($filtradas as $fila): ?>
                             <tr>
-                                <td class="col-id">
-                                    <div class="cve"><?php echo htmlspecialchars($fila['cve'], ENT_QUOTES, 'UTF-8'); ?></div>
-                                    <div class="mini">
-                                        <?php echo htmlspecialchars($fila['paquete'], ENT_QUOTES, 'UTF-8'); ?>
-                                        <?php if (!empty($fila['version_paquete'])): ?>
-                                            <br>Versión: <?php echo htmlspecialchars($fila['version_paquete'], ENT_QUOTES, 'UTF-8'); ?>
-                                        <?php endif; ?>
-                                        <?php if (!empty($fila['cvss'])): ?>
-                                            <br>CVSS: <?php echo htmlspecialchars($fila['cvss'], ENT_QUOTES, 'UTF-8'); ?>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                                <td class="col-desc">
-                                    <?php echo nl2br(htmlspecialchars($fila['descripcion'], ENT_QUOTES, 'UTF-8')); ?>
-                                </td>
-                                <td class="col-rem">
-                                    <?php echo nl2br(htmlspecialchars($fila['remediacion'], ENT_QUOTES, 'UTF-8')); ?>
-                                </td>
-                                <td class="col-est">
-                                    <span class="estado-badge" style="background: <?php echo htmlspecialchars(color_estado($fila['estado']), ENT_QUOTES, 'UTF-8'); ?>;">
-                                        <?php echo htmlspecialchars($fila['estado'], ENT_QUOTES, 'UTF-8'); ?>
-                                    </span>
+                                <td class="col-cve"><?php echo htmlspecialchars($fila['cve'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="col-desc"><?php echo nl2br(htmlspecialchars($fila['descripcion'], ENT_QUOTES, 'UTF-8')); ?></td>
+                                <td class="col-sev"><?php echo htmlspecialchars($fila['severidad'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="col-paq"><?php echo htmlspecialchars($fila['paquete'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td class="col-cvss">
+                                    <?php
+                                    echo $fila['cvss'] !== null && $fila['cvss'] !== ''
+                                        ? htmlspecialchars($fila['cvss'], ENT_QUOTES, 'UTF-8')
+                                        : '-';
+                                    ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -390,7 +345,7 @@ $chartData = [
         const total = datos.reduce((a, b) => a + b, 0);
         const centroX = canvas.width / 2;
         const centroY = canvas.height / 2;
-        const radio = 95;
+        const radio = 105;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -407,7 +362,7 @@ $chartData = [
                 ctx.closePath();
                 ctx.fillStyle = colores[i];
                 ctx.fill();
-                ctx.lineWidth = 4;
+                ctx.lineWidth = 6;
                 ctx.strokeStyle = '#000';
                 ctx.stroke();
 
@@ -416,7 +371,7 @@ $chartData = [
 
             ctx.beginPath();
             ctx.arc(centroX, centroY, radio, 0, Math.PI * 2);
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6;
             ctx.strokeStyle = '#000';
             ctx.stroke();
         } else {
@@ -424,7 +379,7 @@ $chartData = [
             ctx.arc(centroX, centroY, radio, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6;
             ctx.strokeStyle = '#000';
             ctx.stroke();
         }
