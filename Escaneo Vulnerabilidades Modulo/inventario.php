@@ -74,7 +74,7 @@ if ($agent_id === '' || $hostname === '' || $ip_objetivo === '' || $sistema === 
 
 $DB_HOST = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $DB_PORT = '5432';
-$DB_NAME = 'TU_DB';
+$DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'TU_USER';
 $DB_PASSWORD = 'TU_PASSWORD';
 
