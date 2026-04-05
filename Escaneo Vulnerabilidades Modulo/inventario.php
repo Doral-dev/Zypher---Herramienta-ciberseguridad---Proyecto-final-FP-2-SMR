@@ -76,7 +76,7 @@ $DB_HOST = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $DB_PORT = '5432';
 $DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'zypher_db_g2sb_user';
-$DB_PASSWORD = 'TU_PASSWORD';
+$DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
 try {
     $dsn = "pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME";
