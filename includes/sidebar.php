@@ -14,6 +14,7 @@
         <div class="submenu">
             <a href="escaneo.php">Escaneo de archivos y reputación</a>
             <a href="/monitorizacion.php">Monitorización de eventos</a>
+            <a href="/FIM Modulo/detector_fim.php">Monitorización de integridad de archivos</a>
             <a href="/respuesta.php">Respuesta ante eventos</a>
         </div>
     </div>
