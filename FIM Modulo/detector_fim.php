@@ -133,12 +133,12 @@ try {
         }
 
         .btn-papelera {
-            border: none;
-            background: transparent;
-            color: #df5b5b;
-            font-size: 24px;
-            cursor: pointer;
-            flex-shrink: 0;
+        border: none;
+        background: transparent;
+        color: #ff3b3b;
+        font-size: 24px;
+        cursor: pointer;
+        flex-shrink: 0;
         }
 
         .zona-add {
