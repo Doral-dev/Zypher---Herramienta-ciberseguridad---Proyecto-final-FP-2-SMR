@@ -132,15 +132,6 @@ try {
             word-break: break-all;
         }
 
-        .btn-papelera {
-        border: none;
-        background: transparent;
-        color: #ff3b3b;
-        font-size: 24px;
-        cursor: pointer;
-        flex-shrink: 0;
-        }
-
         .zona-add {
             display: flex;
             justify-content: center;
@@ -169,6 +160,22 @@ try {
             padding: 0 30px;
             font-size: 18px;
             white-space: nowrap;
+        }
+
+        .btn-eliminar {
+            border: none;
+            background: #e53935;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .btn-eliminar:hover {
+            background: #c62828;
         }
 
         .subtitulo {
@@ -269,7 +276,7 @@ try {
             right: 16px;
             border: none;
             background: transparent;
-            color: #df5b5b;
+            color: #df3b3b;
             font-size: 28px;
             font-weight: 700;
             cursor: pointer;
@@ -352,10 +359,11 @@ try {
 
                                 <button
                                     type="button"
-                                    class="btn-papelera"
+                                    class="btn-eliminar"
                                     onclick="eliminarRuta(<?php echo (int)$ruta['id']; ?>)"
-                                    title="Eliminar"
-                                >🗑️</button>
+                                >
+                                    Eliminar
+                                </button>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -471,10 +479,6 @@ try {
         }
 
         async function eliminarRuta(id) {
-            if (!confirm('¿Eliminar esta ruta?')) {
-                return;
-            }
-
             const res = await fetch('guardar_fim.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
