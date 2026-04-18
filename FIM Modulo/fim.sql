@@ -1,18 +1,17 @@
-CREATE TABLE IF NOT EXISTS fim_eventos (
+CREATE TABLE IF NOT EXISTS fim_rutas (
     id SERIAL PRIMARY KEY,
-    agent_id VARCHAR(50) NOT NULL,
-    hostname VARCHAR(255) NOT NULL,
-    accion VARCHAR(20) NOT NULL,
-    ruta TEXT NOT NULL,
-    tamano_anterior BIGINT,
-    tamano_actual BIGINT,
-    fecha_mod_anterior TIMESTAMP NULL,
-    fecha_mod_actual TIMESTAMP NULL,
-    fecha_evento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ruta TEXT NOT NULL UNIQUE,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('carpeta', 'archivo')),
+    activa BOOLEAN NOT NULL DEFAULT TRUE,
+    creada_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_fim_eventos_fecha
-ON fim_eventos (fecha_evento DESC);
-
-CREATE INDEX IF NOT EXISTS idx_fim_eventos_hostname
-ON fim_eventos (hostname);
+CREATE TABLE IF NOT EXISTS fim_eventos (
+    id SERIAL PRIMARY KEY,
+    ruta TEXT NOT NULL,
+    tipo_elemento VARCHAR(20) NOT NULL CHECK (tipo_elemento IN ('carpeta', 'archivo')),
+    cambio VARCHAR(20) NOT NULL CHECK (cambio IN ('Creado', 'Modificado', 'Eliminado')),
+    hash_anterior TEXT,
+    hash_nuevo TEXT,
+    fecha_evento TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
