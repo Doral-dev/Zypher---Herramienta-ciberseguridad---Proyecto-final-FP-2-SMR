@@ -141,10 +141,6 @@ try {
             flex-shrink: 0;
         }
 
-        .btn-papelera:hover {
-            opacity: 0.8;
-        }
-
         .zona-add {
             display: flex;
             justify-content: center;
@@ -163,65 +159,16 @@ try {
         }
 
         .btn-add {
-            min-width: 340px;
+            min-width: 360px;
             height: 56px;
             font-size: 18px;
         }
 
         .btn-guardar {
             height: 54px;
-            padding: 0 26px;
+            padding: 0 30px;
             font-size: 18px;
             white-space: nowrap;
-        }
-
-        .btn-add:hover,
-        .btn-guardar:hover {
-            opacity: 0.95;
-        }
-
-        .formulario {
-            display: none;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #d7d1e6;
-        }
-
-        .formulario.activo {
-            display: block;
-        }
-
-        .formulario h2 {
-            margin: 0 0 18px;
-            font-size: 21px;
-            font-weight: 700;
-            color: #231d39;
-        }
-
-        .fila-form {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
-
-        .input-ruta,
-        .select-tipo {
-            height: 54px;
-            border: 1px solid #cfc8df;
-            border-radius: 14px;
-            background: #ffffff;
-            font-size: 17px;
-            color: #2d2642;
-            padding: 0 16px;
-        }
-
-        .input-ruta {
-            flex: 1;
-            min-width: 320px;
-        }
-
-        .select-tipo {
-            width: 160px;
         }
 
         .subtitulo {
@@ -289,6 +236,71 @@ try {
             margin-bottom: 0;
         }
 
+        .modal-fondo {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 10, 24, 0.65);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-fondo.activo {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 760px;
+            background: linear-gradient(180deg, #f2eefb 0%, #ebe7f5 100%);
+            border: 1px solid #d6d0e6;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+            color: #221d39;
+            position: relative;
+        }
+
+        .modal-cerrar {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            border: none;
+            background: transparent;
+            color: #df5b5b;
+            font-size: 28px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal h2 {
+            margin: 0 0 18px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #231d39;
+        }
+
+        .modal-form {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .input-ruta {
+            flex: 1;
+            min-width: 320px;
+            height: 54px;
+            border: 1px solid #cfc8df;
+            border-radius: 14px;
+            background: #ffffff;
+            font-size: 17px;
+            color: #2d2642;
+            padding: 0 16px;
+        }
+
         @media (max-width: 900px) {
             .titulo {
                 font-size: 28px;
@@ -298,19 +310,18 @@ try {
                 font-size: 24px;
             }
 
-            .fila-form {
+            .btn-add {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .modal-form {
                 flex-direction: column;
             }
 
             .input-ruta,
-            .select-tipo,
-            .btn-guardar,
-            .btn-add {
+            .btn-guardar {
                 width: 100%;
-            }
-
-            .btn-add {
-                min-width: 0;
             }
         }
     </style>
@@ -351,27 +362,7 @@ try {
                 </div>
 
                 <div class="zona-add">
-                    <button type="button" class="btn-add" onclick="toggleFormulario()">+ Añadir nueva ruta</button>
-                </div>
-
-                <div class="formulario" id="formularioRuta">
-                    <h2>Carpeta o archivo a monitorizar:</h2>
-
-                    <div class="fila-form">
-                        <input
-                            type="text"
-                            id="ruta"
-                            class="input-ruta"
-                            placeholder="Ejemplo: C:\FIM-Prueba o C:\FIM-Prueba\archivo.txt"
-                        >
-
-                        <select id="tipo" class="select-tipo">
-                            <option value="carpeta">Carpeta</option>
-                            <option value="archivo">Archivo</option>
-                        </select>
-
-                        <button type="button" class="btn-guardar" onclick="guardarRuta()">Guardar ruta</button>
-                    </div>
+                    <button type="button" class="btn-add" onclick="abrirModal()">+ Añadir nuevo archivo/carpeta</button>
                 </div>
             </div>
         </div>
@@ -424,19 +415,41 @@ try {
         </div>
     </div>
 
+    <div class="modal-fondo" id="modalRuta">
+        <div class="modal">
+            <button type="button" class="modal-cerrar" onclick="cerrarModal()" title="Cerrar">✕</button>
+            <h2>Añadir nuevo archivo/carpeta</h2>
+
+            <div class="modal-form">
+                <input
+                    type="text"
+                    id="ruta"
+                    class="input-ruta"
+                    placeholder="Ejemplo: C:\FIM-Prueba o C:\FIM-Prueba\archivo.txt"
+                >
+                <button type="button" class="btn-guardar" onclick="guardarRuta()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function toggleFormulario() {
-            document.getElementById('formularioRuta').classList.toggle('activo');
+        function abrirModal() {
+            document.getElementById('modalRuta').classList.add('activo');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalRuta').classList.remove('activo');
         }
 
         async function guardarRuta() {
             const ruta = document.getElementById('ruta').value.trim();
-            const tipo = document.getElementById('tipo').value;
 
             if (!ruta) {
                 alert('Introduce una ruta');
                 return;
             }
+
+            const tipo = ruta.includes('.') ? 'archivo' : 'carpeta';
 
             const res = await fetch('guardar_fim.php', {
                 method: 'POST',
@@ -479,6 +492,12 @@ try {
                 alert(data.error || 'Error al eliminar');
             }
         }
+
+        document.getElementById('modalRuta').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
     </script>
 </body>
 </html>
