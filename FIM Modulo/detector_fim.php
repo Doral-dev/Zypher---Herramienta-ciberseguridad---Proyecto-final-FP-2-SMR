@@ -7,6 +7,11 @@ $DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'zypher_db_g2sb_user';
 $DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
+function h($valor)
+{
+    return htmlspecialchars((string)$valor, ENT_QUOTES, 'UTF-8');
+}
+
 function formatear_fecha_fim($fecha)
 {
     if (!$fecha) {
@@ -14,12 +19,178 @@ function formatear_fecha_fim($fecha)
     }
 
     try {
-        $dt = new DateTime($fecha, new DateTimeZone('UTC'));
+        $dt = new DateTime((string)$fecha, new DateTimeZone('UTC'));
         $dt->setTimezone(new DateTimeZone('Europe/Madrid'));
         return $dt->format('Y-m-d H:i');
     } catch (Throwable $e) {
-        return htmlspecialchars((string)$fecha, ENT_QUOTES, 'UTF-8');
+        return h($fecha);
     }
+}
+
+function resumir_hash($hash)
+{
+    $hash = trim((string)$hash);
+
+    if ($hash === '') {
+        return '-';
+    }
+
+    if (strlen($hash) <= 24) {
+        return $hash;
+    }
+
+    return substr($hash, 0, 12) . '...' . substr($hash, -12);
+}
+
+function clase_cambio($cambio)
+{
+    return match ((string)$cambio) {
+        'Creado' => 'badge-creado',
+        'Modificado' => 'badge-modificado',
+        'Eliminado' => 'badge-eliminado',
+        default => 'badge-default'
+    };
+}
+
+function obtener_limit()
+{
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+    return in_array($limit, [10, 25, 50], true) ? $limit : 10;
+}
+
+function obtener_filtros()
+{
+    return [
+        'cambio' => trim((string)($_GET['cambio'] ?? '')),
+        'ruta'   => trim((string)($_GET['ruta'] ?? '')),
+        'q'      => trim((string)($_GET['q'] ?? '')),
+        'limit'  => obtener_limit()
+    ];
+}
+
+function construir_where_y_params(array $filtros)
+{
+    $where = [];
+    $params = [];
+
+    if ($filtros['cambio'] !== '' && in_array($filtros['cambio'], ['Creado', 'Modificado', 'Eliminado'], true)) {
+        $where[] = 'cambio = :cambio';
+        $params[':cambio'] = $filtros['cambio'];
+    }
+
+    if ($filtros['ruta'] !== '') {
+        $where[] = 'ruta ILIKE :ruta';
+        $params[':ruta'] = '%' . $filtros['ruta'] . '%';
+    }
+
+    if ($filtros['q'] !== '') {
+        $where[] = '(
+            CAST(id AS TEXT) ILIKE :q
+            OR ruta ILIKE :q
+            OR cambio ILIKE :q
+            OR COALESCE(hash_anterior, \'\') ILIKE :q
+            OR COALESCE(hash_nuevo, \'\') ILIKE :q
+        )';
+        $params[':q'] = '%' . $filtros['q'] . '%';
+    }
+
+    return [$where, $params];
+}
+
+function obtener_rutas(PDO $pdo)
+{
+    $stmt = $pdo->query("
+        SELECT id, ruta, tipo
+        FROM fim_rutas
+        WHERE activa = TRUE
+        ORDER BY id ASC
+    ");
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function obtener_eventos(PDO $pdo, array $filtros)
+{
+    [$where, $params] = construir_where_y_params($filtros);
+
+    $sql = "
+        SELECT id, ruta, cambio, fecha_evento, hash_anterior, hash_nuevo
+        FROM fim_eventos
+    ";
+
+    if ($where) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+    }
+
+    $sql .= ' ORDER BY fecha_evento DESC, id DESC LIMIT ' . (int)$filtros['limit'];
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function render_hash_linea($label, $valor, $rowId, $tipo)
+{
+    $valor = trim((string)$valor);
+
+    if ($valor === '') {
+        return '
+            <div class="hash-linea">
+                <span class="hash-etiqueta">' . h($label) . ':</span>
+                <span class="hash-vacio">-</span>
+            </div>
+        ';
+    }
+
+    $targetId = 'hash-' . $rowId . '-' . $tipo;
+
+    return '
+        <div class="hash-linea">
+            <div class="hash-fila">
+                <span class="hash-etiqueta">' . h($label) . ':</span>
+                <span class="hash-resumen" title="' . h($valor) . '">' . h(resumir_hash($valor)) . '</span>
+                <button type="button" class="btn-hash" data-target="' . h($targetId) . '">Ver completo</button>
+            </div>
+            <div class="hash-completo" id="' . h($targetId) . '">' . h($valor) . '</div>
+        </div>
+    ';
+}
+
+function render_eventos_rows(array $eventos)
+{
+    if (!$eventos) {
+        return '
+            <tr>
+                <td colspan="5" class="sin-datos">No hay eventos registrados.</td>
+            </tr>
+        ';
+    }
+
+    $html = '';
+
+    foreach ($eventos as $evento) {
+        $id = (int)$evento['id'];
+        $ruta = h($evento['ruta']);
+        $cambio = h($evento['cambio']);
+        $fecha = formatear_fecha_fim($evento['fecha_evento']);
+        $badgeClass = clase_cambio($evento['cambio']);
+
+        $hashes = render_hash_linea('Hash anterior', $evento['hash_anterior'] ?? '', $id, 'anterior');
+        $hashes .= render_hash_linea('Hash nuevo', $evento['hash_nuevo'] ?? '', $id, 'nuevo');
+
+        $html .= '
+            <tr>
+                <td>' . $id . '</td>
+                <td>' . $ruta . '</td>
+                <td><span class="badge-cambio ' . h($badgeClass) . '">' . $cambio . '</span></td>
+                <td>' . h($fecha) . '</td>
+                <td>' . $hashes . '</td>
+            </tr>
+        ';
+    }
+
+    return $html;
 }
 
 try {
@@ -28,25 +199,38 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
     ]);
 
-    $stmtRutas = $pdo->query("
-        SELECT id, ruta, tipo
-        FROM fim_rutas
-        WHERE activa = TRUE
-        ORDER BY id ASC
-    ");
-    $rutas = $stmtRutas->fetchAll(PDO::FETCH_ASSOC);
+    $filtros = obtener_filtros();
 
-    $stmtEventos = $pdo->query("
-        SELECT id, ruta, cambio, fecha_evento, hash_anterior, hash_nuevo
-        FROM fim_eventos
-        ORDER BY fecha_evento DESC, id DESC
-        LIMIT 10
-    ");
-    $eventos = $stmtEventos->fetchAll(PDO::FETCH_ASSOC);
+    if (isset($_GET['ajax']) && $_GET['ajax'] === 'eventos') {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $eventos = obtener_eventos($pdo, $filtros);
+
+        echo json_encode([
+            'ok' => true,
+            'tbody' => render_eventos_rows($eventos),
+            'total' => count($eventos)
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+
+    $rutas = obtener_rutas($pdo);
+    $eventos = obtener_eventos($pdo, $filtros);
 
 } catch (Throwable $e) {
+    if (isset($_GET['ajax']) && $_GET['ajax'] === 'eventos') {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode([
+            'ok' => false,
+            'error' => 'Error de base de datos'
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     http_response_code(500);
-    echo 'Error de base de datos: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+    echo 'Error de base de datos: ' . h($e->getMessage());
     exit;
 }
 ?>
@@ -202,6 +386,46 @@ try {
             color: #231d39;
         }
 
+        .filtros-barra {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        .campo-filtro {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 180px;
+            flex: 1;
+        }
+
+        .campo-filtro label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #3b3457;
+        }
+
+        .campo-filtro input,
+        .campo-filtro select {
+            height: 46px;
+            border: 1px solid #cfc8df;
+            border-radius: 12px;
+            background: #ffffff;
+            font-size: 15px;
+            color: #2d2642;
+            padding: 0 14px;
+            outline: none;
+        }
+
+        .estado-tabla {
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #4b4465;
+        }
+
         .tabla-wrap {
             overflow-x: auto;
         }
@@ -244,6 +468,34 @@ try {
             color: #2a2341;
         }
 
+        .badge-cambio {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 110px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .badge-creado {
+            background: #2e7d32;
+        }
+
+        .badge-modificado {
+            background: #ef6c00;
+        }
+
+        .badge-eliminado {
+            background: #c62828;
+        }
+
+        .badge-default {
+            background: #6b7280;
+        }
+
         .sin-datos {
             text-align: center;
             font-size: 17px;
@@ -252,12 +504,68 @@ try {
         }
 
         .hash-linea {
-            margin-bottom: 6px;
-            word-break: break-all;
+            margin-bottom: 10px;
         }
 
         .hash-linea:last-child {
             margin-bottom: 0;
+        }
+
+        .hash-fila {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .hash-etiqueta {
+            font-weight: 700;
+            color: #2f2947;
+        }
+
+        .hash-resumen {
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            color: #3d3559;
+            background: #ece7f6;
+            border-radius: 8px;
+            padding: 5px 8px;
+        }
+
+        .hash-vacio {
+            color: #6a627f;
+        }
+
+        .btn-hash {
+            border: none;
+            background: #8d63f0;
+            color: #fff;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-hash:hover {
+            background: #7448dd;
+        }
+
+        .hash-completo {
+            display: none;
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #ece7f6;
+            border: 1px solid #ddd7ec;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            color: #342d4d;
+            word-break: break-all;
+        }
+
+        .hash-completo.abierto {
+            display: block;
         }
 
         .modal-fondo {
@@ -347,6 +655,16 @@ try {
             .btn-guardar {
                 width: 100%;
             }
+
+            .filtros-barra {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .campo-filtro {
+                min-width: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -373,7 +691,7 @@ try {
                             <div class="fila-ruta">
                                 <div class="ruta-info">
                                     <span class="ruta-icono"><?php echo $ruta['tipo'] === 'carpeta' ? '📁' : '📄'; ?></span>
-                                    <span class="ruta-texto"><?php echo htmlspecialchars($ruta['ruta'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <span class="ruta-texto"><?php echo h($ruta['ruta']); ?></span>
                                 </div>
 
                                 <button
@@ -398,6 +716,41 @@ try {
             <div class="bloque-interior">
                 <h2 class="subtitulo">Últimos cambios registrados:</h2>
 
+                <div class="filtros-barra">
+                    <div class="campo-filtro">
+                        <label for="filtroCambio">Cambio</label>
+                        <select id="filtroCambio">
+                            <option value="">Todos</option>
+                            <option value="Creado">Creado</option>
+                            <option value="Modificado">Modificado</option>
+                            <option value="Eliminado">Eliminado</option>
+                        </select>
+                    </div>
+
+                    <div class="campo-filtro">
+                        <label for="filtroRuta">Filtrar por ruta</label>
+                        <input type="text" id="filtroRuta" placeholder="Ejemplo: C:\FIM-Prueba">
+                    </div>
+
+                    <div class="campo-filtro">
+                        <label for="filtroBusqueda">Buscar</label>
+                        <input type="text" id="filtroBusqueda" placeholder="ID, elemento, hash...">
+                    </div>
+
+                    <div class="campo-filtro">
+                        <label for="filtroLimit">Ver</label>
+                        <select id="filtroLimit">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="estado-tabla" id="estadoTabla">
+                    Mostrando <?php echo count($eventos); ?> eventos
+                </div>
+
                 <div class="tabla-wrap">
                     <table>
                         <thead>
@@ -409,29 +762,8 @@ try {
                                 <th>Hashes</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php if (count($eventos) === 0): ?>
-                                <tr>
-                                    <td colspan="5" class="sin-datos">No hay eventos registrados.</td>
-                                </tr>
-                            <?php else: ?>
-                                <?php foreach ($eventos as $evento): ?>
-                                    <tr>
-                                        <td><?php echo (int)$evento['id']; ?></td>
-                                        <td><?php echo htmlspecialchars($evento['ruta'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($evento['cambio'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo formatear_fecha_fim($evento['fecha_evento']); ?></td>
-                                        <td>
-                                            <?php if ($evento['hash_anterior'] || $evento['hash_nuevo']): ?>
-                                                <div class="hash-linea">Hash anterior: <?php echo htmlspecialchars($evento['hash_anterior'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></div>
-                                                <div class="hash-linea">Hash nuevo: <?php echo htmlspecialchars($evento['hash_nuevo'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></div>
-                                            <?php else: ?>
-                                                -
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <tbody id="eventosBody">
+                            <?php echo render_eventos_rows($eventos); ?>
                         </tbody>
                     </table>
                 </div>
@@ -457,6 +789,20 @@ try {
     </div>
 
     <script>
+        const filtroCambio = document.getElementById('filtroCambio');
+        const filtroRuta = document.getElementById('filtroRuta');
+        const filtroBusqueda = document.getElementById('filtroBusqueda');
+        const filtroLimit = document.getElementById('filtroLimit');
+        const eventosBody = document.getElementById('eventosBody');
+        const estadoTabla = document.getElementById('estadoTabla');
+
+        filtroCambio.value = <?php echo json_encode($filtros['cambio'], JSON_UNESCAPED_UNICODE); ?>;
+        filtroRuta.value = <?php echo json_encode($filtros['ruta'], JSON_UNESCAPED_UNICODE); ?>;
+        filtroBusqueda.value = <?php echo json_encode($filtros['q'], JSON_UNESCAPED_UNICODE); ?>;
+        filtroLimit.value = <?php echo json_encode((string)$filtros['limit'], JSON_UNESCAPED_UNICODE); ?>;
+
+        let debounceTimer = null;
+
         function abrirModal() {
             document.getElementById('modalRuta').classList.add('activo');
         }
@@ -513,11 +859,65 @@ try {
             }
         }
 
+        async function cargarEventos() {
+            try {
+                const url = new URL(window.location.href);
+                url.search = '';
+
+                url.searchParams.set('ajax', 'eventos');
+                url.searchParams.set('cambio', filtroCambio.value);
+                url.searchParams.set('ruta', filtroRuta.value.trim());
+                url.searchParams.set('q', filtroBusqueda.value.trim());
+                url.searchParams.set('limit', filtroLimit.value);
+
+                const res = await fetch(url.toString(), {
+                    cache: 'no-store'
+                });
+
+                const data = await res.json();
+
+                if (!data.ok) {
+                    return;
+                }
+
+                eventosBody.innerHTML = data.tbody;
+                estadoTabla.textContent = 'Mostrando ' + data.total + ' eventos';
+            } catch (e) {
+            }
+        }
+
+        function cargarEventosDebounce() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(cargarEventos, 300);
+        }
+
+        filtroCambio.addEventListener('change', cargarEventos);
+        filtroLimit.addEventListener('change', cargarEventos);
+        filtroRuta.addEventListener('input', cargarEventosDebounce);
+        filtroBusqueda.addEventListener('input', cargarEventosDebounce);
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-hash');
+            if (!btn) {
+                return;
+            }
+
+            const target = document.getElementById(btn.dataset.target);
+            if (!target) {
+                return;
+            }
+
+            const abierto = target.classList.toggle('abierto');
+            btn.textContent = abierto ? 'Ocultar' : 'Ver completo';
+        });
+
         document.getElementById('modalRuta').addEventListener('click', function(e) {
             if (e.target === this) {
                 cerrarModal();
             }
         });
+
+        setInterval(cargarEventos, 4000);
     </script>
 </body>
 </html>
