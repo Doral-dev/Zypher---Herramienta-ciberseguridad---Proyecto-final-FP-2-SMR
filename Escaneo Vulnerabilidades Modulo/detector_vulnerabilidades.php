@@ -165,17 +165,18 @@ $chartData = [
             font-size: 18px;
         }
 
+
         .filtro-wrap select {
-            width: 210px;
-            height: 52px;
-            border: 6px solid #000;
-            background: #fff;
-            font-size: 18px;
-            text-align: center;
-            appearance: none;
-            padding: 0 10px;
+        width: 210px;
+        height: 52px;
+        border: 6px solid #000;
+        background: #fff;
+        font-size: 18px;
+        text-align: center;
+        padding: 0 10px;
         }
 
+        
         .tabla-wrap {
             overflow-x: auto;
         }
