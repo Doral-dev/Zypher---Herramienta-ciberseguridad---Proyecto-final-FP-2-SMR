@@ -1,9 +1,26 @@
 <?php
+date_default_timezone_set('Europe/Madrid');
+
 $DB_HOST = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
 $DB_PORT = '5432';
 $DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'zypher_db_g2sb_user';
 $DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
+
+function formatear_fecha_fim($fecha)
+{
+    if (!$fecha) {
+        return '-';
+    }
+
+    try {
+        $dt = new DateTime($fecha, new DateTimeZone('UTC'));
+        $dt->setTimezone(new DateTimeZone('Europe/Madrid'));
+        return $dt->format('Y-m-d H:i');
+    } catch (Throwable $e) {
+        return htmlspecialchars((string)$fecha, ENT_QUOTES, 'UTF-8');
+    }
+}
 
 try {
     $dsn = "pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME";
@@ -385,8 +402,8 @@ try {
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Ruta</th>
+                                <th>ID</th>
+                                <th>Elemento</th>
                                 <th>Cambio</th>
                                 <th>Fecha</th>
                                 <th>Hashes</th>
@@ -395,7 +412,7 @@ try {
                         <tbody>
                             <?php if (count($eventos) === 0): ?>
                                 <tr>
-                                    <td colspan="5" class="sin-datos">No hay más eventos registrados.</td>
+                                    <td colspan="5" class="sin-datos">No hay eventos registrados.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($eventos as $evento): ?>
@@ -403,7 +420,7 @@ try {
                                         <td><?php echo (int)$evento['id']; ?></td>
                                         <td><?php echo htmlspecialchars($evento['ruta'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td><?php echo htmlspecialchars($evento['cambio'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                        <td><?php echo htmlspecialchars($evento['fecha_evento'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                        <td><?php echo formatear_fecha_fim($evento['fecha_evento']); ?></td>
                                         <td>
                                             <?php if ($evento['hash_anterior'] || $evento['hash_nuevo']): ?>
                                                 <div class="hash-linea">Hash anterior: <?php echo htmlspecialchars($evento['hash_anterior'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></div>
@@ -414,9 +431,6 @@ try {
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                                <tr>
-                                    <td colspan="5" class="sin-datos">No hay más eventos registrados.</td>
-                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
