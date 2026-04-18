@@ -342,6 +342,8 @@ try {
 
         <div class="bloque">
             <div class="bloque-interior">
+                <h2 class="subtitulo">Archivos y carpetas monitorizadas actualmente:</h2>
+
                 <div class="lista-rutas">
                     <?php if (count($rutas) === 0): ?>
                         <div class="fila-ruta">
