@@ -4,7 +4,7 @@
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</button>
         <div class="submenu">
-            <a href="/vulnerabilidades.php">Análisis de vulnerabilidades</a>
+            <a href="/Escaneo Vulnerabilidades Modulo/vulnerabilidades.php">Análisis de vulnerabilidades</a>
             <a href="/CIS módulo/cis.php">Aplicación de políticas CIS</a>
         </div>
     </div>
@@ -12,7 +12,7 @@
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">🔍 Amenazas y supervisión</button>
         <div class="submenu">
-            <a href="/escaneo.php">Escaneo de archivos y reputación</a>
+            <a href="escaneo.php">Escaneo de archivos y reputación</a>
             <a href="/monitorizacion.php">Monitorización de eventos</a>
             <a href="/respuesta.php">Respuesta ante eventos</a>
         </div>
