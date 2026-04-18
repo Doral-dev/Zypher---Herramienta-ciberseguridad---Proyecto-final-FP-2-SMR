@@ -47,56 +47,67 @@ try {
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            color: #111;
+            color: #f3f0ff;
+            background:
+                radial-gradient(circle at top center, rgba(120, 84, 255, 0.18), transparent 30%),
+                linear-gradient(90deg, #0c1028 0%, #1b1742 35%, #231d4f 50%, #1b1742 65%, #0c1028 100%);
+            min-height: 100vh;
         }
 
         .contenedor {
             width: 92%;
-            max-width: 1400px;
+            max-width: 1280px;
             margin: 0 auto;
-            padding: 20px 0 40px;
+            padding: 34px 0 42px;
         }
 
         .titulo {
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-size: 32px;
-            margin: 0 0 24px;
-            font-weight: bold;
+            gap: 18px;
+            margin: 0 0 28px;
+            font-size: 34px;
+            font-weight: 700;
+            color: #f4f2ff;
         }
 
-        .icono-titulo {
-            font-size: 42px;
+        .titulo-icono {
+            font-size: 46px;
+            line-height: 1;
         }
 
         .bloque {
-            background: #262040;
-            padding: 16px;
-            margin-bottom: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 18px;
+            margin-bottom: 26px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.22);
         }
 
         .bloque-interior {
-            background: #efedf3;
-            border-radius: 18px;
-            padding: 18px;
+            background: linear-gradient(180deg, #f2eefb 0%, #ebe7f5 100%);
+            border: 1px solid #d6d0e6;
+            border-radius: 22px;
+            padding: 22px;
+            color: #221d39;
         }
 
         .lista-rutas {
-            border: 1px solid #d8d3df;
-            border-radius: 14px;
+            border: 1px solid #d8d1e8;
+            border-radius: 16px;
             overflow: hidden;
-            background: #f5f3f8;
+            background: #f4f1fa;
         }
 
         .fila-ruta {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
-            padding: 16px 18px;
-            border-bottom: 1px solid #ddd7e3;
+            gap: 16px;
+            min-height: 68px;
+            padding: 0 18px;
+            border-bottom: 1px solid #ddd7ec;
         }
 
         .fila-ruta:last-child {
@@ -107,43 +118,73 @@ try {
             display: flex;
             align-items: center;
             gap: 14px;
+            min-width: 0;
             font-size: 17px;
-            word-break: break-all;
+            color: #3c3556;
         }
 
         .ruta-icono {
-            font-size: 26px;
-            min-width: 28px;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .ruta-texto {
+            word-break: break-all;
         }
 
         .btn-papelera {
             border: none;
             background: transparent;
-            font-size: 22px;
+            color: #df5b5b;
+            font-size: 24px;
             cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .btn-papelera:hover {
+            opacity: 0.8;
         }
 
         .zona-add {
-            text-align: center;
+            display: flex;
+            justify-content: center;
             margin-top: 18px;
         }
 
-        .btn-add {
+        .btn-add,
+        .btn-guardar {
             border: none;
-            background: linear-gradient(90deg, #9d62ef, #8c6ce9);
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 16px 34px;
-            border-radius: 14px;
+            border-radius: 16px;
+            background: linear-gradient(90deg, #9f6aff 0%, #8d63f0 100%);
+            color: #ffffff;
+            font-weight: 700;
             cursor: pointer;
+            box-shadow: 0 8px 22px rgba(120, 84, 255, 0.28);
+        }
+
+        .btn-add {
+            min-width: 340px;
+            height: 56px;
+            font-size: 18px;
+        }
+
+        .btn-guardar {
+            height: 54px;
+            padding: 0 26px;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover,
+        .btn-guardar:hover {
+            opacity: 0.95;
         }
 
         .formulario {
             display: none;
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid #d9d4df;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #d7d1e6;
         }
 
         .formulario.activo {
@@ -152,7 +193,9 @@ try {
 
         .formulario h2 {
             margin: 0 0 18px;
-            font-size: 20px;
+            font-size: 21px;
+            font-weight: 700;
+            color: #231d39;
         }
 
         .fila-form {
@@ -163,12 +206,13 @@ try {
 
         .input-ruta,
         .select-tipo {
-            height: 52px;
-            font-size: 18px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            padding: 0 14px;
-            background: #fff;
+            height: 54px;
+            border: 1px solid #cfc8df;
+            border-radius: 14px;
+            background: #ffffff;
+            font-size: 17px;
+            color: #2d2642;
+            padding: 0 16px;
         }
 
         .input-ruta {
@@ -180,22 +224,11 @@ try {
             width: 160px;
         }
 
-        .btn-guardar {
-            border: none;
-            background: linear-gradient(90deg, #9d62ef, #8c6ce9);
-            color: #fff;
-            font-size: 18px;
-            font-weight: bold;
-            padding: 0 26px;
-            height: 52px;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
         .subtitulo {
             margin: 0 0 18px;
             font-size: 28px;
-            font-weight: bold;
+            font-weight: 700;
+            color: #231d39;
         }
 
         .tabla-wrap {
@@ -204,38 +237,65 @@ try {
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            background: #f5f3f8;
-            border-radius: 14px;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #f4f1fa;
+            border: 1px solid #d8d1e8;
+            border-radius: 16px;
             overflow: hidden;
         }
 
-        th, td {
-            border: 1px solid #ddd7e3;
-            padding: 14px;
+        th,
+        td {
+            padding: 15px 14px;
+            border-right: 1px solid #ddd7ec;
+            border-bottom: 1px solid #ddd7ec;
             text-align: left;
             vertical-align: top;
+            color: #342d4d;
             font-size: 16px;
+            background: #f4f1fa;
+        }
+
+        th:last-child,
+        td:last-child {
+            border-right: none;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
 
         th {
-            background: #ece8f2;
+            background: #ece7f6;
+            font-size: 17px;
+            font-weight: 700;
+            color: #2a2341;
         }
 
         .sin-datos {
             text-align: center;
-            padding: 16px;
-            font-size: 18px;
-            color: #333;
+            font-size: 17px;
+            color: #4d4566;
+            padding: 18px;
+        }
+
+        .hash-linea {
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+
+        .hash-linea:last-child {
+            margin-bottom: 0;
         }
 
         @media (max-width: 900px) {
             .titulo {
-                font-size: 26px;
+                font-size: 28px;
             }
 
             .subtitulo {
-                font-size: 22px;
+                font-size: 24px;
             }
 
             .fila-form {
@@ -244,8 +304,13 @@ try {
 
             .input-ruta,
             .select-tipo,
-            .btn-guardar {
+            .btn-guardar,
+            .btn-add {
                 width: 100%;
+            }
+
+            .btn-add {
+                min-width: 0;
             }
         }
     </style>
@@ -253,7 +318,7 @@ try {
 <body>
     <div class="contenedor">
         <h1 class="titulo">
-            <span class="icono-titulo">📁</span>
+            <span class="titulo-icono">📁</span>
             <span>Monitorización de integridad de archivos</span>
         </h1>
 
@@ -262,18 +327,21 @@ try {
                 <div class="lista-rutas">
                     <?php if (count($rutas) === 0): ?>
                         <div class="fila-ruta">
-                            <div class="ruta-info">No hay rutas monitorizadas.</div>
+                            <div class="ruta-info">
+                                <span class="ruta-texto">No hay rutas monitorizadas.</span>
+                            </div>
                         </div>
                     <?php else: ?>
                         <?php foreach ($rutas as $ruta): ?>
                             <div class="fila-ruta">
                                 <div class="ruta-info">
                                     <span class="ruta-icono"><?php echo $ruta['tipo'] === 'carpeta' ? '📁' : '📄'; ?></span>
-                                    <span><?php echo htmlspecialchars($ruta['ruta'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <span class="ruta-texto"><?php echo htmlspecialchars($ruta['ruta'], ENT_QUOTES, 'UTF-8'); ?></span>
                                 </div>
+
                                 <button
-                                    class="btn-papelera"
                                     type="button"
+                                    class="btn-papelera"
                                     onclick="eliminarRuta(<?php echo (int)$ruta['id']; ?>)"
                                     title="Eliminar"
                                 >🗑️</button>
@@ -283,11 +351,11 @@ try {
                 </div>
 
                 <div class="zona-add">
-                    <button class="btn-add" type="button" onclick="toggleFormulario()">+ Añadir nuevo elemento</button>
+                    <button type="button" class="btn-add" onclick="toggleFormulario()">+ Añadir nueva ruta</button>
                 </div>
 
                 <div class="formulario" id="formularioRuta">
-                    <h2>Nuevo archivo o carpeta a monitorizar</h2>
+                    <h2>Carpeta o archivo a monitorizar:</h2>
 
                     <div class="fila-form">
                         <input
@@ -302,7 +370,7 @@ try {
                             <option value="archivo">Archivo</option>
                         </select>
 
-                        <button class="btn-guardar" type="button" onclick="guardarRuta()">Guardar</button>
+                        <button type="button" class="btn-guardar" onclick="guardarRuta()">Guardar ruta</button>
                     </div>
                 </div>
             </div>
@@ -337,8 +405,8 @@ try {
                                         <td><?php echo htmlspecialchars($evento['fecha_evento'], ENT_QUOTES, 'UTF-8'); ?></td>
                                         <td>
                                             <?php if ($evento['hash_anterior'] || $evento['hash_nuevo']): ?>
-                                                Hash anterior: <?php echo htmlspecialchars($evento['hash_anterior'] ?: '-', ENT_QUOTES, 'UTF-8'); ?><br>
-                                                Hash nuevo: <?php echo htmlspecialchars($evento['hash_nuevo'] ?: '-', ENT_QUOTES, 'UTF-8'); ?>
+                                                <div class="hash-linea">Hash anterior: <?php echo htmlspecialchars($evento['hash_anterior'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></div>
+                                                <div class="hash-linea">Hash nuevo: <?php echo htmlspecialchars($evento['hash_nuevo'] ?: '-', ENT_QUOTES, 'UTF-8'); ?></div>
                                             <?php else: ?>
                                                 -
                                             <?php endif; ?>
@@ -372,7 +440,7 @@ try {
 
             const res = await fetch('guardar_fim.php', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     accion: 'agregar_ruta',
                     ruta: ruta,
@@ -396,7 +464,7 @@ try {
 
             const res = await fetch('guardar_fim.php', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     accion: 'eliminar_ruta',
                     id: id
