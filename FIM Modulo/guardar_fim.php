@@ -33,6 +33,18 @@ try {
 
     $accion = trim((string)$data['accion']);
 
+    if ($accion === 'obtener_rutas') {
+        $stmt = $pdo->query("
+            SELECT id, ruta, tipo
+            FROM fim_rutas
+            WHERE activa = TRUE
+            ORDER BY id ASC
+        ");
+
+        $rutas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        responder(true, ['rutas' => $rutas]);
+    }
+
     if ($accion === 'agregar_ruta') {
         $ruta = trim((string)($data['ruta'] ?? ''));
         $tipo = trim((string)($data['tipo'] ?? ''));
