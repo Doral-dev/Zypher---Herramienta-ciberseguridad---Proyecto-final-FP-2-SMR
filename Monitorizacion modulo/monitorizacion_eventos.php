@@ -1,22 +1,11 @@
 <?php
 session_start();
 
-/*
-    monitorizacion_eventos.php
-    Tabla tipo SIEM con:
-    - columna "+" a la izquierda
-    - Descripción como segunda columna
-    - buscador
-    - filtro fecha desde/hasta
-    - paginación 25/50/100
-    - modal cuadrado con detalles
-*/
-
 $DB_HOST = "dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com";
 $DB_PORT = "5432";
 $DB_NAME = "zypher_db_g2sb";
 $DB_USER = "zypher_db_g2sb_user";
-$DB_PASS = "MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86";
+$DB_PASS = "TU_PASSWORD_AQUI";
 
 try {
     $pdo = new PDO(
@@ -29,10 +18,9 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    die("Error de conexión a BD.");
+    die("Error BD: " . $e->getMessage());
 }
 
-$q         = trim($_GET['q'] ?? '');
 $fechaDesde = trim($_GET['desde'] ?? '');
 $fechaHasta = trim($_GET['hasta'] ?? '');
 $porPagina  = (int)($_GET['per_page'] ?? 25);
@@ -45,19 +33,6 @@ if (!in_array($porPagina, $permitidos, true)) {
 
 $where = [];
 $params = [];
-
-if ($q !== '') {
-    $where[] = "(
-        CAST(id_evento AS TEXT) ILIKE :q
-        OR descripcion ILIKE :q
-        OR tipo ILIKE :q
-        OR severidad ILIKE :q
-        OR host ILIKE :q
-        OR COALESCE(usuario, '') ILIKE :q
-        OR COALESCE(origen, '') ILIKE :q
-    )";
-    $params[':q'] = '%' . $q . '%';
-}
 
 if ($fechaDesde !== '') {
     $where[] = "fecha_evento >= :desde";
@@ -115,7 +90,7 @@ $stmt->execute();
 
 $eventos = $stmt->fetchAll();
 
-function h(?string $v): string {
+function h($v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
@@ -137,7 +112,9 @@ function badgeClass(string $sev): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitorización de eventos</title>
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -159,9 +136,21 @@ function badgeClass(string $sev): string {
 
         .filtros {
             display: grid;
-            grid-template-columns: 1.5fr 180px 180px 140px 140px;
+            grid-template-columns: 180px 180px 140px 140px;
             gap: 12px;
             margin-bottom: 20px;
+            align-items: end;
+        }
+
+        .filtro-campo {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filtro-campo label {
+            font-size: 13px;
+            color: #cbd5e1;
         }
 
         .filtros input,
@@ -376,7 +365,7 @@ function badgeClass(string $sev): string {
             }
 
             table {
-                min-width: 1100px;
+                min-width: 900px;
             }
         }
     </style>
@@ -386,15 +375,24 @@ function badgeClass(string $sev): string {
     <h1>Monitorización de eventos</h1>
 
     <form method="GET" class="filtros">
-        <input type="text" name="q" placeholder="Buscar eventos..." value="<?= h($q) ?>">
-        <input type="date" name="desde" value="<?= h($fechaDesde) ?>">
-        <input type="date" name="hasta" value="<?= h($fechaHasta) ?>">
+        <div class="filtro-campo">
+            <label for="desde">Fecha desde</label>
+            <input type="date" id="desde" name="desde" value="<?= h($fechaDesde) ?>">
+        </div>
 
-        <select name="per_page">
-            <option value="25" <?= $porPagina === 25 ? 'selected' : '' ?>>25</option>
-            <option value="50" <?= $porPagina === 50 ? 'selected' : '' ?>>50</option>
-            <option value="100" <?= $porPagina === 100 ? 'selected' : '' ?>>100</option>
-        </select>
+        <div class="filtro-campo">
+            <label for="hasta">Fecha hasta</label>
+            <input type="date" id="hasta" name="hasta" value="<?= h($fechaHasta) ?>">
+        </div>
+
+        <div class="filtro-campo">
+            <label for="per_page">Mostrar</label>
+            <select id="per_page" name="per_page">
+                <option value="25" <?= $porPagina === 25 ? 'selected' : '' ?>>25</option>
+                <option value="50" <?= $porPagina === 50 ? 'selected' : '' ?>>50</option>
+                <option value="100" <?= $porPagina === 100 ? 'selected' : '' ?>>100</option>
+            </select>
+        </div>
 
         <button type="submit">Aplicar</button>
     </form>
@@ -408,14 +406,13 @@ function badgeClass(string $sev): string {
                     <th>Descripción</th>
                     <th>Tipo / Categoría</th>
                     <th>Severidad</th>
-                    <th>Equipo / Host</th>
                     <th>Fecha</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (!$eventos): ?>
                     <tr>
-                        <td colspan="7" class="sin-datos">No hay eventos.</td>
+                        <td colspan="6" class="sin-datos">No hay eventos.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($eventos as $e): ?>
@@ -425,12 +422,12 @@ function badgeClass(string $sev): string {
                                     type="button"
                                     class="btn-plus"
                                     onclick="abrirModal(this)"
-                                    data-id_evento="<?= h((string)$e['id_evento']) ?>"
+                                    data-id_evento="<?= h($e['id_evento']) ?>"
                                     data-descripcion="<?= h($e['descripcion']) ?>"
                                     data-tipo="<?= h($e['tipo']) ?>"
                                     data-severidad="<?= h($e['severidad']) ?>"
                                     data-host="<?= h($e['host']) ?>"
-                                    data-fecha="<?= h((string)$e['fecha_evento']) ?>"
+                                    data-fecha="<?= h($e['fecha_evento']) ?>"
                                     data-usuario="<?= h($e['usuario'] ?? '') ?>"
                                     data-ip="<?= h($e['ip_origen'] ?? '') ?>"
                                     data-origen="<?= h($e['origen'] ?? '') ?>"
@@ -439,7 +436,7 @@ function badgeClass(string $sev): string {
                                     data-raw="<?= h($e['detalles_raw'] ?? '') ?>"
                                 >+</button>
                             </td>
-                            <td><?= h((string)$e['id_evento']) ?></td>
+                            <td><?= h($e['id_evento']) ?></td>
                             <td><?= h($e['descripcion']) ?></td>
                             <td><?= h($e['tipo']) ?></td>
                             <td>
@@ -447,8 +444,7 @@ function badgeClass(string $sev): string {
                                     <?= h($e['severidad']) ?>
                                 </span>
                             </td>
-                            <td><?= h($e['host']) ?></td>
-                            <td><?= h((string)$e['fecha_evento']) ?></td>
+                            <td><?= h($e['fecha_evento']) ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -489,21 +485,21 @@ function badgeClass(string $sev): string {
         <div class="detalle-grid">
             <div class="detalle-box">
                 <h3>Información general</h3>
-                <p><span>ID evento:</span> <span id="m-id"></span></p>
-                <p><span>Descripción:</span> <span id="m-descripcion"></span></p>
-                <p><span>Tipo / Categoría:</span> <span id="m-tipo"></span></p>
-                <p><span>Severidad:</span> <span id="m-severidad"></span></p>
-                <p><span>Fecha:</span> <span id="m-fecha"></span></p>
-                <p><span>Estado:</span> <span id="m-estado"></span></p>
+                <p>ID evento: <span id="m-id"></span></p>
+                <p>Descripción: <span id="m-descripcion"></span></p>
+                <p>Tipo / Categoría: <span id="m-tipo"></span></p>
+                <p>Severidad: <span id="m-severidad"></span></p>
+                <p>Fecha: <span id="m-fecha"></span></p>
+                <p>Estado: <span id="m-estado"></span></p>
             </div>
 
             <div class="detalle-box">
                 <h3>Equipo</h3>
-                <p><span>Equipo / Host:</span> <span id="m-host"></span></p>
-                <p><span>Usuario:</span> <span id="m-usuario"></span></p>
-                <p><span>IP origen:</span> <span id="m-ip"></span></p>
-                <p><span>Origen:</span> <span id="m-origen"></span></p>
-                <p><span>Regla disparada:</span> <span id="m-regla"></span></p>
+                <p>Equipo / Host: <span id="m-host"></span></p>
+                <p>Usuario: <span id="m-usuario"></span></p>
+                <p>IP origen: <span id="m-ip"></span></p>
+                <p>Origen: <span id="m-origen"></span></p>
+                <p>Regla disparada: <span id="m-regla"></span></p>
             </div>
 
             <div class="detalle-box" style="grid-column: 1 / -1;">
@@ -516,7 +512,7 @@ function badgeClass(string $sev): string {
 
 <script>
 function abrirModal(btn) {
-    document.getElementById('m-id-evento').textContent = 'Detalle del evento ' + btn.dataset.id_evento;
+    document.getElementById('m-id-evento').textContent = 'Detalle del evento ' + (btn.dataset.id_evento || '');
     document.getElementById('m-id').textContent = btn.dataset.id_evento || '-';
     document.getElementById('m-descripcion').textContent = btn.dataset.descripcion || '-';
     document.getElementById('m-tipo').textContent = btn.dataset.tipo || '-';
@@ -529,7 +525,6 @@ function abrirModal(btn) {
     document.getElementById('m-origen').textContent = btn.dataset.origen || '-';
     document.getElementById('m-regla').textContent = btn.dataset.regla || '-';
     document.getElementById('m-raw').textContent = btn.dataset.raw || '-';
-
     document.getElementById('modalBg').style.display = 'flex';
 }
 
