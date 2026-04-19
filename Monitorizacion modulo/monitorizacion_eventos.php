@@ -5,7 +5,7 @@ $DB_HOST = "dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com";
 $DB_PORT = "5432";
 $DB_NAME = "zypher_db_g2sb";
 $DB_USER = "zypher_db_g2sb_user";
-$DB_PASS = "MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86";
+$DB_PASS = "TU_PASSWORD_AQUI";
 
 try {
     $pdo = new PDO(
@@ -97,10 +97,20 @@ function h($v): string {
 
 function sevBadgeClass(string $sev): string {
     $sev = mb_strtolower(trim($sev));
-    if (str_starts_with($sev, 'muy crítica')) return 'sev-muy-critica';
-    if (str_starts_with($sev, 'critica') || str_starts_with($sev, 'crítica')) return 'sev-critica';
-    if (str_starts_with($sev, 'moderada')) return 'sev-moderada';
-    if (str_starts_with($sev, 'leve')) return 'sev-leve';
+
+    if (str_starts_with($sev, 'muy crítica') || str_starts_with($sev, 'muy critica')) {
+        return 'sev-muy-critica';
+    }
+    if (str_starts_with($sev, 'crítica') || str_starts_with($sev, 'critica')) {
+        return 'sev-critica';
+    }
+    if (str_starts_with($sev, 'moderada')) {
+        return 'sev-moderada';
+    }
+    if (str_starts_with($sev, 'leve')) {
+        return 'sev-leve';
+    }
+
     return 'sev-default';
 }
 ?>
@@ -133,7 +143,7 @@ function sevBadgeClass(string $sev): string {
 
         .filtros {
             display: grid;
-            grid-template-columns: 180px 180px 180px 140px;
+            grid-template-columns: 180px 180px 200px 140px;
             gap: 12px;
             margin-bottom: 20px;
             align-items: end;
@@ -181,16 +191,15 @@ function sevBadgeClass(string $sev): string {
             display: flex;
             flex-direction: column;
             gap: 0;
-            padding-top: 49px;
+            padding-top: 58px;
         }
 
         .accion-celda {
-            height: 53px;
+            min-height: 58px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-bottom: 1px solid #253047;
-            background: transparent;
         }
 
         .tabla-wrap {
@@ -210,14 +219,18 @@ function sevBadgeClass(string $sev): string {
         }
 
         th, td {
-            padding: 14px 12px;
+            padding: 16px 12px;
             border-bottom: 1px solid #253047;
             text-align: left;
             vertical-align: middle;
             font-size: 14px;
         }
 
-        th { color: #cbd5e1; }
+        th {
+            color: #cbd5e1;
+            font-size: 17px;
+            font-weight: 800;
+        }
 
         tr:hover td {
             background: #162033;
@@ -238,17 +251,17 @@ function sevBadgeClass(string $sev): string {
 
         .badge {
             display: inline-block;
-            padding: 6px 10px;
+            padding: 7px 11px;
             border-radius: 999px;
             font-size: 12px;
             font-weight: 700;
             white-space: nowrap;
         }
 
-        .sev-muy-critica { background: #7f1d1d; color: #fee2e2; }
-        .sev-critica     { background: #9a3412; color: #ffedd5; }
-        .sev-moderada    { background: #1d4ed8; color: #dbeafe; }
-        .sev-leve        { background: #166534; color: #dcfce7; }
+        .sev-leve        { background: #15803d; color: #dcfce7; }   /* verde */
+        .sev-moderada    { background: #ca8a04; color: #fefce8; }   /* amarillo */
+        .sev-critica     { background: #ea580c; color: #fff7ed; }   /* naranja */
+        .sev-muy-critica { background: #b91c1c; color: #fee2e2; }   /* rojo */
         .sev-default     { background: #374151; color: #e5e7eb; }
 
         .paginacion {
@@ -292,7 +305,7 @@ function sevBadgeClass(string $sev): string {
         }
 
         .modal {
-            width: min(820px, 100%);
+            width: min(860px, 100%);
             min-height: 540px;
             max-height: 90vh;
             overflow: auto;
@@ -351,7 +364,7 @@ function sevBadgeClass(string $sev): string {
             padding: 12px;
             font-size: 13px;
             line-height: 1.4;
-            max-height: 220px;
+            max-height: 250px;
             overflow: auto;
         }
 
