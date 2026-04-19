@@ -32,7 +32,10 @@ $data = json_decode($raw, true);
 
 if (!is_array($data) || !isset($data["eventos"]) || !is_array($data["eventos"])) {
     http_response_code(400);
-    echo json_encode(["ok" => false, "error" => "json_invalido"]);
+    echo json_encode([
+        "ok" => false,
+        "error" => "json_invalido"
+    ]);
     exit;
 }
 
