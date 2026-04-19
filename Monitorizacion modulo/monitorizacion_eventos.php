@@ -16,7 +16,7 @@ $DB_HOST = "dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com";
 $DB_PORT = "5432";
 $DB_NAME = "zypher_db_g2sb";
 $DB_USER = "zypher_db_g2sb_user";
-$DB_PASS = "TU_PASSWORD_AQUI";
+$DB_PASS = "MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86";
 
 try {
     $pdo = new PDO(
