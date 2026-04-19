@@ -264,34 +264,6 @@ function sevBadgeClass(string $sev): string {
         .sev-muy-critica { background: #b91c1c; color: #fee2e2; }   /* rojo */
         .sev-default     { background: #374151; color: #e5e7eb; }
 
-        .paginacion {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 8px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .paginacion a,
-        .paginacion span {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 38px;
-            height: 38px;
-            padding: 0 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            border: 1px solid #2b3548;
-            background: #121a2b;
-            color: #e5e7eb;
-        }
-
-        .paginacion .actual {
-            background: #2563eb;
-            border-color: #2563eb;
-        }
 
         .modal-bg {
             display: none;
