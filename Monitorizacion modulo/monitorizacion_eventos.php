@@ -72,7 +72,8 @@ $sql = "
         origen,
         regla,
         detalles_raw,
-        estado
+        estado,
+        ruta_acceso
     FROM eventos_monitorizacion
     $whereSql
     ORDER BY fecha_evento DESC
@@ -94,15 +95,13 @@ function h($v): string {
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
-function badgeClass(string $sev): string {
+function sevBadgeClass(string $sev): string {
     $sev = mb_strtolower(trim($sev));
-    return match ($sev) {
-        'critica', 'crítica' => 'sev-critica',
-        'alta' => 'sev-alta',
-        'media' => 'sev-media',
-        'baja' => 'sev-baja',
-        default => 'sev-default',
-    };
+    if (str_starts_with($sev, 'muy crítica')) return 'sev-muy-critica';
+    if (str_starts_with($sev, 'critica') || str_starts_with($sev, 'crítica')) return 'sev-critica';
+    if (str_starts_with($sev, 'moderada')) return 'sev-moderada';
+    if (str_starts_with($sev, 'leve')) return 'sev-leve';
+    return 'sev-default';
 }
 ?>
 <!DOCTYPE html>
@@ -112,9 +111,7 @@ function badgeClass(string $sev): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitorización de eventos</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -124,7 +121,7 @@ function badgeClass(string $sev): string {
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1450px;
             margin: 30px auto;
             padding: 0 20px;
         }
@@ -136,7 +133,7 @@ function badgeClass(string $sev): string {
 
         .filtros {
             display: grid;
-            grid-template-columns: 180px 180px 140px 140px;
+            grid-template-columns: 180px 180px 180px 140px;
             gap: 12px;
             margin-bottom: 20px;
             align-items: end;
@@ -168,6 +165,32 @@ function badgeClass(string $sev): string {
         .filtros button {
             cursor: pointer;
             font-weight: 700;
+            background: #15803d;
+            border-color: #15803d;
+            color: #fff;
+        }
+
+        .tabla-layout {
+            display: grid;
+            grid-template-columns: 46px 1fr;
+            gap: 0;
+            align-items: start;
+        }
+
+        .acciones-columna {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding-top: 49px;
+        }
+
+        .accion-celda {
+            height: 53px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #253047;
+            background: transparent;
         }
 
         .tabla-wrap {
@@ -194,17 +217,10 @@ function badgeClass(string $sev): string {
             font-size: 14px;
         }
 
-        th {
-            color: #cbd5e1;
-        }
+        th { color: #cbd5e1; }
 
-        tr:hover {
+        tr:hover td {
             background: #162033;
-        }
-
-        .col-plus {
-            width: 56px;
-            text-align: center;
         }
 
         .btn-plus {
@@ -226,27 +242,21 @@ function badgeClass(string $sev): string {
             border-radius: 999px;
             font-size: 12px;
             font-weight: 700;
+            white-space: nowrap;
         }
 
-        .sev-critica { background: #7f1d1d; color: #fecaca; }
-        .sev-alta    { background: #92400e; color: #fde68a; }
-        .sev-media   { background: #1e3a8a; color: #bfdbfe; }
-        .sev-baja    { background: #14532d; color: #bbf7d0; }
-        .sev-default { background: #374151; color: #e5e7eb; }
+        .sev-muy-critica { background: #7f1d1d; color: #fee2e2; }
+        .sev-critica     { background: #9a3412; color: #ffedd5; }
+        .sev-moderada    { background: #1d4ed8; color: #dbeafe; }
+        .sev-leve        { background: #166534; color: #dcfce7; }
+        .sev-default     { background: #374151; color: #e5e7eb; }
 
         .paginacion {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .paginacion .grupo {
-            display: flex;
+            justify-content: flex-end;
             align-items: center;
             gap: 8px;
+            margin-top: 16px;
             flex-wrap: wrap;
         }
 
@@ -282,8 +292,8 @@ function badgeClass(string $sev): string {
         }
 
         .modal {
-            width: min(760px, 100%);
-            min-height: 520px;
+            width: min(820px, 100%);
+            min-height: 540px;
             max-height: 90vh;
             overflow: auto;
             background: #111827;
@@ -376,17 +386,17 @@ function badgeClass(string $sev): string {
 
     <form method="GET" class="filtros">
         <div class="filtro-campo">
-            <label for="desde">Fecha desde</label>
+            <label for="desde">Desde</label>
             <input type="date" id="desde" name="desde" value="<?= h($fechaDesde) ?>">
         </div>
 
         <div class="filtro-campo">
-            <label for="hasta">Fecha hasta</label>
+            <label for="hasta">Hasta</label>
             <input type="date" id="hasta" name="hasta" value="<?= h($fechaHasta) ?>">
         </div>
 
         <div class="filtro-campo">
-            <label for="per_page">Mostrar</label>
+            <label for="per_page">Nº eventos a mostrar</label>
             <select id="per_page" name="per_page">
                 <option value="25" <?= $porPagina === 25 ? 'selected' : '' ?>>25</option>
                 <option value="50" <?= $porPagina === 50 ? 'selected' : '' ?>>50</option>
@@ -397,83 +407,83 @@ function badgeClass(string $sev): string {
         <button type="submit">Aplicar</button>
     </form>
 
-    <div class="tabla-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th class="col-plus"></th>
-                    <th>ID evento</th>
-                    <th>Descripción</th>
-                    <th>Tipo / Categoría</th>
-                    <th>Severidad</th>
-                    <th>Fecha</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!$eventos): ?>
+    <div class="tabla-layout">
+        <div class="acciones-columna">
+            <?php if ($eventos): ?>
+                <?php foreach ($eventos as $e): ?>
+                    <div class="accion-celda">
+                        <button
+                            type="button"
+                            class="btn-plus"
+                            onclick="abrirModal(this)"
+                            data-id_evento="<?= h($e['id_evento']) ?>"
+                            data-descripcion="<?= h($e['descripcion']) ?>"
+                            data-tipo="<?= h($e['tipo']) ?>"
+                            data-severidad="<?= h($e['severidad']) ?>"
+                            data-host="<?= h($e['host']) ?>"
+                            data-fecha="<?= h($e['fecha_evento']) ?>"
+                            data-usuario="<?= h($e['usuario'] ?? '') ?>"
+                            data-ip="<?= h($e['ip_origen'] ?? '') ?>"
+                            data-origen="<?= h($e['origen'] ?? '') ?>"
+                            data-regla="<?= h($e['regla'] ?? '') ?>"
+                            data-estado="<?= h($e['estado'] ?? '') ?>"
+                            data-ruta="<?= h($e['ruta_acceso'] ?? '') ?>"
+                            data-raw="<?= h($e['detalles_raw'] ?? '') ?>"
+                        >+</button>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="tabla-wrap">
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="6" class="sin-datos">No hay eventos.</td>
+                        <th>ID evento</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Severidad</th>
+                        <th>Fecha</th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($eventos as $e): ?>
+                </thead>
+                <tbody>
+                    <?php if (!$eventos): ?>
                         <tr>
-                            <td class="col-plus">
-                                <button
-                                    type="button"
-                                    class="btn-plus"
-                                    onclick="abrirModal(this)"
-                                    data-id_evento="<?= h($e['id_evento']) ?>"
-                                    data-descripcion="<?= h($e['descripcion']) ?>"
-                                    data-tipo="<?= h($e['tipo']) ?>"
-                                    data-severidad="<?= h($e['severidad']) ?>"
-                                    data-host="<?= h($e['host']) ?>"
-                                    data-fecha="<?= h($e['fecha_evento']) ?>"
-                                    data-usuario="<?= h($e['usuario'] ?? '') ?>"
-                                    data-ip="<?= h($e['ip_origen'] ?? '') ?>"
-                                    data-origen="<?= h($e['origen'] ?? '') ?>"
-                                    data-regla="<?= h($e['regla'] ?? '') ?>"
-                                    data-estado="<?= h($e['estado'] ?? '') ?>"
-                                    data-raw="<?= h($e['detalles_raw'] ?? '') ?>"
-                                >+</button>
-                            </td>
-                            <td><?= h($e['id_evento']) ?></td>
-                            <td><?= h($e['descripcion']) ?></td>
-                            <td><?= h($e['tipo']) ?></td>
-                            <td>
-                                <span class="badge <?= badgeClass($e['severidad'] ?? '') ?>">
-                                    <?= h($e['severidad']) ?>
-                                </span>
-                            </td>
-                            <td><?= h($e['fecha_evento']) ?></td>
+                            <td colspan="5" class="sin-datos">No hay eventos.</td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                    <?php else: ?>
+                        <?php foreach ($eventos as $e): ?>
+                            <tr>
+                                <td><?= h($e['id_evento']) ?></td>
+                                <td><?= h($e['descripcion']) ?></td>
+                                <td><?= h($e['tipo']) ?></td>
+                                <td>
+                                    <span class="badge <?= sevBadgeClass($e['severidad'] ?? '') ?>">
+                                        <?= h($e['severidad']) ?>
+                                    </span>
+                                </td>
+                                <td><?= h($e['fecha_evento']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="paginacion">
-        <div class="grupo">
-            <span>
-                Mostrando <?= $totalEventos > 0 ? ($offset + 1) : 0 ?> - <?= min($offset + $porPagina, $totalEventos) ?>
-                de <?= $totalEventos ?> eventos
-            </span>
-        </div>
-
-        <div class="grupo">
-            <?php
-            $queryBase = $_GET;
-            for ($i = 1; $i <= $totalPaginas; $i++):
-                $queryBase['page'] = $i;
-                $url = '?' . http_build_query($queryBase);
-            ?>
-                <?php if ($i === $pagina): ?>
-                    <span class="actual"><?= $i ?></span>
-                <?php else: ?>
-                    <a href="<?= h($url) ?>"><?= $i ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-        </div>
+        <?php
+        $queryBase = $_GET;
+        for ($i = 1; $i <= $totalPaginas; $i++):
+            $queryBase['page'] = $i;
+            $url = '?' . http_build_query($queryBase);
+        ?>
+            <?php if ($i === $pagina): ?>
+                <span class="actual"><?= $i ?></span>
+            <?php else: ?>
+                <a href="<?= h($url) ?>"><?= $i ?></a>
+            <?php endif; ?>
+        <?php endfor; ?>
     </div>
 </div>
 
@@ -487,19 +497,20 @@ function badgeClass(string $sev): string {
                 <h3>Información general</h3>
                 <p>ID evento: <span id="m-id"></span></p>
                 <p>Descripción: <span id="m-descripcion"></span></p>
-                <p>Tipo / Categoría: <span id="m-tipo"></span></p>
+                <p>Categoría: <span id="m-tipo"></span></p>
                 <p>Severidad: <span id="m-severidad"></span></p>
                 <p>Fecha: <span id="m-fecha"></span></p>
                 <p>Estado: <span id="m-estado"></span></p>
             </div>
 
             <div class="detalle-box">
-                <h3>Equipo</h3>
+                <h3>Detalles</h3>
                 <p>Equipo / Host: <span id="m-host"></span></p>
                 <p>Usuario: <span id="m-usuario"></span></p>
                 <p>IP origen: <span id="m-ip"></span></p>
                 <p>Origen: <span id="m-origen"></span></p>
                 <p>Regla disparada: <span id="m-regla"></span></p>
+                <p>Ruta de acceso: <span id="m-ruta"></span></p>
             </div>
 
             <div class="detalle-box" style="grid-column: 1 / -1;">
@@ -524,6 +535,7 @@ function abrirModal(btn) {
     document.getElementById('m-ip').textContent = btn.dataset.ip || '-';
     document.getElementById('m-origen').textContent = btn.dataset.origen || '-';
     document.getElementById('m-regla').textContent = btn.dataset.regla || '-';
+    document.getElementById('m-ruta').textContent = btn.dataset.ruta || '-';
     document.getElementById('m-raw').textContent = btn.dataset.raw || '-';
     document.getElementById('modalBg').style.display = 'flex';
 }
