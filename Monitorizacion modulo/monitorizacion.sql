@@ -13,3 +13,5 @@ CREATE TABLE IF NOT EXISTS eventos_monitorizacion (
     detalles_raw TEXT,
     estado VARCHAR(50) DEFAULT 'Nuevo'
 );
+
+
