@@ -19,7 +19,11 @@ try {
     );
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["ok" => false, "error" => "conexion_bd"]);
+    echo json_encode([
+        "ok" => false,
+        "error" => "conexion_bd",
+        "detalle" => $e->getMessage()
+    ]);
     exit;
 }
 
@@ -46,7 +50,8 @@ $sql = "
         origen,
         regla,
         detalles_raw,
-        estado
+        estado,
+        ruta_acceso
     )
     VALUES
     (
@@ -61,7 +66,8 @@ $sql = "
         :origen,
         :regla,
         :detalles_raw,
-        :estado
+        :estado,
+        :ruta_acceso
     )
 ";
 
@@ -73,7 +79,7 @@ foreach ($data["eventos"] as $e) {
         ":id_evento"    => (int)($e["id_evento"] ?? 0),
         ":descripcion"  => (string)($e["descripcion"] ?? ""),
         ":tipo"         => (string)($e["tipo"] ?? ""),
-        ":severidad"    => (string)($e["severidad"] ?? "Baja"),
+        ":severidad"    => (string)($e["severidad"] ?? "Leve - 1/10"),
         ":host"         => (string)($e["host"] ?? ""),
         ":fecha_evento" => (string)($e["fecha_evento"] ?? date("Y-m-d H:i:s")),
         ":usuario"      => (string)($e["usuario"] ?? ""),
@@ -82,6 +88,7 @@ foreach ($data["eventos"] as $e) {
         ":regla"        => (string)($e["regla"] ?? ""),
         ":detalles_raw" => (string)($e["detalles_raw"] ?? ""),
         ":estado"       => (string)($e["estado"] ?? "Nuevo"),
+        ":ruta_acceso"  => (string)($e["ruta_acceso"] ?? ""),
     ]);
     $insertados++;
 }
