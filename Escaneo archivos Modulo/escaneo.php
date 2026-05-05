@@ -206,7 +206,7 @@
     }
 
     .tab {
-      padding: 16px 25px;
+      padding: 16px 28px;
       color: #91a4c4;
       border-bottom: 3px solid transparent;
       cursor: pointer;
@@ -245,6 +245,7 @@
       border: 1px solid #233a5c;
       border-radius: 14px;
       padding: 20px;
+      min-width: 0;
     }
 
     .panel h3 {
@@ -255,9 +256,11 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
 
-    th, td {
+    th,
+    td {
       padding: 13px 10px;
       border-bottom: 1px solid #1c3150;
       text-align: left;
@@ -278,11 +281,6 @@
     tr:last-child th,
     tr:last-child td {
       border-bottom: 0;
-    }
-
-    .danger {
-      color: #ff5f68;
-      font-weight: bold;
     }
 
     .valor-peligroso {
@@ -314,24 +312,31 @@
     .motor-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
       background: #102744;
       border: 1px solid #2b4d78;
       padding: 8px 12px;
       border-radius: 10px;
       color: #eaf0ff;
+      max-width: 100%;
+      word-break: break-word;
     }
 
-    .motor-logo {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #1769ff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: bold;
+    .rel-table {
+      table-layout: auto;
+    }
+
+    .rel-table th {
+      width: auto;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .rel-table td {
+      width: 130px;
+      min-width: 130px;
+      white-space: nowrap;
+      text-align: right;
+      color: #eaf0ff;
     }
 
     @media (max-width: 800px) {
@@ -351,6 +356,11 @@
       .tabs {
         overflow-x: auto;
         justify-content: flex-start;
+      }
+
+      .rel-table td {
+        width: 110px;
+        min-width: 110px;
       }
     }
   </style>
@@ -424,9 +434,7 @@
 
             <div class="panel">
               <h3>Motores que lo detectan</h3>
-              <table>
-                <tbody id="tablaMotores"></tbody>
-              </table>
+              <div id="tablaMotores"></div>
             </div>
           </div>
         </div>
@@ -444,22 +452,22 @@
           <div class="grid">
             <div class="panel">
               <h3>Dominios contactados</h3>
-              <table><tbody id="tablaDominios"></tbody></table>
+              <table class="rel-table"><tbody id="tablaDominios"></tbody></table>
             </div>
 
             <div class="panel">
               <h3>IPs contactadas</h3>
-              <table><tbody id="tablaIps"></tbody></table>
+              <table class="rel-table"><tbody id="tablaIps"></tbody></table>
             </div>
 
             <div class="panel">
               <h3>Archivos relacionados</h3>
-              <table><tbody id="tablaRelacionados"></tbody></table>
+              <table class="rel-table"><tbody id="tablaRelacionados"></tbody></table>
             </div>
 
             <div class="panel">
               <h3>Archivos soltados</h3>
-              <table><tbody id="tablaSoltados"></tbody></table>
+              <table class="rel-table"><tbody id="tablaSoltados"></tbody></table>
             </div>
           </div>
         </div>
@@ -600,33 +608,25 @@
     }
 
     function pintarMotores(motores) {
-      const tbody = document.getElementById('tablaMotores');
-      tbody.innerHTML = '';
+      const contenedor = document.getElementById('tablaMotores');
+      contenedor.innerHTML = '';
 
       if (!motores.length) {
-        tbody.innerHTML = '<tr><td class="empty">No hay motores con detección</td></tr>';
+        contenedor.innerHTML = '<div class="empty">No hay motores con detección</div>';
         return;
       }
 
       const nombres = motores.map(item => {
         const motor = item.motor || '-';
-        const inicial = motor.charAt(0).toUpperCase();
 
         return `
           <span class="motor-badge" title="${escapar(item.deteccion || '')}">
-            <span class="motor-logo">${escapar(inicial)}</span>
             ${escapar(motor)}
           </span>
         `;
       }).join('');
 
-      tbody.innerHTML = `
-        <tr>
-          <td>
-            <div class="motor-list">${nombres}</div>
-          </td>
-        </tr>
-      `;
+      contenedor.innerHTML = `<div class="motor-list">${nombres}</div>`;
     }
 
     function pintarDetalles(d) {
@@ -636,6 +636,7 @@
 
       pintarTabla('tablaDetalles', [
         ['Nombre', d.nombre],
+        ['Más nombres de archivo', masNombres],
         ['Tamaño', d.tamano],
         ['Tipo', d.tipo],
         ['MD5', d.md5],
@@ -643,8 +644,7 @@
         ['SHA256', d.sha256],
         ['Primera vez visto', d.primera_vez_visto],
         ['Último análisis', d.ultimo_analisis],
-        ['Fecha de escaneo en Zypher', d.fecha_escaneo_zypher],
-        ['Más nombres de archivo', masNombres]
+        ['Fecha de escaneo en Zypher', d.fecha_escaneo_zypher]
       ]);
     }
 
@@ -674,7 +674,7 @@
       tbody.innerHTML = '';
 
       if (!items.length) {
-        tbody.innerHTML = '<tr><td class="empty">Sin datos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" class="empty">Sin datos</td></tr>';
         return;
       }
 
