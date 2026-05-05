@@ -682,7 +682,7 @@
         tbody.innerHTML += `
           <tr>
             <th>${escapar(item.valor || '-')}</th>
-            <td>${escapar(String(item.detecciones ?? 0))} detecciones</td>
+            <td>${escapar(String(item.detecciones ?? 0))} alertas</td>
           </tr>
         `;
       });
