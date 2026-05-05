@@ -1,3 +1,6 @@
+<?php
+// Escaneo archivos Modulo/escaneo.php
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -38,8 +41,8 @@
     }
 
     .upload-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
+      font-size: 45px;
+      margin-bottom: 12px;
     }
 
     .upload-box h2 {
@@ -49,7 +52,11 @@
 
     .upload-box p {
       color: #91a4c4;
-      margin-bottom: 20px;
+      margin: 0 0 20px;
+    }
+
+    input[type="file"] {
+      display: none;
     }
 
     .btn {
@@ -78,6 +85,31 @@
       box-shadow: 0 0 25px rgba(23, 105, 255, 0.35);
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .selected-file {
+      margin-top: 15px;
+      color: #b9d4ff;
+      font-size: 15px;
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 20px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      background: #33151a;
+      color: #ffb6bd;
+      border: 1px solid #ff5f68;
+    }
+
+    .results {
+      display: none;
+    }
+
     .summary {
       display: flex;
       align-items: center;
@@ -102,7 +134,7 @@
     }
 
     .score strong {
-      font-size: 38px;
+      font-size: 34px;
     }
 
     .score span {
@@ -111,39 +143,49 @@
 
     .file-info {
       flex: 1;
+      min-width: 0;
     }
 
     .status {
       display: inline-block;
-      background: #3a1118;
-      color: #ff5f68;
-      border: 1px solid #ff5f68;
       padding: 8px 14px;
       border-radius: 8px;
       margin-bottom: 12px;
       font-weight: bold;
     }
 
+    .status.peligroso {
+      background: #3a1118;
+      color: #ff5f68;
+      border: 1px solid #ff5f68;
+    }
+
+    .status.sospechoso {
+      background: #3b2a10;
+      color: #ffbf47;
+      border: 1px solid #ffbf47;
+    }
+
+    .status.limpio {
+      background: #12351e;
+      color: #58d68d;
+      border: 1px solid #58d68d;
+    }
+
+    .status.no-encontrado {
+      background: #1f2c3d;
+      color: #b9d4ff;
+      border: 1px solid #4d6f9f;
+    }
+
     .file-info h2 {
       margin: 0 0 8px;
+      word-break: break-word;
     }
 
     .hash {
       color: #91a4c4;
       word-break: break-all;
-    }
-
-    .tags {
-      margin-top: 15px;
-    }
-
-    .tag {
-      display: inline-block;
-      background: #173a68;
-      color: #b9d4ff;
-      padding: 6px 10px;
-      border-radius: 8px;
-      margin-right: 6px;
       font-size: 14px;
     }
 
@@ -151,6 +193,7 @@
       display: flex;
       gap: 35px;
       color: #c5d1e8;
+      flex-wrap: wrap;
     }
 
     .tabs {
@@ -165,6 +208,7 @@
       padding: 16px 25px;
       color: #91a4c4;
       border-bottom: 3px solid transparent;
+      cursor: pointer;
     }
 
     .tab.active {
@@ -179,6 +223,14 @@
       border-top: 0;
       border-radius: 0 0 18px 18px;
       padding: 25px;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     .grid {
@@ -208,16 +260,18 @@
       padding: 13px 10px;
       border-bottom: 1px solid #1c3150;
       text-align: left;
+      vertical-align: top;
     }
 
     th {
       color: #91a4c4;
       font-weight: normal;
-      width: 45%;
+      width: 42%;
     }
 
     td {
       color: #fff;
+      word-break: break-word;
     }
 
     tr:last-child th,
@@ -230,23 +284,27 @@
       font-weight: bold;
     }
 
+    .empty {
+      color: #91a4c4;
+      padding: 18px 0;
+    }
+
     @media (max-width: 800px) {
+      h1 {
+        font-size: 28px;
+      }
+
       .summary {
         flex-direction: column;
         align-items: flex-start;
-      }
-
-      .meta {
-        flex-direction: column;
-        gap: 8px;
       }
 
       .grid {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 28px;
+      .tabs {
+        overflow-x: auto;
       }
     }
   </style>
@@ -256,117 +314,314 @@
   <main class="page">
     <h1>Módulo de escaneo de archivos</h1>
 
-    <section class="upload-box">
-      <div class="upload-icon">⬆️</div>
-      <h2>Arrastra tu archivo aquí</h2>
-      <p>Suelta el archivo para analizarlo</p>
-      <button class="btn btn-secondary">Seleccionar archivo</button>
-    </section>
+    <form id="scanForm" enctype="multipart/form-data">
+      <section class="upload-box" id="uploadBox">
+        <div class="upload-icon">⬆️</div>
+        <h2>Arrastra tu archivo aquí</h2>
+        <p>Suelta el archivo para analizarlo</p>
 
-    <div class="scan-action">
-      <button class="btn btn-primary">Escanear archivo</button>
-    </div>
+        <label class="btn btn-secondary" for="archivo">Seleccionar archivo</label>
+        <input type="file" name="archivo" id="archivo">
 
-    <section class="summary">
-      <div class="score">
-        <strong>64</strong>
-        <span>/ 66</span>
+        <div class="selected-file" id="selectedFile">Ningún archivo seleccionado</div>
+      </section>
+
+      <div class="scan-action">
+        <button class="btn btn-primary" id="scanBtn" type="submit" disabled>
+          Escanear archivo
+        </button>
       </div>
+    </form>
 
-      <div class="file-info">
-        <div class="status">Peligroso</div>
-        <h2>eicar.com-24960</h2>
-        <div class="hash">275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f</div>
+    <div class="message" id="message"></div>
 
-        <div class="tags">
-          <span class="tag">powershell</span>
-          <span class="tag">known-distributor</span>
-        </div>
-      </div>
-
-      <div class="meta">
-        <div>
-          <strong>68 B</strong><br>
-          Tamaño
-        </div>
-        <div>
-          <strong>Hace 4 minutos</strong><br>
-          Último análisis
-        </div>
-      </div>
-    </section>
-
-    <nav class="tabs">
-      <div class="tab active">Detección</div>
-      <div class="tab">Detalles</div>
-      <div class="tab">Relaciones</div>
-    </nav>
-
-    <section class="content">
-      <div class="grid">
-        <div class="panel">
-          <h3>Resultado del análisis</h3>
-
-          <table>
-            <tr>
-              <th>Estado general</th>
-              <td class="danger">Peligroso</td>
-            </tr>
-            <tr>
-              <th>Detecciones</th>
-              <td class="danger">64/66</td>
-            </tr>
-            <tr>
-              <th>Etiqueta de amenaza</th>
-              <td>virus.eicar/test</td>
-            </tr>
-            <tr>
-              <th>Categoría</th>
-              <td>virus, troyano</td>
-            </tr>
-            <tr>
-              <th>Acción recomendada</th>
-              <td>Cuarentena</td>
-            </tr>
-            <tr>
-              <th>Origen del resultado</th>
-              <td>ClamAV + VirusTotal</td>
-            </tr>
-          </table>
+    <section class="results" id="results">
+      <section class="summary">
+        <div class="score">
+          <strong id="scoreMain">-</strong>
+          <span id="scoreTotal">/ -</span>
         </div>
 
-        <div class="panel">
-          <h3>Motores que lo detectan</h3>
-
-          <table>
-            <tr>
-              <th>Motor</th>
-              <th>Detección</th>
-            </tr>
-            <tr>
-              <td>ClamAV</td>
-              <td>Eicar-Test-Signature</td>
-            </tr>
-            <tr>
-              <td>Kaspersky</td>
-              <td>EICAR-Test-File</td>
-            </tr>
-            <tr>
-              <td>Microsoft</td>
-              <td>Virus:DOS/EICAR_Test_File</td>
-            </tr>
-            <tr>
-              <td>Malwarebytes</td>
-              <td>EICAR-AV-Test</td>
-            </tr>
-            <tr>
-              <td>BitDefender</td>
-              <td>EICAR-Test-File</td>
-            </tr>
-          </table>
+        <div class="file-info">
+          <div class="status no-encontrado" id="estadoGeneral">Sin analizar</div>
+          <h2 id="nombreArchivo">-</h2>
+          <div class="hash" id="sha256">-</div>
         </div>
-      </div>
+
+        <div class="meta">
+          <div>
+            <strong id="tamanoArchivo">-</strong><br>
+            Tamaño
+          </div>
+          <div>
+            <strong id="ultimoAnalisis">-</strong><br>
+            Último análisis
+          </div>
+        </div>
+      </section>
+
+      <nav class="tabs">
+        <div class="tab active" data-tab="deteccion">Detección</div>
+        <div class="tab" data-tab="detalles">Detalles</div>
+        <div class="tab" data-tab="relaciones">Relaciones</div>
+      </nav>
+
+      <section class="content">
+        <div class="tab-panel active" id="tab-deteccion">
+          <div class="grid">
+            <div class="panel">
+              <h3>Resultado del análisis</h3>
+              <table>
+                <tbody id="tablaDeteccion"></tbody>
+              </table>
+            </div>
+
+            <div class="panel">
+              <h3>Motores que lo detectan</h3>
+              <table>
+                <tbody id="tablaMotores"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-detalles">
+          <div class="panel">
+            <h3>Detalles del archivo</h3>
+            <table>
+              <tbody id="tablaDetalles"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-relaciones">
+          <div class="grid">
+            <div class="panel">
+              <h3>Dominios contactados</h3>
+              <table><tbody id="tablaDominios"></tbody></table>
+            </div>
+
+            <div class="panel">
+              <h3>IPs contactadas</h3>
+              <table><tbody id="tablaIps"></tbody></table>
+            </div>
+
+            <div class="panel">
+              <h3>Archivos relacionados</h3>
+              <table><tbody id="tablaRelacionados"></tbody></table>
+            </div>
+
+            <div class="panel">
+              <h3>Archivos soltados</h3>
+              <table><tbody id="tablaSoltados"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
   </main>
+
+  <script>
+    const form = document.getElementById('scanForm');
+    const inputArchivo = document.getElementById('archivo');
+    const selectedFile = document.getElementById('selectedFile');
+    const scanBtn = document.getElementById('scanBtn');
+    const message = document.getElementById('message');
+    const results = document.getElementById('results');
+
+    inputArchivo.addEventListener('change', () => {
+      const file = inputArchivo.files[0];
+
+      if (!file) {
+        selectedFile.textContent = 'Ningún archivo seleccionado';
+        scanBtn.disabled = true;
+        return;
+      }
+
+      selectedFile.textContent = file.name;
+      scanBtn.disabled = false;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!inputArchivo.files[0]) {
+        mostrarError('Selecciona un archivo primero');
+        return;
+      }
+
+      ocultarError();
+      scanBtn.disabled = true;
+      scanBtn.textContent = 'Escaneando...';
+
+      const formData = new FormData();
+      formData.append('archivo', inputArchivo.files[0]);
+
+      try {
+        const response = await fetch('guardar_escaneo.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          mostrarError(data.error || 'Error al escanear el archivo');
+          return;
+        }
+
+        pintarResultado(data.resultado);
+        results.style.display = 'block';
+
+      } catch (error) {
+        mostrarError('No se pudo conectar con guardar_escaneo.php');
+      } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = 'Escanear archivo';
+      }
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    function pintarResultado(resultado) {
+      const deteccion = resultado.deteccion || {};
+      const detalles = resultado.detalles || {};
+      const relaciones = resultado.relaciones || {};
+
+      pintarResumen(deteccion, detalles);
+      pintarDeteccion(deteccion);
+      pintarMotores(deteccion.motores_que_detectan || []);
+      pintarDetalles(detalles);
+      pintarRelaciones(relaciones);
+    }
+
+    function pintarResumen(deteccion, detalles) {
+      const estado = deteccion.estado_general || 'No encontrado';
+      const detecciones = deteccion.detecciones || '0/0';
+      const partes = detecciones.split('/');
+
+      document.getElementById('scoreMain').textContent = partes[0] || '0';
+      document.getElementById('scoreTotal').textContent = '/ ' + (partes[1] || '0');
+      document.getElementById('nombreArchivo').textContent = detalles.nombre || '-';
+      document.getElementById('sha256').textContent = detalles.sha256 || '-';
+      document.getElementById('tamanoArchivo').textContent = detalles.tamano || '-';
+      document.getElementById('ultimoAnalisis').textContent = detalles.ultimo_analisis || '-';
+
+      const estadoEl = document.getElementById('estadoGeneral');
+      estadoEl.textContent = estado;
+      estadoEl.className = 'status ' + estado.toLowerCase().replaceAll(' ', '-');
+    }
+
+    function pintarDeteccion(d) {
+      pintarTabla('tablaDeteccion', [
+        ['Estado general', d.estado_general],
+        ['Detecciones', d.detecciones],
+        ['Etiqueta de amenaza', d.etiqueta_amenaza],
+        ['Categoría', d.categoria],
+        ['Acción recomendada', d.accion_recomendada],
+        ['Origen del resultado', d.origen_resultado]
+      ]);
+    }
+
+    function pintarMotores(motores) {
+      const tbody = document.getElementById('tablaMotores');
+      tbody.innerHTML = '';
+
+      if (!motores.length) {
+        tbody.innerHTML = '<tr><td class="empty">No hay motores con detección</td></tr>';
+        return;
+      }
+
+      motores.forEach(item => {
+        tbody.innerHTML += `
+          <tr>
+            <th>${escapar(item.motor || '-')}</th>
+            <td>${escapar(item.deteccion || '-')}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function pintarDetalles(d) {
+      pintarTabla('tablaDetalles', [
+        ['Nombre', d.nombre],
+        ['Tamaño', d.tamano],
+        ['Tipo', d.tipo],
+        ['MD5', d.md5],
+        ['SHA1', d.sha1],
+        ['SHA256', d.sha256],
+        ['Primera vez visto', d.primera_vez_visto],
+        ['Último análisis', d.ultimo_analisis],
+        ['Fecha de escaneo en Zypher', d.fecha_escaneo_zypher]
+      ]);
+    }
+
+    function pintarRelaciones(r) {
+      pintarLista('tablaDominios', r.dominios_contactados || []);
+      pintarLista('tablaIps', r.ips_contactadas || []);
+      pintarLista('tablaRelacionados', r.archivos_relacionados || []);
+      pintarLista('tablaSoltados', r.archivos_soltados || []);
+    }
+
+    function pintarTabla(id, filas) {
+      const tbody = document.getElementById(id);
+      tbody.innerHTML = '';
+
+      filas.forEach(([campo, valor]) => {
+        tbody.innerHTML += `
+          <tr>
+            <th>${escapar(campo)}</th>
+            <td>${escapar(valor || '-')}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function pintarLista(id, items) {
+      const tbody = document.getElementById(id);
+      tbody.innerHTML = '';
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td class="empty">Sin datos</td></tr>';
+        return;
+      }
+
+      items.forEach(item => {
+        tbody.innerHTML += `
+          <tr>
+            <th>${escapar(item.valor || '-')}</th>
+            <td>${escapar(String(item.detecciones ?? 0))} detecciones</td>
+          </tr>
+        `;
+      });
+    }
+
+    function mostrarError(texto) {
+      message.textContent = texto;
+      message.style.display = 'block';
+    }
+
+    function ocultarError() {
+      message.textContent = '';
+      message.style.display = 'none';
+    }
+
+    function escapar(valor) {
+      return String(valor)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+  </script>
 </body>
 </html>
