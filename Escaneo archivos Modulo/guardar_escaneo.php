@@ -6,6 +6,127 @@ function responder($ok, $data = []) {
     exit;
 }
 
+function conectar_bd() {
+    $url = getenv('DATABASE_URL');
+
+    if (!$url) {
+        return null;
+    }
+
+    $db = parse_url($url);
+
+    $host = $db['host'] ?? '';
+    $port = $db['port'] ?? 5432;
+    $user = $db['user'] ?? '';
+    $pass = $db['pass'] ?? '';
+    $name = isset($db['path']) ? ltrim($db['path'], '/') : '';
+
+    $conn = pg_connect(
+        "host={$host} port={$port} dbname={$name} user={$user} password={$pass} sslmode=require"
+    );
+
+    return $conn ?: null;
+}
+
+function asegurar_tabla($conn) {
+    pg_query($conn, "
+        CREATE TABLE IF NOT EXISTS escaneos_archivos (
+            id SERIAL PRIMARY KEY,
+            fecha TIMESTAMP NOT NULL DEFAULT NOW(),
+            nombre TEXT,
+            estado TEXT,
+            detecciones TEXT,
+            sha256 TEXT,
+            accion TEXT,
+            resultado_json JSONB
+        )
+    ");
+}
+
+function guardar_historial($resultado) {
+    $conn = conectar_bd();
+
+    if (!$conn) {
+        return null;
+    }
+
+    asegurar_tabla($conn);
+
+    $deteccion = $resultado['deteccion'] ?? [];
+    $detalles = $resultado['detalles'] ?? [];
+
+    $nombre = $detalles['nombre'] ?? '';
+    $estado = $deteccion['estado_general'] ?? '';
+    $detecciones = $deteccion['detecciones'] ?? '';
+    $sha256 = $detalles['sha256'] ?? '';
+    $accion = $deteccion['accion_recomendada'] ?? '';
+    $json = json_encode($resultado, JSON_UNESCAPED_UNICODE);
+
+    $res = pg_query_params($conn, "
+        INSERT INTO escaneos_archivos
+        (nombre, estado, detecciones, sha256, accion, resultado_json)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id
+    ", [$nombre, $estado, $detecciones, $sha256, $accion, $json]);
+
+    if (!$res) {
+        return null;
+    }
+
+    $row = pg_fetch_assoc($res);
+    return $row['id'] ?? null;
+}
+
+function obtener_historial() {
+    $conn = conectar_bd();
+
+    if (!$conn) {
+        responder(false, ['error' => 'No hay conexión con PostgreSQL']);
+    }
+
+    asegurar_tabla($conn);
+
+    $res = pg_query($conn, "
+        SELECT id, fecha, nombre, estado, detecciones, sha256, accion
+        FROM escaneos_archivos
+        ORDER BY fecha DESC
+        LIMIT 20
+    ");
+
+    $items = [];
+
+    while ($row = pg_fetch_assoc($res)) {
+        $items[] = $row;
+    }
+
+    responder(true, ['historial' => $items]);
+}
+
+function obtener_detalle($id) {
+    $conn = conectar_bd();
+
+    if (!$conn) {
+        responder(false, ['error' => 'No hay conexión con PostgreSQL']);
+    }
+
+    asegurar_tabla($conn);
+
+    $res = pg_query_params($conn, "
+        SELECT resultado_json
+        FROM escaneos_archivos
+        WHERE id = $1
+        LIMIT 1
+    ", [$id]);
+
+    $row = pg_fetch_assoc($res);
+
+    if (!$row) {
+        responder(false, ['error' => 'Escaneo no encontrado']);
+    }
+
+    responder(true, ['resultado' => json_decode($row['resultado_json'], true)]);
+}
+
 function formato_tamano($bytes) {
     if ($bytes < 1024) return $bytes . ' B';
     if ($bytes < 1024 * 1024) return round($bytes / 1024, 2) . ' KB';
@@ -144,7 +265,7 @@ function relacion_valida($valor, $relacion) {
     return true;
 }
 
-function consultar_relacion($sha256, $relacion, $limite = 10) {
+function consultar_relacion($sha256, $relacion, $limite = 30) {
     $data = vt_get('/files/' . $sha256 . '/' . $relacion . '?limit=' . $limite);
 
     if (!$data || isset($data['error'])) {
@@ -187,6 +308,20 @@ function consultar_relacion($sha256, $relacion, $limite = 10) {
     }
 
     return $items;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $accionGet = $_GET['accion'] ?? '';
+
+    if ($accionGet === 'historial') {
+        obtener_historial();
+    }
+
+    if ($accionGet === 'detalle') {
+        obtener_detalle(intval($_GET['id'] ?? 0));
+    }
+
+    responder(false, ['error' => 'Acción GET no válida']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -326,4 +461,9 @@ $resultado = [
     'relaciones' => $relaciones
 ];
 
-responder(true, ['resultado' => $resultado]);
+$id = guardar_historial($resultado);
+
+responder(true, [
+    'id' => $id,
+    'resultado' => $resultado
+]);
