@@ -198,6 +198,7 @@
 
     .tabs {
       display: flex;
+      justify-content: center;
       background: #0b1b31;
       border: 1px solid #233a5c;
       border-radius: 18px 18px 0 0;
@@ -284,9 +285,53 @@
       font-weight: bold;
     }
 
+    .valor-peligroso {
+      color: #ff5f68;
+      font-weight: bold;
+    }
+
+    .valor-sospechoso {
+      color: #ffbf47;
+      font-weight: bold;
+    }
+
+    .valor-limpio {
+      color: #58d68d;
+      font-weight: bold;
+    }
+
     .empty {
       color: #91a4c4;
       padding: 18px 0;
+    }
+
+    .motor-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .motor-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #102744;
+      border: 1px solid #2b4d78;
+      padding: 8px 12px;
+      border-radius: 10px;
+      color: #eaf0ff;
+    }
+
+    .motor-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1769ff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: bold;
     }
 
     @media (max-width: 800px) {
@@ -305,6 +350,7 @@
 
       .tabs {
         overflow-x: auto;
+        justify-content: flex-start;
       }
     }
   </style>
@@ -521,14 +567,36 @@
     }
 
     function pintarDeteccion(d) {
-      pintarTabla('tablaDeteccion', [
-        ['Estado general', d.estado_general],
-        ['Detecciones', d.detecciones],
-        ['Etiqueta de amenaza', d.etiqueta_amenaza],
-        ['Categoría', d.categoria],
-        ['Acción recomendada', d.accion_recomendada],
-        ['Origen del resultado', d.origen_resultado]
-      ]);
+      const estado = d.estado_general || '-';
+      const claseEstado = claseValorEstado(estado);
+
+      const tbody = document.getElementById('tablaDeteccion');
+      tbody.innerHTML = `
+        <tr>
+          <th>Estado general</th>
+          <td class="${claseEstado}">${escapar(estado)}</td>
+        </tr>
+        <tr>
+          <th>Detecciones</th>
+          <td>${escapar(d.detecciones || '-')}</td>
+        </tr>
+        <tr>
+          <th>Etiqueta de amenaza</th>
+          <td>${escapar(d.etiqueta_amenaza || '-')}</td>
+        </tr>
+        <tr>
+          <th>Categoría</th>
+          <td>${escapar(d.categoria || '-')}</td>
+        </tr>
+        <tr>
+          <th>Acción recomendada</th>
+          <td>${escapar(d.accion_recomendada || '-')}</td>
+        </tr>
+        <tr>
+          <th>Origen del resultado</th>
+          <td>${escapar(d.origen_resultado || '-')}</td>
+        </tr>
+      `;
     }
 
     function pintarMotores(motores) {
@@ -540,17 +608,32 @@
         return;
       }
 
-      motores.forEach(item => {
-        tbody.innerHTML += `
-          <tr>
-            <th>${escapar(item.motor || '-')}</th>
-            <td>${escapar(item.deteccion || '-')}</td>
-          </tr>
+      const nombres = motores.map(item => {
+        const motor = item.motor || '-';
+        const inicial = motor.charAt(0).toUpperCase();
+
+        return `
+          <span class="motor-badge" title="${escapar(item.deteccion || '')}">
+            <span class="motor-logo">${escapar(inicial)}</span>
+            ${escapar(motor)}
+          </span>
         `;
-      });
+      }).join('');
+
+      tbody.innerHTML = `
+        <tr>
+          <td>
+            <div class="motor-list">${nombres}</div>
+          </td>
+        </tr>
+      `;
     }
 
     function pintarDetalles(d) {
+      const masNombres = Array.isArray(d.mas_nombres_archivo)
+        ? d.mas_nombres_archivo.join(', ')
+        : '';
+
       pintarTabla('tablaDetalles', [
         ['Nombre', d.nombre],
         ['Tamaño', d.tamano],
@@ -560,7 +643,8 @@
         ['SHA256', d.sha256],
         ['Primera vez visto', d.primera_vez_visto],
         ['Último análisis', d.ultimo_analisis],
-        ['Fecha de escaneo en Zypher', d.fecha_escaneo_zypher]
+        ['Fecha de escaneo en Zypher', d.fecha_escaneo_zypher],
+        ['Más nombres de archivo', masNombres]
       ]);
     }
 
@@ -602,6 +686,16 @@
           </tr>
         `;
       });
+    }
+
+    function claseValorEstado(estado) {
+      estado = String(estado).toLowerCase();
+
+      if (estado.includes('peligroso')) return 'valor-peligroso';
+      if (estado.includes('sospechoso')) return 'valor-sospechoso';
+      if (estado.includes('limpio')) return 'valor-limpio';
+
+      return '';
     }
 
     function mostrarError(texto) {
