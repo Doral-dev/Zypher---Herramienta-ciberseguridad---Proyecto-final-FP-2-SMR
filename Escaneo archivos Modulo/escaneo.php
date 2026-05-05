@@ -66,11 +66,18 @@
       cursor: pointer;
       font-size: 16px;
       color: #fff;
+      display: inline-block;
     }
 
     .btn-secondary {
       background: #142844;
       border: 1px solid #2f7dff;
+    }
+
+    .btn-clear {
+      background: #33151a;
+      border: 1px solid #ff5f68;
+      margin-left: 8px;
     }
 
     .scan-action {
@@ -358,6 +365,11 @@
         justify-content: flex-start;
       }
 
+      .btn-clear {
+        margin-left: 0;
+        margin-top: 10px;
+      }
+
       .rel-table td {
         width: 110px;
         min-width: 110px;
@@ -378,6 +390,10 @@
 
         <label class="btn btn-secondary" for="archivo">Seleccionar archivo</label>
         <input type="file" name="archivo" id="archivo">
+
+        <button type="button" class="btn btn-clear" id="clearFile">
+          Quitar archivo
+        </button>
 
         <div class="selected-file" id="selectedFile">Ningún archivo seleccionado</div>
       </section>
@@ -482,19 +498,31 @@
     const scanBtn = document.getElementById('scanBtn');
     const message = document.getElementById('message');
     const results = document.getElementById('results');
+    const clearFile = document.getElementById('clearFile');
 
     inputArchivo.addEventListener('change', () => {
       const file = inputArchivo.files[0];
 
       if (!file) {
-        selectedFile.textContent = 'Ningún archivo seleccionado';
-        scanBtn.disabled = true;
+        limpiarArchivo();
         return;
       }
 
       selectedFile.textContent = file.name;
       scanBtn.disabled = false;
     });
+
+    clearFile.addEventListener('click', () => {
+      limpiarArchivo();
+    });
+
+    function limpiarArchivo() {
+      inputArchivo.value = '';
+      selectedFile.textContent = 'Ningún archivo seleccionado';
+      scanBtn.disabled = true;
+      results.style.display = 'none';
+      ocultarError();
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
