@@ -25,24 +25,34 @@ function vt_get($endpoint) {
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 25,
-        CURLOPT_HTTPHEADER => ['x-apikey: ' . $apiKey]
+        CURLOPT_HTTPHEADER => [
+            'x-apikey: ' . $apiKey
+        ]
     ]);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($httpCode === 404) return null;
+    if ($httpCode === 404) {
+        return null;
+    }
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        return ['error' => 'VirusTotal HTTP ' . $httpCode];
+        return [
+            'error' => 'VirusTotal HTTP ' . $httpCode
+        ];
     }
 
     return json_decode($response, true);
 }
 
 function fecha_vt($timestamp) {
-    return !empty($timestamp) ? date('Y-m-d H:i:s', $timestamp) : '';
+    if (empty($timestamp)) {
+        return '';
+    }
+
+    return date('Y-m-d H:i:s', $timestamp);
 }
 
 function extraer_categorias($attr) {
@@ -57,12 +67,81 @@ function extraer_categorias($attr) {
             }
         }
 
+        $categorias = array_values(array_unique($categorias));
+
         if ($categorias) {
             return implode(', ', array_slice($categorias, 0, 3));
         }
     }
 
     return $clasificacion['suggested_threat_label'] ?? '';
+}
+
+function es_hash_largo($valor) {
+    return preg_match('/^[a-fA-F0-9]{32,128}$/', $valor);
+}
+
+function valor_archivo_relacionado($item) {
+    $attr = $item['attributes'] ?? [];
+
+    if (!empty($attr['meaningful_name'])) {
+        return $attr['meaningful_name'];
+    }
+
+    if (!empty($attr['names']) && is_array($attr['names'])) {
+        foreach ($attr['names'] as $nombre) {
+            if (!empty($nombre) && !es_hash_largo($nombre)) {
+                return $nombre;
+            }
+        }
+    }
+
+    if (!empty($attr['type_description'])) {
+        return $attr['type_description'];
+    }
+
+    return $item['id'] ?? '';
+}
+
+function valor_relacion($item, $relacion) {
+    $id = $item['id'] ?? '';
+    $attr = $item['attributes'] ?? [];
+
+    if ($relacion === 'contacted_domains') {
+        return $id;
+    }
+
+    if ($relacion === 'contacted_ips') {
+        return $id;
+    }
+
+    if ($relacion === 'execution_parents' || $relacion === 'dropped_files') {
+        return valor_archivo_relacionado($item);
+    }
+
+    return $attr['meaningful_name'] ?? $id;
+}
+
+function relacion_valida($valor, $relacion) {
+    $valor = trim($valor);
+
+    if ($valor === '') {
+        return false;
+    }
+
+    if ($relacion === 'contacted_domains') {
+        if (filter_var($valor, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        return strpos($valor, '.') !== false && !es_hash_largo($valor);
+    }
+
+    if ($relacion === 'contacted_ips') {
+        return filter_var($valor, FILTER_VALIDATE_IP) !== false;
+    }
+
+    return true;
 }
 
 function consultar_relacion($sha256, $relacion, $limite = 10) {
@@ -73,25 +152,38 @@ function consultar_relacion($sha256, $relacion, $limite = 10) {
     }
 
     $items = [];
+    $vistos = [];
 
     foreach (($data['data'] ?? []) as $item) {
+        $valor = valor_relacion($item, $relacion);
+
+        if (!relacion_valida($valor, $relacion)) {
+            continue;
+        }
+
+        $clave = strtolower($valor);
+
+        if (isset($vistos[$clave])) {
+            continue;
+        }
+
+        $vistos[$clave] = true;
+
         $attr = $item['attributes'] ?? [];
-
-        $nombre = $attr['meaningful_name']
-            ?? $attr['last_final_url']
-            ?? $attr['jarm']
-            ?? $item['id']
-            ?? '';
-
         $stats = $attr['last_analysis_stats'] ?? [];
+
         $maliciosos = intval($stats['malicious'] ?? 0);
         $sospechosos = intval($stats['suspicious'] ?? 0);
 
         $items[] = [
-            'valor' => $nombre,
+            'valor' => $valor,
             'tipo' => $item['type'] ?? '',
             'detecciones' => $maliciosos + $sospechosos
         ];
+
+        if (count($items) >= 10) {
+            break;
+        }
     }
 
     return $items;
@@ -175,7 +267,11 @@ if ($vt && !isset($vt['error'])) {
 
     $motores = array_slice($motores, 0, 20);
     $categoria = extraer_categorias($attr);
-    $nombres = array_slice($attr['names'] ?? [], 0, 15);
+
+    if (!empty($attr['names']) && is_array($attr['names'])) {
+        $nombres = array_values(array_unique($attr['names']));
+        $nombres = array_slice($nombres, 0, 15);
+    }
 
     $primeraVezVisto = fecha_vt($attr['first_submission_date'] ?? null);
     $ultimoAnalisis = fecha_vt($attr['last_analysis_date'] ?? null);
@@ -198,10 +294,10 @@ $relaciones = [
 
 if ($vt && !isset($vt['error'])) {
     $relaciones = [
-        'dominios_contactados' => consultar_relacion($sha256, 'contacted_domains'),
-        'ips_contactadas' => consultar_relacion($sha256, 'contacted_ips'),
-        'archivos_relacionados' => consultar_relacion($sha256, 'execution_parents'),
-        'archivos_soltados' => consultar_relacion($sha256, 'dropped_files')
+        'dominios_contactados' => consultar_relacion($sha256, 'contacted_domains', 30),
+        'ips_contactadas' => consultar_relacion($sha256, 'contacted_ips', 30),
+        'archivos_relacionados' => consultar_relacion($sha256, 'execution_parents', 30),
+        'archivos_soltados' => consultar_relacion($sha256, 'dropped_files', 30)
     ];
 }
 
