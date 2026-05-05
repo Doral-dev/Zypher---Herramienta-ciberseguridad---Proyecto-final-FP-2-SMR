@@ -25,26 +25,76 @@ function vt_get($endpoint) {
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 25,
-        CURLOPT_HTTPHEADER => [
-            'x-apikey: ' . $apiKey
-        ]
+        CURLOPT_HTTPHEADER => ['x-apikey: ' . $apiKey]
     ]);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($httpCode === 404) {
-        return null;
-    }
+    if ($httpCode === 404) return null;
 
     if ($httpCode < 200 || $httpCode >= 300) {
-        return [
-            'error' => 'VirusTotal HTTP ' . $httpCode
-        ];
+        return ['error' => 'VirusTotal HTTP ' . $httpCode];
     }
 
     return json_decode($response, true);
+}
+
+function fecha_vt($timestamp) {
+    return !empty($timestamp) ? date('Y-m-d H:i:s', $timestamp) : '';
+}
+
+function extraer_categorias($attr) {
+    $clasificacion = $attr['popular_threat_classification'] ?? [];
+
+    if (!empty($clasificacion['popular_threat_category'])) {
+        $categorias = [];
+
+        foreach ($clasificacion['popular_threat_category'] as $item) {
+            if (!empty($item['value'])) {
+                $categorias[] = $item['value'];
+            }
+        }
+
+        if ($categorias) {
+            return implode(', ', array_slice($categorias, 0, 3));
+        }
+    }
+
+    return $clasificacion['suggested_threat_label'] ?? '';
+}
+
+function consultar_relacion($sha256, $relacion, $limite = 10) {
+    $data = vt_get('/files/' . $sha256 . '/' . $relacion . '?limit=' . $limite);
+
+    if (!$data || isset($data['error'])) {
+        return [];
+    }
+
+    $items = [];
+
+    foreach (($data['data'] ?? []) as $item) {
+        $attr = $item['attributes'] ?? [];
+
+        $nombre = $attr['meaningful_name']
+            ?? $attr['last_final_url']
+            ?? $attr['jarm']
+            ?? $item['id']
+            ?? '';
+
+        $stats = $attr['last_analysis_stats'] ?? [];
+        $maliciosos = intval($stats['malicious'] ?? 0);
+        $sospechosos = intval($stats['suspicious'] ?? 0);
+
+        $items[] = [
+            'valor' => $nombre,
+            'tipo' => $item['type'] ?? '',
+            'detecciones' => $maliciosos + $sospechosos
+        ];
+    }
+
+    return $items;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -83,6 +133,7 @@ $detecciones = '0/0';
 $etiquetaAmenaza = '';
 $categoria = '';
 $motores = [];
+$nombres = [];
 $primeraVezVisto = '';
 $ultimoAnalisis = '';
 
@@ -122,18 +173,12 @@ if ($vt && !isset($vt['error'])) {
         }
     }
 
-    $motores = array_slice($motores, 0, 10);
+    $motores = array_slice($motores, 0, 20);
+    $categoria = extraer_categorias($attr);
+    $nombres = array_slice($attr['names'] ?? [], 0, 15);
 
-    $clasificacion = $attr['popular_threat_classification']['suggested_threat_label'] ?? '';
-    $categoria = $clasificacion ?: '';
-
-    if (!empty($attr['first_submission_date'])) {
-        $primeraVezVisto = date('Y-m-d H:i:s', $attr['first_submission_date']);
-    }
-
-    if (!empty($attr['last_analysis_date'])) {
-        $ultimoAnalisis = date('Y-m-d H:i:s', $attr['last_analysis_date']);
-    }
+    $primeraVezVisto = fecha_vt($attr['first_submission_date'] ?? null);
+    $ultimoAnalisis = fecha_vt($attr['last_analysis_date'] ?? null);
 }
 
 $accion = 'Permitir';
@@ -142,6 +187,22 @@ if ($estado === 'Peligroso') {
     $accion = 'Cuarentena';
 } elseif ($estado === 'Sospechoso') {
     $accion = 'Revisar';
+}
+
+$relaciones = [
+    'dominios_contactados' => [],
+    'ips_contactadas' => [],
+    'archivos_relacionados' => [],
+    'archivos_soltados' => []
+];
+
+if ($vt && !isset($vt['error'])) {
+    $relaciones = [
+        'dominios_contactados' => consultar_relacion($sha256, 'contacted_domains'),
+        'ips_contactadas' => consultar_relacion($sha256, 'contacted_ips'),
+        'archivos_relacionados' => consultar_relacion($sha256, 'execution_parents'),
+        'archivos_soltados' => consultar_relacion($sha256, 'dropped_files')
+    ];
 }
 
 $resultado = [
@@ -163,14 +224,10 @@ $resultado = [
         'sha256' => $sha256,
         'primera_vez_visto' => $primeraVezVisto,
         'ultimo_analisis' => $ultimoAnalisis,
-        'fecha_escaneo_zypher' => date('Y-m-d H:i:s')
+        'fecha_escaneo_zypher' => date('Y-m-d H:i:s'),
+        'mas_nombres_archivo' => $nombres
     ],
-    'relaciones' => [
-        'dominios_contactados' => [],
-        'ips_contactadas' => [],
-        'archivos_relacionados' => [],
-        'archivos_soltados' => []
-    ]
+    'relaciones' => $relaciones
 ];
 
 responder(true, ['resultado' => $resultado]);
