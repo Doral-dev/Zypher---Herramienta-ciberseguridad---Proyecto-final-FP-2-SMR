@@ -384,10 +384,6 @@
       padding: 20px;
     }
 
-    .history h3 {
-      margin: 0 0 15px;
-    }
-
     .history-table {
       table-layout: auto;
     }
@@ -405,6 +401,72 @@
       text-overflow: ellipsis;
     }
 
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      z-index: 9999;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(1050px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #081629;
+      border: 1px solid #2f7dff;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 0 45px rgba(47, 125, 255, 0.28);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .modal-close {
+      background: #33151a;
+      border: 1px solid #ff5f68;
+      color: #fff;
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+    }
+
+    .modal-section {
+      background: #0b1b31;
+      border: 1px solid #233a5c;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .modal-section h3 {
+      margin: 0 0 14px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
     @media (max-width: 800px) {
       h1 { font-size: 28px; }
 
@@ -419,7 +481,8 @@
         align-items: flex-start;
       }
 
-      .grid {
+      .grid,
+      .modal-grid {
         grid-template-columns: 1fr;
       }
 
@@ -441,6 +504,10 @@
       .history-table {
         display: block;
         overflow-x: auto;
+      }
+
+      .modal-box {
+        padding: 16px;
       }
     }
   </style>
@@ -589,6 +656,19 @@
         </section>
       </div>
     </section>
+
+    <div class="modal-overlay" id="detalleModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>Detalle del escaneo</h2>
+          <button class="modal-close" type="button" id="cerrarModal">Cerrar</button>
+        </div>
+
+        <div id="detalleModalContenido">
+          <div class="empty">Cargando detalle...</div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
@@ -599,6 +679,9 @@
     const message = document.getElementById('message');
     const results = document.getElementById('results');
     const clearFile = document.getElementById('clearFile');
+    const detalleModal = document.getElementById('detalleModal');
+    const cerrarModal = document.getElementById('cerrarModal');
+    const detalleModalContenido = document.getElementById('detalleModalContenido');
 
     document.addEventListener('DOMContentLoaded', cargarHistorial);
 
@@ -615,6 +698,20 @@
     });
 
     clearFile.addEventListener('click', limpiarArchivo);
+
+    cerrarModal.addEventListener('click', cerrarDetalleModal);
+
+    detalleModal.addEventListener('click', (e) => {
+      if (e.target === detalleModal) {
+        cerrarDetalleModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        cerrarDetalleModal();
+      }
+    });
 
     function limpiarArchivo() {
       inputArchivo.value = '';
@@ -709,7 +806,7 @@
               <td class="hash-short">${escapar(acortarHash(item.sha256 || '-'))}</td>
               <td>${escapar(item.accion || '-')}</td>
               <td>
-                <button class="btn btn-small" onclick="verDetalle(${Number(item.id)})">
+                <button class="btn btn-small" onclick="verDetalleModal(${Number(item.id)})">
                   Ver detalle
                 </button>
               </td>
@@ -722,24 +819,134 @@
       }
     }
 
-    async function verDetalle(id) {
+    async function verDetalleModal(id) {
+      detalleModalContenido.innerHTML = '<div class="empty">Cargando detalle...</div>';
+      detalleModal.classList.add('active');
+
       try {
         const response = await fetch('guardar_escaneo.php?accion=detalle&id=' + encodeURIComponent(id));
         const data = await response.json();
 
         if (!data.ok) {
-          mostrarError(data.error || 'No se pudo cargar el detalle');
+          detalleModalContenido.innerHTML = '<div class="empty">No se pudo cargar el detalle</div>';
           return;
         }
 
-        pintarResultado(data.resultado);
-        results.style.display = 'block';
-        activarTab('deteccion');
-        window.scrollTo({ top: results.offsetTop - 20, behavior: 'smooth' });
+        pintarDetalleModal(data.resultado);
 
       } catch (error) {
-        mostrarError('Error cargando el detalle');
+        detalleModalContenido.innerHTML = '<div class="empty">Error cargando el detalle</div>';
       }
+    }
+
+    function cerrarDetalleModal() {
+      detalleModal.classList.remove('active');
+    }
+
+    function pintarDetalleModal(resultado) {
+      const d = resultado.deteccion || {};
+      const info = resultado.detalles || {};
+      const r = resultado.relaciones || {};
+      const masNombres = Array.isArray(info.mas_nombres_archivo)
+        ? info.mas_nombres_archivo.join(', ')
+        : '';
+
+      detalleModalContenido.innerHTML = `
+        <div class="modal-section">
+          <h3>Resultado</h3>
+          <table>
+            <tbody>
+              <tr><th>Archivo</th><td>${escapar(info.nombre || '-')}</td></tr>
+              <tr><th>Estado</th><td class="${claseValorEstado(d.estado_general || '')}">${escapar(d.estado_general || '-')}</td></tr>
+              <tr><th>Detecciones</th><td>${escapar(d.detecciones || '-')}</td></tr>
+              <tr><th>Etiqueta</th><td>${escapar(d.etiqueta_amenaza || '-')}</td></tr>
+              <tr><th>Categoría</th><td>${escapar(d.categoria || '-')}</td></tr>
+              <tr><th>Acción</th><td>${escapar(d.accion_recomendada || '-')}</td></tr>
+              <tr><th>Origen</th><td>${escapar(d.origen_resultado || '-')}</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-section">
+          <h3>Detalles técnicos</h3>
+          <table>
+            <tbody>
+              <tr><th>Nombre</th><td>${escapar(info.nombre || '-')}</td></tr>
+              <tr><th>Más nombres</th><td>${escapar(masNombres || '-')}</td></tr>
+              <tr><th>Tamaño</th><td>${escapar(info.tamano || '-')}</td></tr>
+              <tr><th>Tipo</th><td>${escapar(info.tipo || '-')}</td></tr>
+              <tr><th>MD5</th><td>${escapar(info.md5 || '-')}</td></tr>
+              <tr><th>SHA1</th><td>${escapar(info.sha1 || '-')}</td></tr>
+              <tr><th>SHA256</th><td>${escapar(info.sha256 || '-')}</td></tr>
+              <tr><th>Primera vez visto</th><td>${escapar(info.primera_vez_visto || '-')}</td></tr>
+              <tr><th>Último análisis</th><td>${escapar(info.ultimo_analisis || '-')}</td></tr>
+              <tr><th>Escaneo Zypher</th><td>${escapar(info.fecha_escaneo_zypher || '-')}</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-section">
+          <h3>Motores que lo detectan</h3>
+          ${pintarMotoresModal(d.motores_que_detectan || [])}
+        </div>
+
+        <div class="modal-grid">
+          <div class="modal-section">
+            <h3>Dominios contactados</h3>
+            ${pintarListaModal(r.dominios_contactados || [])}
+          </div>
+
+          <div class="modal-section">
+            <h3>IPs contactadas</h3>
+            ${pintarListaModal(r.ips_contactadas || [])}
+          </div>
+
+          <div class="modal-section">
+            <h3>Archivos relacionados</h3>
+            ${pintarListaModal(r.archivos_relacionados || [])}
+          </div>
+
+          <div class="modal-section">
+            <h3>Archivos soltados</h3>
+            ${pintarListaModal(r.archivos_soltados || [])}
+          </div>
+        </div>
+      `;
+    }
+
+    function pintarMotoresModal(motores) {
+      if (!motores.length) {
+        return '<div class="empty">No hay motores con detección</div>';
+      }
+
+      return `
+        <div class="motor-list">
+          ${motores.map(item => `
+            <span class="motor-badge" title="${escapar(item.deteccion || '')}">
+              ${escapar(item.motor || '-')}
+            </span>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function pintarListaModal(items) {
+      if (!items.length) {
+        return '<div class="empty">Sin datos</div>';
+      }
+
+      return `
+        <table class="rel-table">
+          <tbody>
+            ${items.map(item => `
+              <tr>
+                <th>${escapar(item.valor || '-')}</th>
+                <td>${escapar(String(item.detecciones ?? 0))} alertas</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     }
 
     function pintarResultado(resultado) {
