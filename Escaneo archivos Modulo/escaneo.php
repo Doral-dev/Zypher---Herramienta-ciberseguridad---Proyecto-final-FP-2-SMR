@@ -55,17 +55,9 @@
       box-shadow: 0 0 35px rgba(0, 0, 0, 0.18);
     }
 
-    .upload-wrapper {
-      border-color: #255b9f;
-    }
-
-    .result-wrapper {
-      border-color: #2d4161;
-    }
-
-    .history-wrapper {
-      border-color: #263b5e;
-    }
+    .upload-wrapper { border-color: #255b9f; }
+    .result-wrapper { border-color: #2d4161; }
+    .history-wrapper { border-color: #263b5e; }
 
     .upload-box {
       border: 2px dashed #2f7dff;
@@ -154,9 +146,7 @@
       border: 1px solid #ff5f68;
     }
 
-    .results {
-      display: none;
-    }
+    .results { display: none; }
 
     .summary {
       display: flex;
@@ -239,7 +229,8 @@
       flex-wrap: wrap;
     }
 
-    .tabs {
+    .tabs,
+    .modal-tabs {
       display: flex;
       justify-content: center;
       background: #0b1b31;
@@ -249,20 +240,23 @@
       margin-top: 10px;
     }
 
-    .tab {
+    .tab,
+    .modal-tab {
       padding: 16px 28px;
       color: #91a4c4;
       border-bottom: 3px solid transparent;
       cursor: pointer;
     }
 
-    .tab.active {
+    .tab.active,
+    .modal-tab.active {
       color: #fff;
       border-bottom-color: #2f7dff;
       background: #102744;
     }
 
-    .content {
+    .content,
+    .modal-content {
       background: #0b1b31;
       border: 1px solid #233a5c;
       border-top: 0;
@@ -270,8 +264,15 @@
       padding: 25px;
     }
 
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel,
+    .modal-tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active,
+    .modal-tab-panel.active {
+      display: block;
+    }
 
     .grid {
       display: grid;
@@ -377,6 +378,36 @@
       color: #eaf0ff;
     }
 
+    .history-toggle {
+      width: 100%;
+      background: #0b1b31;
+      border: 1px solid #2f7dff;
+      color: #fff;
+      padding: 16px 18px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 17px;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .history-toggle span {
+      color: #91a4c4;
+      font-size: 14px;
+    }
+
+    .history-content {
+      display: none;
+      margin-top: 18px;
+    }
+
+    .history-content.active {
+      display: block;
+    }
+
     .history {
       background: #0b1b31;
       border: 1px solid #233a5c;
@@ -450,7 +481,7 @@
     }
 
     .modal-section {
-      background: #0b1b31;
+      background: #081629;
       border: 1px solid #233a5c;
       border-radius: 16px;
       padding: 20px;
@@ -459,12 +490,6 @@
 
     .modal-section h3 {
       margin: 0 0 14px;
-    }
-
-    .modal-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
     }
 
     @media (max-width: 800px) {
@@ -481,12 +506,12 @@
         align-items: flex-start;
       }
 
-      .grid,
-      .modal-grid {
+      .grid {
         grid-template-columns: 1fr;
       }
 
-      .tabs {
+      .tabs,
+      .modal-tabs {
         overflow-x: auto;
         justify-content: flex-start;
       }
@@ -636,24 +661,31 @@
       <p class="section-subtitle">Consultamos los últimos archivos analizados guardados en la base de datos.</p>
 
       <div class="history-wrapper">
-        <section class="history">
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Archivo</th>
-                <th>Estado</th>
-                <th>Detecciones</th>
-                <th>SHA256</th>
-                <th>Acción</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="tablaHistorial">
-              <tr><td colspan="7" class="empty">Cargando historial...</td></tr>
-            </tbody>
-          </table>
-        </section>
+        <button class="history-toggle" type="button" id="historyToggle">
+          Ver historial de escaneos
+          <span id="historyToggleIcon">▼</span>
+        </button>
+
+        <div class="history-content" id="historyContent">
+          <section class="history">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Archivo</th>
+                  <th>Estado</th>
+                  <th>Detecciones</th>
+                  <th>SHA256</th>
+                  <th>Acción</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tablaHistorial">
+                <tr><td colspan="7" class="empty">Cargando historial...</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -664,9 +696,25 @@
           <button class="modal-close" type="button" id="cerrarModal">Cerrar</button>
         </div>
 
-        <div id="detalleModalContenido">
-          <div class="empty">Cargando detalle...</div>
-        </div>
+        <nav class="modal-tabs">
+          <div class="modal-tab active" data-modal-tab="deteccion">Detección</div>
+          <div class="modal-tab" data-modal-tab="detalles">Detalles</div>
+          <div class="modal-tab" data-modal-tab="relaciones">Relaciones</div>
+        </nav>
+
+        <section class="modal-content">
+          <div class="modal-tab-panel active" id="modal-deteccion">
+            <div class="empty">Cargando detección...</div>
+          </div>
+
+          <div class="modal-tab-panel" id="modal-detalles">
+            <div class="empty">Cargando detalles...</div>
+          </div>
+
+          <div class="modal-tab-panel" id="modal-relaciones">
+            <div class="empty">Cargando relaciones...</div>
+          </div>
+        </section>
       </div>
     </div>
   </main>
@@ -679,9 +727,13 @@
     const message = document.getElementById('message');
     const results = document.getElementById('results');
     const clearFile = document.getElementById('clearFile');
+
     const detalleModal = document.getElementById('detalleModal');
     const cerrarModal = document.getElementById('cerrarModal');
-    const detalleModalContenido = document.getElementById('detalleModalContenido');
+
+    const historyToggle = document.getElementById('historyToggle');
+    const historyContent = document.getElementById('historyContent');
+    const historyToggleIcon = document.getElementById('historyToggleIcon');
 
     document.addEventListener('DOMContentLoaded', cargarHistorial);
 
@@ -699,6 +751,11 @@
 
     clearFile.addEventListener('click', limpiarArchivo);
 
+    historyToggle.addEventListener('click', () => {
+      historyContent.classList.toggle('active');
+      historyToggleIcon.textContent = historyContent.classList.contains('active') ? '▲' : '▼';
+    });
+
     cerrarModal.addEventListener('click', cerrarDetalleModal);
 
     detalleModal.addEventListener('click', (e) => {
@@ -711,6 +768,18 @@
       if (e.key === 'Escape') {
         cerrarDetalleModal();
       }
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activarTab(tab.dataset.tab);
+      });
+    });
+
+    document.querySelectorAll('.modal-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activarModalTab(tab.dataset.modalTab);
+      });
     });
 
     function limpiarArchivo() {
@@ -761,18 +830,20 @@
       }
     });
 
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        activarTab(tab.dataset.tab);
-      });
-    });
-
     function activarTab(nombre) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
 
       document.querySelector(`.tab[data-tab="${nombre}"]`).classList.add('active');
       document.getElementById('tab-' + nombre).classList.add('active');
+    }
+
+    function activarModalTab(nombre) {
+      document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+
+      document.querySelector(`.modal-tab[data-modal-tab="${nombre}"]`).classList.add('active');
+      document.getElementById('modal-' + nombre).classList.add('active');
     }
 
     async function cargarHistorial() {
@@ -820,27 +891,34 @@
     }
 
     async function verDetalleModal(id) {
-      detalleModalContenido.innerHTML = '<div class="empty">Cargando detalle...</div>';
+      limpiarModal();
       detalleModal.classList.add('active');
+      activarModalTab('deteccion');
 
       try {
         const response = await fetch('guardar_escaneo.php?accion=detalle&id=' + encodeURIComponent(id));
         const data = await response.json();
 
         if (!data.ok) {
-          detalleModalContenido.innerHTML = '<div class="empty">No se pudo cargar el detalle</div>';
+          document.getElementById('modal-deteccion').innerHTML = '<div class="empty">No se pudo cargar el detalle</div>';
           return;
         }
 
         pintarDetalleModal(data.resultado);
 
       } catch (error) {
-        detalleModalContenido.innerHTML = '<div class="empty">Error cargando el detalle</div>';
+        document.getElementById('modal-deteccion').innerHTML = '<div class="empty">Error cargando el detalle</div>';
       }
     }
 
     function cerrarDetalleModal() {
       detalleModal.classList.remove('active');
+    }
+
+    function limpiarModal() {
+      document.getElementById('modal-deteccion').innerHTML = '<div class="empty">Cargando detección...</div>';
+      document.getElementById('modal-detalles').innerHTML = '<div class="empty">Cargando detalles...</div>';
+      document.getElementById('modal-relaciones').innerHTML = '<div class="empty">Cargando relaciones...</div>';
     }
 
     function pintarDetalleModal(resultado) {
@@ -851,24 +929,33 @@
         ? info.mas_nombres_archivo.join(', ')
         : '';
 
-      detalleModalContenido.innerHTML = `
-        <div class="modal-section">
-          <h3>Resultado</h3>
-          <table>
-            <tbody>
-              <tr><th>Archivo</th><td>${escapar(info.nombre || '-')}</td></tr>
-              <tr><th>Estado</th><td class="${claseValorEstado(d.estado_general || '')}">${escapar(d.estado_general || '-')}</td></tr>
-              <tr><th>Detecciones</th><td>${escapar(d.detecciones || '-')}</td></tr>
-              <tr><th>Etiqueta</th><td>${escapar(d.etiqueta_amenaza || '-')}</td></tr>
-              <tr><th>Categoría</th><td>${escapar(d.categoria || '-')}</td></tr>
-              <tr><th>Acción</th><td>${escapar(d.accion_recomendada || '-')}</td></tr>
-              <tr><th>Origen</th><td>${escapar(d.origen_resultado || '-')}</td></tr>
-            </tbody>
-          </table>
-        </div>
+      document.getElementById('modal-deteccion').innerHTML = `
+        <div class="grid">
+          <div class="panel">
+            <h3>Detección</h3>
+            <table>
+              <tbody>
+                <tr><th>Archivo</th><td>${escapar(info.nombre || '-')}</td></tr>
+                <tr><th>Estado</th><td class="${claseValorEstado(d.estado_general || '')}">${escapar(d.estado_general || '-')}</td></tr>
+                <tr><th>Detecciones</th><td>${escapar(d.detecciones || '-')}</td></tr>
+                <tr><th>Etiqueta</th><td>${escapar(d.etiqueta_amenaza || '-')}</td></tr>
+                <tr><th>Categoría</th><td>${escapar(d.categoria || '-')}</td></tr>
+                <tr><th>Acción</th><td>${escapar(d.accion_recomendada || '-')}</td></tr>
+                <tr><th>Origen</th><td>${escapar(d.origen_resultado || '-')}</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-        <div class="modal-section">
-          <h3>Detalles técnicos</h3>
+          <div class="panel">
+            <h3>Motores que lo detectan</h3>
+            ${pintarMotoresModal(d.motores_que_detectan || [])}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modal-detalles').innerHTML = `
+        <div class="panel">
+          <h3>Detalles</h3>
           <table>
             <tbody>
               <tr><th>Nombre</th><td>${escapar(info.nombre || '-')}</td></tr>
@@ -884,29 +971,26 @@
             </tbody>
           </table>
         </div>
+      `;
 
-        <div class="modal-section">
-          <h3>Motores que lo detectan</h3>
-          ${pintarMotoresModal(d.motores_que_detectan || [])}
-        </div>
-
-        <div class="modal-grid">
-          <div class="modal-section">
+      document.getElementById('modal-relaciones').innerHTML = `
+        <div class="grid">
+          <div class="panel">
             <h3>Dominios contactados</h3>
             ${pintarListaModal(r.dominios_contactados || [])}
           </div>
 
-          <div class="modal-section">
+          <div class="panel">
             <h3>IPs contactadas</h3>
             ${pintarListaModal(r.ips_contactadas || [])}
           </div>
 
-          <div class="modal-section">
+          <div class="panel">
             <h3>Archivos relacionados</h3>
             ${pintarListaModal(r.archivos_relacionados || [])}
           </div>
 
-          <div class="modal-section">
+          <div class="panel">
             <h3>Archivos soltados</h3>
             ${pintarListaModal(r.archivos_soltados || [])}
           </div>
