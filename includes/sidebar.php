@@ -5,7 +5,8 @@
         <button type="button" class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</button>
         <div class="submenu">
             <a href="/Escaneo Vulnerabilidades Modulo/detector_vulnerabilidades.php">Análisis de vulnerabilidades</a>
-            <a href="/CIS módulo/cis.php">Aplicación de políticas CIS</a>
+            <a href="/CIS módulo/cis.php">CIS Benchmark</a>
+            <a href="/CIS módulo/politicas_seguridad">Políticas de seguridad</a>
         </div>
     </div>
 
@@ -23,22 +24,15 @@
         <button type="button" class="menu-title" onclick="toggleMenu(this)">💾 Continuidad</button>
         <div class="submenu">
             <a href="/copias.php">Copias de seguridad</a>
-        </div>
-    </div>
-
-    <div class="menu-category">
-        <button type="button" class="menu-title" onclick="toggleMenu(this)">📋 Revisión</button>
-        <div class="submenu">
-            <a href="/recordatorios.php">Recordatorio y guía de revisión</a>
-            <a href="/guia.php">Guía de uso de Zypher</a>
-        </div>
-    </div>
-
-    <div class="menu-category">
-        <button type="button" class="menu-title" onclick="toggleMenu(this)">📊 Informes</button>
-        <div class="submenu">
-            <a href="/informes.php">Generación de informes</a>
             <a href="/acceso-remoto.php">Acceso remoto desde la nube</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">📊 Documentación e informes</button>
+        <div class="submenu">
+            <a href="/guia.php">Guía Zypher</a>
+            <a href="/informes.php">Informes</a>
         </div>
     </div>
 </aside>
