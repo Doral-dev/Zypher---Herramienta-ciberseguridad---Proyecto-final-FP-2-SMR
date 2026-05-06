@@ -21,12 +21,50 @@
     .page {
       max-width: 1150px;
       margin: 0 auto;
-      padding: 35px 20px;
+      padding: 35px 20px 60px;
     }
 
     h1 {
-      margin: 0 0 25px;
+      margin: 0 0 30px;
       font-size: 34px;
+    }
+
+    .section-block {
+      margin-bottom: 42px;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 22px;
+      color: #ffffff;
+    }
+
+    .section-subtitle {
+      margin: -6px 0 18px;
+      color: #91a4c4;
+      font-size: 14px;
+    }
+
+    .upload-wrapper,
+    .result-wrapper,
+    .history-wrapper {
+      background: #081629;
+      border: 1px solid #233a5c;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.18);
+    }
+
+    .upload-wrapper {
+      border-color: #255b9f;
+    }
+
+    .result-wrapper {
+      border-color: #2d4161;
+    }
+
+    .history-wrapper {
+      border-color: #263b5e;
     }
 
     .upload-box {
@@ -97,7 +135,7 @@
 
     .scan-action {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 0;
     }
 
     .selected-file {
@@ -108,7 +146,7 @@
 
     .message {
       display: none;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
       padding: 14px 18px;
       border-radius: 12px;
       background: #33151a;
@@ -116,7 +154,9 @@
       border: 1px solid #ff5f68;
     }
 
-    .results { display: none; }
+    .results {
+      display: none;
+    }
 
     .summary {
       display: flex;
@@ -126,7 +166,7 @@
       border: 1px solid #233a5c;
       border-radius: 18px;
       padding: 25px;
-      margin-bottom: 25px;
+      margin-bottom: 24px;
     }
 
     .score {
@@ -206,6 +246,7 @@
       border: 1px solid #233a5c;
       border-radius: 18px 18px 0 0;
       overflow: hidden;
+      margin-top: 10px;
     }
 
     .tab {
@@ -227,7 +268,6 @@
       border-top: 0;
       border-radius: 0 0 18px 18px;
       padding: 25px;
-      margin-bottom: 25px;
     }
 
     .tab-panel { display: none; }
@@ -342,7 +382,6 @@
       border: 1px solid #233a5c;
       border-radius: 18px;
       padding: 20px;
-      margin-top: 25px;
     }
 
     .history h3 {
@@ -355,7 +394,7 @@
 
     .history-table th,
     .history-table td {
-      padding: 9px 8px;
+      padding: 12px 8px;
       font-size: 14px;
       white-space: nowrap;
     }
@@ -368,6 +407,12 @@
 
     @media (max-width: 800px) {
       h1 { font-size: 28px; }
+
+      .upload-wrapper,
+      .result-wrapper,
+      .history-wrapper {
+        padding: 16px;
+      }
 
       .summary {
         flex-direction: column;
@@ -405,126 +450,144 @@
   <main class="page">
     <h1>Módulo de escaneo de archivos</h1>
 
-    <form id="scanForm" enctype="multipart/form-data">
-      <section class="upload-box">
-        <div class="upload-icon">⬆️</div>
-        <h2>Arrastra tu archivo aquí</h2>
-        <p>Suelta el archivo para analizarlo</p>
+    <section class="section-block">
+      <h2 class="section-title">Subida de archivo</h2>
+      <p class="section-subtitle">Seleccionamos un archivo y lo analizamos con VirusTotal.</p>
 
-        <label class="btn btn-secondary" for="archivo">Seleccionar archivo</label>
-        <input type="file" name="archivo" id="archivo">
+      <div class="upload-wrapper">
+        <form id="scanForm" enctype="multipart/form-data">
+          <section class="upload-box">
+            <div class="upload-icon">⬆️</div>
+            <h2>Arrastra tu archivo aquí</h2>
+            <p>Suelta el archivo para analizarlo</p>
 
-        <button type="button" class="btn btn-clear" id="clearFile">Quitar archivo</button>
+            <label class="btn btn-secondary" for="archivo">Seleccionar archivo</label>
+            <input type="file" name="archivo" id="archivo">
 
-        <div class="selected-file" id="selectedFile">Ningún archivo seleccionado</div>
-      </section>
+            <button type="button" class="btn btn-clear" id="clearFile">Quitar archivo</button>
 
-      <div class="scan-action">
-        <button class="btn btn-primary" id="scanBtn" type="submit" disabled>
-          Escanear archivo
-        </button>
+            <div class="selected-file" id="selectedFile">Ningún archivo seleccionado</div>
+          </section>
+
+          <div class="scan-action">
+            <button class="btn btn-primary" id="scanBtn" type="submit" disabled>
+              Escanear archivo
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </section>
 
     <div class="message" id="message"></div>
 
-    <section class="results" id="results">
-      <section class="summary">
-        <div class="score">
-          <strong id="scoreMain">-</strong>
-          <span id="scoreTotal">/ -</span>
-        </div>
+    <section class="section-block results" id="results">
+      <h2 class="section-title">Resultado del escaneo</h2>
+      <p class="section-subtitle">Mostramos el estado, detecciones, detalles técnicos y relaciones del archivo.</p>
 
-        <div class="file-info">
-          <div class="status no-encontrado" id="estadoGeneral">Sin analizar</div>
-          <h2 id="nombreArchivo">-</h2>
-          <div class="hash" id="sha256">-</div>
-        </div>
-
-        <div class="meta">
-          <div>
-            <strong id="tamanoArchivo">-</strong><br>
-            Tamaño
+      <div class="result-wrapper">
+        <section class="summary">
+          <div class="score">
+            <strong id="scoreMain">-</strong>
+            <span id="scoreTotal">/ -</span>
           </div>
-          <div>
-            <strong id="ultimoAnalisis">-</strong><br>
-            Último análisis
+
+          <div class="file-info">
+            <div class="status no-encontrado" id="estadoGeneral">Sin analizar</div>
+            <h2 id="nombreArchivo">-</h2>
+            <div class="hash" id="sha256">-</div>
           </div>
-        </div>
-      </section>
 
-      <nav class="tabs">
-        <div class="tab active" data-tab="deteccion">Detección</div>
-        <div class="tab" data-tab="detalles">Detalles</div>
-        <div class="tab" data-tab="relaciones">Relaciones</div>
-      </nav>
-
-      <section class="content">
-        <div class="tab-panel active" id="tab-deteccion">
-          <div class="grid">
-            <div class="panel">
-              <h3>Resultado del análisis</h3>
-              <table><tbody id="tablaDeteccion"></tbody></table>
+          <div class="meta">
+            <div>
+              <strong id="tamanoArchivo">-</strong><br>
+              Tamaño
             </div>
-
-            <div class="panel">
-              <h3>Motores que lo detectan</h3>
-              <div id="tablaMotores"></div>
+            <div>
+              <strong id="ultimoAnalisis">-</strong><br>
+              Último análisis
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="tab-panel" id="tab-detalles">
-          <div class="panel">
-            <h3>Detalles del archivo</h3>
-            <table><tbody id="tablaDetalles"></tbody></table>
-          </div>
-        </div>
+        <nav class="tabs">
+          <div class="tab active" data-tab="deteccion">Detección</div>
+          <div class="tab" data-tab="detalles">Detalles</div>
+          <div class="tab" data-tab="relaciones">Relaciones</div>
+        </nav>
 
-        <div class="tab-panel" id="tab-relaciones">
-          <div class="grid">
-            <div class="panel">
-              <h3>Dominios contactados</h3>
-              <table class="rel-table"><tbody id="tablaDominios"></tbody></table>
-            </div>
+        <section class="content">
+          <div class="tab-panel active" id="tab-deteccion">
+            <div class="grid">
+              <div class="panel">
+                <h3>Resultado del análisis</h3>
+                <table><tbody id="tablaDeteccion"></tbody></table>
+              </div>
 
-            <div class="panel">
-              <h3>IPs contactadas</h3>
-              <table class="rel-table"><tbody id="tablaIps"></tbody></table>
-            </div>
-
-            <div class="panel">
-              <h3>Archivos relacionados</h3>
-              <table class="rel-table"><tbody id="tablaRelacionados"></tbody></table>
-            </div>
-
-            <div class="panel">
-              <h3>Archivos soltados</h3>
-              <table class="rel-table"><tbody id="tablaSoltados"></tbody></table>
+              <div class="panel">
+                <h3>Motores que lo detectan</h3>
+                <div id="tablaMotores"></div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+
+          <div class="tab-panel" id="tab-detalles">
+            <div class="panel">
+              <h3>Detalles del archivo</h3>
+              <table><tbody id="tablaDetalles"></tbody></table>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="tab-relaciones">
+            <div class="grid">
+              <div class="panel">
+                <h3>Dominios contactados</h3>
+                <table class="rel-table"><tbody id="tablaDominios"></tbody></table>
+              </div>
+
+              <div class="panel">
+                <h3>IPs contactadas</h3>
+                <table class="rel-table"><tbody id="tablaIps"></tbody></table>
+              </div>
+
+              <div class="panel">
+                <h3>Archivos relacionados</h3>
+                <table class="rel-table"><tbody id="tablaRelacionados"></tbody></table>
+              </div>
+
+              <div class="panel">
+                <h3>Archivos soltados</h3>
+                <table class="rel-table"><tbody id="tablaSoltados"></tbody></table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </section>
 
-    <section class="history">
-      <h3>Historial de escaneos</h3>
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Archivo</th>
-            <th>Estado</th>
-            <th>Detecciones</th>
-            <th>SHA256</th>
-            <th>Acción</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tablaHistorial">
-          <tr><td colspan="7" class="empty">Cargando historial...</td></tr>
-        </tbody>
-      </table>
+    <section class="section-block">
+      <h2 class="section-title">Historial de escaneos</h2>
+      <p class="section-subtitle">Consultamos los últimos archivos analizados guardados en la base de datos.</p>
+
+      <div class="history-wrapper">
+        <section class="history">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Archivo</th>
+                <th>Estado</th>
+                <th>Detecciones</th>
+                <th>SHA256</th>
+                <th>Acción</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tablaHistorial">
+              <tr><td colspan="7" class="empty">Cargando historial...</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
     </section>
   </main>
 
