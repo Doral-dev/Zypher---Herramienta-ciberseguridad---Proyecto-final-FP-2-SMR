@@ -72,7 +72,11 @@ try {
         WHERE po.id = :orden_id
         FOR UPDATE
     ");
-    $stmt->execute([':orden_id' => $orden_id]);
+
+    $stmt->execute([
+        ':orden_id' => $orden_id
+    ]);
+
     $orden = $stmt->fetch();
 
     if (!$orden) {
@@ -81,7 +85,7 @@ try {
         responder(false, ['error' => 'Orden no encontrada']);
     }
 
-    $upd = $pdo->prepare("
+    $stmt = $pdo->prepare("
         UPDATE politicas_ordenes
         SET 
             estado = :estado,
@@ -90,7 +94,8 @@ try {
             error = :error
         WHERE id = :orden_id
     ");
-    $upd->execute([
+
+    $stmt->execute([
         ':estado' => $estado,
         ':resultado' => $resultado,
         ':error' => $error,
@@ -99,7 +104,7 @@ try {
 
     $cumple = ($estado === 'completada');
 
-    $estadoAgente = $pdo->prepare("
+    $stmt = $pdo->prepare("
         INSERT INTO politicas_estado_agente
             (politica_id, agente_id, valor_actual, valor_recomendado, cumple, ultima_revision)
         VALUES
@@ -111,7 +116,8 @@ try {
             cumple = EXCLUDED.cumple,
             ultima_revision = CURRENT_TIMESTAMP
     ");
-    $estadoAgente->execute([
+
+    $stmt->execute([
         ':politica_id' => $orden['politica_id'],
         ':agente_id' => $orden['agente_id'],
         ':valor_actual' => $resultado,
@@ -119,13 +125,14 @@ try {
         ':cumple' => $cumple ? 1 : 0
     ]);
 
-    $hist = $pdo->prepare("
+    $stmt = $pdo->prepare("
         INSERT INTO politicas_historial
             (politica_id, agente_id, accion, estado, detalle)
         VALUES
             (:politica_id, :agente_id, :accion, :estado, :detalle)
     ");
-    $hist->execute([
+
+    $stmt->execute([
         ':politica_id' => $orden['politica_id'],
         ':agente_id' => $orden['agente_id'],
         ':accion' => $orden['accion'],
