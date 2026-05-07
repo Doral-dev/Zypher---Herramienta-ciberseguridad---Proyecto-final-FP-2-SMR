@@ -61,14 +61,12 @@ try {
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             po.id,
             po.politica_id,
             po.agente_id,
-            po.accion,
-            ps.valor_recomendado
+            po.accion
         FROM politicas_ordenes po
-        INNER JOIN politicas_seguridad ps ON ps.id = po.politica_id
         WHERE po.id = :orden_id
         FOR UPDATE
     ");
@@ -87,7 +85,7 @@ try {
 
     $stmt = $pdo->prepare("
         UPDATE politicas_ordenes
-        SET 
+        SET
             estado = :estado,
             ejecutado_en = CURRENT_TIMESTAMP,
             resultado = :resultado,
@@ -102,34 +100,11 @@ try {
         ':orden_id' => $orden_id
     ]);
 
-    $cumple = ($estado === 'completada');
-
-    $stmt = $pdo->prepare("
-        INSERT INTO politicas_estado_agente
-            (politica_id, agente_id, valor_actual, valor_recomendado, cumple, ultima_revision)
-        VALUES
-            (:politica_id, :agente_id, :valor_actual, :valor_recomendado, :cumple, CURRENT_TIMESTAMP)
-        ON CONFLICT (politica_id, agente_id)
-        DO UPDATE SET
-            valor_actual = EXCLUDED.valor_actual,
-            valor_recomendado = EXCLUDED.valor_recomendado,
-            cumple = EXCLUDED.cumple,
-            ultima_revision = CURRENT_TIMESTAMP
-    ");
-
-    $stmt->execute([
-        ':politica_id' => $orden['politica_id'],
-        ':agente_id' => $orden['agente_id'],
-        ':valor_actual' => $resultado,
-        ':valor_recomendado' => $orden['valor_recomendado'],
-        ':cumple' => $cumple ? 1 : 0
-    ]);
-
     $stmt = $pdo->prepare("
         INSERT INTO politicas_historial
             (politica_id, agente_id, accion, estado, detalle)
         VALUES
-            (:politica_id, :agente_id, :accion, :estado, :detalle)
+            (:politica_id, CAST(:agente_id AS VARCHAR(120)), :accion, :estado, :detalle)
     ");
 
     $stmt->execute([
@@ -137,7 +112,7 @@ try {
         ':agente_id' => $orden['agente_id'],
         ':accion' => $orden['accion'],
         ':estado' => $estado,
-        ':detalle' => $cumple ? $resultado : $error
+        ':detalle' => $estado === 'completada' ? $resultado : $error,
     ]);
 
     $pdo->commit();
