@@ -52,19 +52,27 @@ try {
         }
 
         if ($accion === 'refrescar') {
-            $stmt = $pdo->prepare("
-                INSERT INTO politicas_ordenes (politica_id, agente_id, accion, estado)
-                SELECT ps.id, :agente_id, 'verificar', 'pendiente'
-                FROM politicas_seguridad ps
-                WHERE ps.activa = TRUE
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM politicas_ordenes po
-                      WHERE po.politica_id = ps.id
-                        AND po.agente_id = :agente_id
-                        AND po.estado IN ('pendiente', 'en_proceso')
-                  )
-            ");
+        $stmt = $pdo->prepare("
+        INSERT INTO politicas_ordenes (politica_id, agente_id, accion, estado)
+        SELECT ps.id, CAST(:agente_id_insert AS VARCHAR(120)), 'verificar', 'pendiente'
+        FROM politicas_seguridad ps
+        WHERE ps.activa = TRUE
+          AND NOT EXISTS (
+              SELECT 1
+              FROM politicas_ordenes po
+              WHERE po.politica_id = ps.id
+                AND po.agente_id = CAST(:agente_id_check AS VARCHAR(120))
+                AND po.estado IN ('pendiente', 'en_proceso')
+          )
+    ");
+
+    $stmt->execute([
+        ':agente_id_insert' => $AGENTE_ID,
+        ':agente_id_check' => $AGENTE_ID,
+    ]);
+
+    $mensaje = 'Orden de verificación creada correctamente.';
+}
 
             $stmt->execute([
                 ':agente_id' => $AGENTE_ID,
@@ -75,51 +83,53 @@ try {
     }
 
     $stmt = $pdo->prepare("
-        SELECT 
-            ps.id,
-            ps.codigo,
-            ps.categoria,
-            ps.subcategoria,
-            ps.nombre,
-            ps.descripcion,
-            ps.activa,
+    SELECT 
+        ps.id,
+        ps.codigo,
+        ps.categoria,
+        ps.subcategoria,
+        ps.nombre,
+        ps.descripcion,
+        ps.activa,
 
-            pea.cumple,
-            pea.ultima_revision,
+        pea.cumple,
+        pea.ultima_revision,
 
-            COALESCE((
-                SELECT po.estado
-                FROM politicas_ordenes po
-                WHERE po.politica_id = ps.id
-                  AND po.agente_id = :agente_id
-                ORDER BY po.id DESC
-                LIMIT 1
-            ), 'sin_orden') AS estado_orden,
+        COALESCE((
+            SELECT po.estado
+            FROM politicas_ordenes po
+            WHERE po.politica_id = ps.id
+              AND po.agente_id = CAST(:agente_id_estado AS VARCHAR(120))
+            ORDER BY po.id DESC
+            LIMIT 1
+        ), 'sin_orden') AS estado_orden,
 
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM politicas_ordenes po2
-                    WHERE po2.politica_id = ps.id
-                      AND po2.agente_id = :agente_id
-                      AND po2.estado IN ('pendiente', 'en_proceso')
-                ) THEN 'pendiente'
-                WHEN pea.cumple = TRUE THEN 'corregido'
-                WHEN pea.cumple = FALSE THEN 'incorrecto'
-                ELSE 'sin_comprobar'
-            END AS estado
+        CASE
+            WHEN EXISTS (
+                SELECT 1
+                FROM politicas_ordenes po2
+                WHERE po2.politica_id = ps.id
+                  AND po2.agente_id = CAST(:agente_id_pendiente AS VARCHAR(120))
+                  AND po2.estado IN ('pendiente', 'en_proceso')
+            ) THEN 'pendiente'
+            WHEN pea.cumple = TRUE THEN 'corregido'
+            WHEN pea.cumple = FALSE THEN 'incorrecto'
+            ELSE 'sin_comprobar'
+        END AS estado
 
-        FROM politicas_seguridad ps
-        LEFT JOIN politicas_estado_agente pea
-            ON pea.politica_id = ps.id
-           AND pea.agente_id = :agente_id
-        WHERE ps.activa = TRUE
-        ORDER BY ps.categoria, ps.subcategoria, ps.id
-    ");
+    FROM politicas_seguridad ps
+    LEFT JOIN politicas_estado_agente pea
+        ON pea.politica_id = ps.id
+       AND pea.agente_id = CAST(:agente_id_join AS VARCHAR(120))
+    WHERE ps.activa = TRUE
+    ORDER BY ps.categoria, ps.subcategoria, ps.id
+");
 
-    $stmt->execute([
-        ':agente_id' => $AGENTE_ID
-    ]);
+$stmt->execute([
+    ':agente_id_estado' => $AGENTE_ID,
+    ':agente_id_pendiente' => $AGENTE_ID,
+    ':agente_id_join' => $AGENTE_ID,
+]);
 
     $politicas = $stmt->fetchAll();
 
