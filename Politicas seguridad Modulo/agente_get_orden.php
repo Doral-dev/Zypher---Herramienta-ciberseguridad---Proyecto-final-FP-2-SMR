@@ -41,7 +41,7 @@ try {
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             po.id AS orden_id,
             po.accion,
             po.agente_id,
@@ -59,7 +59,8 @@ try {
         FROM politicas_ordenes po
         INNER JOIN politicas_seguridad ps ON ps.id = po.politica_id
         WHERE po.estado = 'pendiente'
-          AND po.agente_id = :agente_id
+          AND po.accion = 'aplicar'
+          AND po.agente_id = CAST(:agente_id AS VARCHAR(120))
           AND ps.activa = TRUE
         ORDER BY po.id ASC
         LIMIT 1
@@ -77,13 +78,13 @@ try {
         responder(true, ['orden' => null]);
     }
 
-    $update = $pdo->prepare("
+    $stmt = $pdo->prepare("
         UPDATE politicas_ordenes
         SET estado = 'en_proceso'
         WHERE id = :id
     ");
 
-    $update->execute([
+    $stmt->execute([
         ':id' => $orden['orden_id']
     ]);
 
