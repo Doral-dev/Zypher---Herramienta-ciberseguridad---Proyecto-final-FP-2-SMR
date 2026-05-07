@@ -44,3 +44,9 @@ CREATE TABLE politicas_historial (
     detalle TEXT,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_politicas_ordenes_agente_estado
+ON politicas_ordenes (agente_id, estado, id);
+
+CREATE INDEX IF NOT EXISTS idx_politicas_estado_agente_agente
+ON politicas_estado_agente (agente_id, politica_id);
