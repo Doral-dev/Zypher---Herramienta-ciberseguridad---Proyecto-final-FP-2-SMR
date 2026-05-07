@@ -33,53 +33,41 @@ try {
             if ($politicaId > 0) {
                 $stmt = $pdo->prepare("
                     INSERT INTO politicas_ordenes (politica_id, agente_id, accion, estado)
-                    SELECT :politica_id, CAST(:agente_id_insert AS VARCHAR(120)), 'aplicar', 'pendiente'
-                    WHERE NOT EXISTS (
+                    SELECT :politica_id_insert, CAST(:agente_id_insert AS VARCHAR(120)), 'aplicar', 'pendiente'
+                    WHERE EXISTS (
                         SELECT 1
-                        FROM politicas_ordenes
-                        WHERE politica_id = :politica_id_check
-                          AND agente_id = CAST(:agente_id_check AS VARCHAR(120))
-                          AND estado IN ('pendiente', 'en_proceso')
+                        FROM politicas_seguridad ps
+                        WHERE ps.id = :politica_id_exists
+                          AND ps.activa = TRUE
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM politicas_ordenes po
+                        WHERE po.politica_id = :politica_id_check
+                          AND po.agente_id = CAST(:agente_id_check AS VARCHAR(120))
+                          AND po.estado IN ('pendiente', 'en_proceso')
                     )
                 ");
 
                 $stmt->execute([
-                    ':politica_id' => $politicaId,
+                    ':politica_id_insert' => $politicaId,
                     ':agente_id_insert' => $AGENTE_ID,
+                    ':politica_id_exists' => $politicaId,
                     ':politica_id_check' => $politicaId,
                     ':agente_id_check' => $AGENTE_ID,
                 ]);
 
-                $mensaje = 'Orden de aplicación creada correctamente.';
+                if ($stmt->rowCount() > 0) {
+                    $mensaje = 'Orden de aplicación creada correctamente.';
+                } else {
+                    $mensaje = 'Ya existe una orden pendiente para esta política.';
+                }
             }
-        }
-
-        if ($accion === 'refrescar') {
-            $stmt = $pdo->prepare("
-                INSERT INTO politicas_ordenes (politica_id, agente_id, accion, estado)
-                SELECT ps.id, CAST(:agente_id_insert AS VARCHAR(120)), 'verificar', 'pendiente'
-                FROM politicas_seguridad ps
-                WHERE ps.activa = TRUE
-                  AND NOT EXISTS (
-                      SELECT 1
-                      FROM politicas_ordenes po
-                      WHERE po.politica_id = ps.id
-                        AND po.agente_id = CAST(:agente_id_check AS VARCHAR(120))
-                        AND po.estado IN ('pendiente', 'en_proceso')
-                  )
-            ");
-
-            $stmt->execute([
-                ':agente_id_insert' => $AGENTE_ID,
-                ':agente_id_check' => $AGENTE_ID,
-            ]);
-
-            $mensaje = 'Orden de verificación creada correctamente.';
         }
     }
 
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             ps.id,
             ps.codigo,
             ps.categoria,
@@ -87,17 +75,18 @@ try {
             ps.nombre,
             ps.descripcion,
             ps.activa,
-
             pea.cumple,
+            pea.valor_actual,
+            pea.valor_recomendado,
             pea.ultima_revision,
 
             CASE
                 WHEN EXISTS (
                     SELECT 1
-                    FROM politicas_ordenes po2
-                    WHERE po2.politica_id = ps.id
-                      AND po2.agente_id = CAST(:agente_id_pendiente AS VARCHAR(120))
-                      AND po2.estado IN ('pendiente', 'en_proceso')
+                    FROM politicas_ordenes po
+                    WHERE po.politica_id = ps.id
+                      AND po.agente_id = CAST(:agente_id_pendiente AS VARCHAR(120))
+                      AND po.estado IN ('pendiente', 'en_proceso')
                 ) THEN 'pendiente'
                 WHEN pea.cumple = TRUE THEN 'corregido'
                 WHEN pea.cumple = FALSE THEN 'incorrecto'
@@ -107,14 +96,14 @@ try {
         FROM politicas_seguridad ps
         LEFT JOIN politicas_estado_agente pea
             ON pea.politica_id = ps.id
-           AND pea.agente_id = CAST(:agente_id_join AS VARCHAR(120))
+           AND pea.agente_id = CAST(:agente_id_estado AS VARCHAR(120))
         WHERE ps.activa = TRUE
         ORDER BY ps.categoria, ps.subcategoria, ps.id
     ");
 
     $stmt->execute([
         ':agente_id_pendiente' => $AGENTE_ID,
-        ':agente_id_join' => $AGENTE_ID,
+        ':agente_id_estado' => $AGENTE_ID,
     ]);
 
     $politicas = $stmt->fetchAll();
@@ -146,6 +135,14 @@ function estadoTexto(string $estado): string {
         'pendiente' => 'Pendiente',
         default => 'Sin comprobar',
     };
+}
+
+function fechaTexto($fecha): string {
+    if (!$fecha) {
+        return 'Nunca';
+    }
+
+    return date('d/m/Y H:i:s', strtotime((string)$fecha));
 }
 ?>
 <!DOCTYPE html>
@@ -221,7 +218,6 @@ function estadoTexto(string $estado): string {
         }
 
         .top {
-            position: relative;
             margin-bottom: 28px;
         }
 
@@ -335,20 +331,26 @@ function estadoTexto(string $estado): string {
         }
 
         .col-politica {
-            width: 27%;
+            width: 24%;
             color: #ffffff;
         }
 
         .col-desc {
-            width: 43%;
+            width: 36%;
         }
 
         .col-accion {
-            width: 15%;
+            width: 14%;
         }
 
         .col-estado {
-            width: 15%;
+            width: 13%;
+        }
+
+        .col-revision {
+            width: 13%;
+            color: #9eadcc;
+            font-size: 13px;
         }
 
         .apply-btn {
@@ -463,9 +465,8 @@ function estadoTexto(string $estado): string {
             <h1>Políticas de seguridad</h1>
             <div class="subtitle">Gestiona y aplica las políticas de seguridad recomendadas para el sistema.</div>
 
-            <form method="POST" class="refresh-wrap">
-                <input type="hidden" name="accion" value="refrescar">
-                <button type="submit" class="refresh-btn" title="Refrescar estado">↻</button>
+            <form method="GET" class="refresh-wrap">
+                <button type="submit" class="refresh-btn" title="Refrescar pantalla">↻</button>
             </form>
         </div>
 
@@ -506,6 +507,7 @@ function estadoTexto(string $estado): string {
                                     <th class="col-desc">Descripción</th>
                                     <th class="col-accion">Acción</th>
                                     <th class="col-estado">Estado</th>
+                                    <th class="col-revision">Última revisión</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -524,6 +526,9 @@ function estadoTexto(string $estado): string {
                                             <span class="estado <?= estadoClase($p['estado']) ?>">
                                                 ● <?= htmlspecialchars(estadoTexto($p['estado'])) ?>
                                             </span>
+                                        </td>
+                                        <td class="col-revision">
+                                            <?= htmlspecialchars(fechaTexto($p['ultima_revision'] ?? null)) ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
