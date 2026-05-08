@@ -131,7 +131,7 @@ function estadoClase(string $estado): string {
 function estadoTexto(string $estado): string {
     return match ($estado) {
         'corregido' => 'Corregido',
-        'incorrecto' => 'Incorrecto',
+        'incorrecto' => 'No Corregido',
         'pendiente' => 'Pendiente',
         default => 'Sin comprobar',
     };
