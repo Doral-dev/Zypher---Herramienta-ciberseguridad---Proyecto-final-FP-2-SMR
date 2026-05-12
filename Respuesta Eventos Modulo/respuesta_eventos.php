@@ -1,305 +1,407 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/conexion.php';
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
-$pdo = getPDO();
+$conexionCargada = false;
 
-$AGENTE_ID = 'windows-agent-001';
+$posiblesConexiones = [
+    __DIR__ . '/conexion.php',
+    dirname(__DIR__) . '/conexion.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/conexion.php',
+];
+
+foreach ($posiblesConexiones as $rutaConexion) {
+    if (is_file($rutaConexion)) {
+        require_once $rutaConexion;
+        $conexionCargada = true;
+        break;
+    }
+}
+
+if (!$conexionCargada && !function_exists('getPDO')) {
+    function getPDO(): PDO
+    {
+        $host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
+        $port = '5432';
+        $dbname = 'zypher_db_g2sb';
+        $user = 'zypher_db_g2sb_user';
+        $password = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
+
+        $dsn = "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require";
+
+        return new PDO($dsn, $user, $password, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+    }
+}
+
+const AGENTE_ID = 'windows-agent-001';
 
 $mensaje = '';
 $error = '';
 
-function h(?string $v): string
+$accionesRapidas = [
+    'listar_procesos' => [
+        'titulo' => 'Listar procesos',
+        'descripcion' => 'Muestra los procesos activos del equipo.',
+        'parametros' => [],
+    ],
+    'listar_conexiones' => [
+        'titulo' => 'Ver conexiones',
+        'descripcion' => 'Muestra conexiones de red activas.',
+        'parametros' => [],
+    ],
+    'listar_servicios' => [
+        'titulo' => 'Ver servicios',
+        'descripcion' => 'Muestra servicios instalados.',
+        'parametros' => [],
+    ],
+    'listar_tareas' => [
+        'titulo' => 'Ver tareas programadas',
+        'descripcion' => 'Muestra tareas programadas.',
+        'parametros' => [],
+    ],
+    'listar_firewall' => [
+        'titulo' => 'Ver firewall',
+        'descripcion' => 'Muestra reglas del firewall.',
+        'parametros' => [],
+    ],
+    'listar_usuarios' => [
+        'titulo' => 'Ver usuarios',
+        'descripcion' => 'Muestra usuarios locales.',
+        'parametros' => [],
+    ],
+    'monitor_cuarentena' => [
+        'titulo' => 'Ver cuarentena',
+        'descripcion' => 'Muestra archivos en cuarentena.',
+        'parametros' => [],
+    ],
+    'matar_psexec' => [
+        'titulo' => 'Eliminar PsExec',
+        'descripcion' => 'Intenta eliminar el servicio PSEXESVC si existe.',
+        'parametros' => [],
+    ],
+];
+
+$accionesConDato = [
+    'bloquear_dominio' => [
+        'titulo' => 'Bloquear dominio',
+        'descripcion' => 'Añade el dominio al archivo hosts.',
+        'placeholder' => 'ejemplo.com',
+        'campo' => 'dominio',
+    ],
+    'buscar_archivo' => [
+        'titulo' => 'Buscar archivo',
+        'descripcion' => 'Busca un archivo por nombre en C:\\.',
+        'placeholder' => 'malware.exe',
+        'campo' => 'nombre',
+    ],
+    'cuarentena_archivo' => [
+        'titulo' => 'Enviar archivo a cuarentena',
+        'descripcion' => 'Mueve un archivo sospechoso a cuarentena.',
+        'placeholder' => 'C:\\Users\\Usuario\\Desktop\\archivo.exe',
+        'campo' => 'ruta',
+    ],
+    'remediar_tareas' => [
+        'titulo' => 'Desactivar tarea programada',
+        'descripcion' => 'Desactiva una tarea programada concreta.',
+        'placeholder' => '\\NombreTarea',
+        'campo' => 'tarea',
+    ],
+    'recoger_archivo' => [
+        'titulo' => 'Analizar archivo',
+        'descripcion' => 'Obtiene tamaño y hash SHA256 del archivo.',
+        'placeholder' => 'C:\\Users\\Usuario\\Desktop\\archivo.exe',
+        'campo' => 'ruta',
+    ],
+];
+
+function h(?string $txt): string
 {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars((string)$txt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function crearOrden(PDO $pdo, string $agenteId, string $codigoAccion, array $parametros = []): void
+function obtenerAccionNombre(PDO $pdo, string $codigo): string
 {
-    $stmtEquipo = $pdo->prepare("
-        SELECT id
-        FROM respuesta_equipos
-        WHERE agente_id = :agente_id
-          AND activo = TRUE
-        LIMIT 1
-    ");
-    $stmtEquipo->execute([':agente_id' => $agenteId]);
-    $equipo = $stmtEquipo->fetch();
+    $stmt = $pdo->prepare("SELECT nombre FROM respuesta_acciones WHERE codigo = :codigo LIMIT 1");
+    $stmt->execute(['codigo' => $codigo]);
+    $row = $stmt->fetch();
 
-    if (!$equipo) {
-        throw new RuntimeException('No existe el equipo del agente en la base de datos.');
-    }
+    return $row['nombre'] ?? $codigo;
+}
 
-    $stmtAccion = $pdo->prepare("
-        SELECT id
-        FROM respuesta_acciones
-        WHERE codigo = :codigo
-          AND activa = TRUE
-        LIMIT 1
-    ");
-    $stmtAccion->execute([':codigo' => $codigoAccion]);
-    $accion = $stmtAccion->fetch();
-
-    if (!$accion) {
-        throw new RuntimeException('Acción no disponible.');
-    }
-
+function crearOrden(PDO $pdo, string $codigo, array $parametros): void
+{
     $stmt = $pdo->prepare("
         INSERT INTO respuesta_ordenes
-        (equipo_id, accion_id, parametros, estado)
+            (agente_id, codigo, parametros, estado, creado_en)
         VALUES
-        (:equipo_id, :accion_id, CAST(:parametros AS jsonb), 'pendiente')
+            (:agente_id, :codigo, :parametros::jsonb, 'pendiente', CURRENT_TIMESTAMP)
     ");
 
     $stmt->execute([
-        ':equipo_id' => (int)$equipo['id'],
-        ':accion_id' => (int)$accion['id'],
-        ':parametros' => json_encode($parametros, JSON_UNESCAPED_UNICODE),
+        'agente_id' => AGENTE_ID,
+        'codigo' => $codigo,
+        'parametros' => json_encode($parametros, JSON_UNESCAPED_UNICODE),
     ]);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $accion = trim($_POST['accion'] ?? '');
+function obtenerUltimaOrden(PDO $pdo): ?array
+{
+    $stmt = $pdo->prepare("
+        SELECT
+            ro.id,
+            ro.estado,
+            ro.codigo,
+            ro.resultado::text AS resultado,
+            ro.error,
+            ro.creado_en,
+            ro.finalizado_en,
+            ra.nombre AS nombre_accion
+        FROM respuesta_ordenes ro
+        LEFT JOIN respuesta_acciones ra ON ra.codigo = ro.codigo
+        WHERE ro.agente_id = :agente_id
+        ORDER BY ro.id DESC
+        LIMIT 1
+    ");
 
-        if ($accion === '') {
-            throw new RuntimeException('No se ha seleccionado ninguna acción.');
+    $stmt->execute(['agente_id' => AGENTE_ID]);
+    $row = $stmt->fetch();
+
+    return $row ?: null;
+}
+
+function obtenerHistorial(PDO $pdo): array
+{
+    $stmt = $pdo->prepare("
+        SELECT
+            ro.id,
+            ro.estado,
+            ro.codigo,
+            ro.error,
+            ro.creado_en,
+            ro.finalizado_en,
+            ra.nombre AS nombre_accion
+        FROM respuesta_ordenes ro
+        LEFT JOIN respuesta_acciones ra ON ra.codigo = ro.codigo
+        WHERE ro.agente_id = :agente_id
+        ORDER BY ro.id DESC
+        LIMIT 8
+    ");
+
+    $stmt->execute(['agente_id' => AGENTE_ID]);
+    return $stmt->fetchAll();
+}
+
+function limpiarResultado(?string $resultado): string
+{
+    if (!$resultado) {
+        return '';
+    }
+
+    $resultado = trim($resultado);
+
+    $json = json_decode($resultado, true);
+
+    if (is_array($json)) {
+        if (isset($json['salida'])) {
+            return (string)$json['salida'];
+        }
+
+        if (isset($json['resultado'])) {
+            return is_string($json['resultado'])
+                ? $json['resultado']
+                : json_encode($json['resultado'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        }
+
+        return json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
+
+    return $resultado;
+}
+
+try {
+    $pdo = getPDO();
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $codigo = trim($_POST['codigo'] ?? '');
+
+        $accionesPermitidas = array_merge(
+            array_keys($accionesRapidas),
+            array_keys($accionesConDato)
+        );
+
+        if (!in_array($codigo, $accionesPermitidas, true)) {
+            throw new RuntimeException('Acción no permitida.');
         }
 
         $parametros = [];
 
-        if ($accion === 'bloquear_dominio') {
-            $dominio = trim($_POST['dominio'] ?? '');
-            if ($dominio === '') {
-                throw new RuntimeException('Introduce un dominio.');
+        if (isset($accionesConDato[$codigo])) {
+            $campo = $accionesConDato[$codigo]['campo'];
+            $valor = trim($_POST[$campo] ?? '');
+
+            if ($valor === '') {
+                throw new RuntimeException('Falta el dato necesario para ejecutar la acción.');
             }
-            $parametros = ['dominio' => $dominio];
+
+            if ($codigo === 'buscar_archivo') {
+                $parametros = [
+                    'ruta' => 'C:\\',
+                    'nombre' => $valor,
+                ];
+            } else {
+                $parametros = [
+                    $campo => $valor,
+                ];
+            }
         }
 
-        if ($accion === 'buscar_archivo') {
-            $nombre = trim($_POST['nombre_archivo'] ?? '');
-            if ($nombre === '') {
-                throw new RuntimeException('Introduce el nombre del archivo.');
-            }
-            $parametros = [
-                'ruta' => 'C:\\',
-                'nombre' => $nombre
-            ];
-        }
+        crearOrden($pdo, $codigo, $parametros);
 
-        if ($accion === 'cuarentena_archivo') {
-            $ruta = trim($_POST['ruta_archivo'] ?? '');
-            if ($ruta === '') {
-                throw new RuntimeException('Introduce la ruta del archivo.');
-            }
-            $parametros = ['ruta' => $ruta];
-        }
+        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?') . '?ok=1');
+        exit;
+    }
 
-        if ($accion === 'remediar_tareas') {
-            $tarea = trim($_POST['nombre_tarea'] ?? '');
-            if ($tarea === '') {
-                throw new RuntimeException('Introduce el nombre de la tarea.');
-            }
-            $parametros = ['tarea' => $tarea];
-        }
-
-        crearOrden($pdo, $AGENTE_ID, $accion, $parametros);
-
+    if (isset($_GET['ok'])) {
         $mensaje = 'Acción enviada al agente correctamente.';
-    } catch (Throwable $e) {
-        $error = $e->getMessage();
     }
+
+    $ultimaOrden = obtenerUltimaOrden($pdo);
+    $historial = obtenerHistorial($pdo);
+
+} catch (Throwable $e) {
+    $error = $e->getMessage();
+    $ultimaOrden = null;
+    $historial = [];
 }
 
-$accionesRapidas = [
-    [
-        'codigo' => 'listar_procesos',
-        'nombre' => 'Listar procesos',
-        'desc' => 'Muestra los procesos activos del equipo.'
-    ],
-    [
-        'codigo' => 'listar_conexiones',
-        'nombre' => 'Ver conexiones',
-        'desc' => 'Muestra conexiones de red activas.'
-    ],
-    [
-        'codigo' => 'listar_servicios',
-        'nombre' => 'Ver servicios',
-        'desc' => 'Muestra servicios instalados.'
-    ],
-    [
-        'codigo' => 'listar_tareas',
-        'nombre' => 'Ver tareas programadas',
-        'desc' => 'Muestra tareas programadas.'
-    ],
-    [
-        'codigo' => 'listar_firewall',
-        'nombre' => 'Ver firewall',
-        'desc' => 'Muestra reglas del firewall.'
-    ],
-    [
-        'codigo' => 'listar_usuarios',
-        'nombre' => 'Ver usuarios',
-        'desc' => 'Muestra usuarios locales.'
-    ],
-    [
-        'codigo' => 'monitor_cuarentena',
-        'nombre' => 'Ver cuarentena',
-        'desc' => 'Muestra archivos en cuarentena.'
-    ],
-    [
-        'codigo' => 'matar_psexec',
-        'nombre' => 'Eliminar PsExec',
-        'desc' => 'Intenta eliminar el servicio PsExec si existe.'
-    ],
-];
-
-$accionesConCampo = [
-    [
-        'codigo' => 'bloquear_dominio',
-        'nombre' => 'Bloquear dominio',
-        'desc' => 'Bloquea un dominio en el archivo hosts.',
-        'campo' => 'dominio',
-        'placeholder' => 'ejemplo.com'
-    ],
-    [
-        'codigo' => 'buscar_archivo',
-        'nombre' => 'Buscar archivo',
-        'desc' => 'Busca un archivo por nombre en el disco C.',
-        'campo' => 'nombre_archivo',
-        'placeholder' => 'malware.exe'
-    ],
-    [
-        'codigo' => 'cuarentena_archivo',
-        'nombre' => 'Enviar archivo a cuarentena',
-        'desc' => 'Mueve un archivo sospechoso a la cuarentena del agente.',
-        'campo' => 'ruta_archivo',
-        'placeholder' => 'C:\\Users\\Usuario\\Desktop\\archivo.exe'
-    ],
-    [
-        'codigo' => 'remediar_tareas',
-        'nombre' => 'Desactivar tarea programada',
-        'desc' => 'Desactiva una tarea programada concreta.',
-        'campo' => 'nombre_tarea',
-        'placeholder' => '\\NombreTarea'
-    ],
-];
-
-$ultimaOrden = $pdo->query("
-    SELECT 
-        ro.estado,
-        ro.resultado,
-        ro.error,
-        ro.creado_en,
-        ro.finalizado_en,
-        ra.nombre AS accion_nombre
-    FROM respuesta_ordenes ro
-    JOIN respuesta_acciones ra ON ra.id = ro.accion_id
-    ORDER BY ro.id DESC
-    LIMIT 1
-")->fetch();
-
-$resultadoTexto = '';
-
-if ($ultimaOrden) {
-    $resultado = $ultimaOrden['resultado'];
-
-    if (is_string($resultado)) {
-        $json = json_decode($resultado, true);
-    } else {
-        $json = $resultado;
-    }
-
-    if (is_array($json) && isset($json['salida'])) {
-        $resultadoTexto = (string)$json['salida'];
-    } elseif (is_array($json)) {
-        $resultadoTexto = json_encode($json, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-    } elseif ($resultado !== null) {
-        $resultadoTexto = (string)$resultado;
-    } else {
-        $resultadoTexto = 'Todavía no hay resultado. Espera unos segundos y recarga la página.';
-    }
-}
+$resultadoLimpio = $ultimaOrden ? limpiarResultado($ultimaOrden['resultado'] ?? '') : '';
+$estadoUltima = $ultimaOrden['estado'] ?? '';
 ?>
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Zypher - Respuesta ante eventos</title>
+    <meta charset="utf-8">
+    <title>Respuesta ante eventos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <?php if ($ultimaOrden && in_array($estadoUltima, ['pendiente', 'en_proceso'], true)): ?>
+        <meta http-equiv="refresh" content="3">
+    <?php endif; ?>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
             margin: 0;
-            padding: 24px;
+            background: #f3f4f6;
             color: #111827;
+            font-family: Arial, sans-serif;
         }
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 8px;
+        .page {
+            padding: 24px;
         }
 
-        .intro {
-            margin-bottom: 24px;
+        .header {
+            margin-bottom: 22px;
+        }
+
+        .header h1 {
+            margin: 0 0 6px 0;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin: 0;
             color: #4b5563;
+            font-size: 15px;
         }
 
         .alert-ok {
             background: #dcfce7;
             color: #166534;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 18px;
         }
 
         .alert-error {
             background: #fee2e2;
             color: #991b1b;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .section {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 22px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-        }
-
-        .action-card {
-            border: 1px solid #e5e7eb;
+            padding: 12px 14px;
             border-radius: 10px;
-            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin: 0 0 18px 0;
+            font-size: 22px;
+        }
+
+        .grid-quick {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .grid-data {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .action-box {
+            border: 1px solid #e5e7eb;
             background: #f9fafb;
+            border-radius: 12px;
+            padding: 14px;
         }
 
-        .action-card h3 {
+        .action-box h3 {
             margin: 0 0 8px 0;
-            font-size: 17px;
+            font-size: 16px;
         }
 
-        .action-card p {
-            min-height: 40px;
+        .action-box p {
             margin: 0 0 14px 0;
             color: #4b5563;
+            font-size: 13px;
+            min-height: 34px;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
             font-size: 14px;
         }
 
         button {
             width: 100%;
-            border: none;
+            border: 0;
             background: #111827;
-            color: white;
+            color: #ffffff;
             padding: 11px;
             border-radius: 8px;
             cursor: pointer;
@@ -307,38 +409,15 @@ if ($ultimaOrden) {
         }
 
         button:hover {
-            background: #374151;
-        }
-
-        input {
-            width: 100%;
-            box-sizing: border-box;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
-
-        .resultado-box {
-            background: #111827;
-            color: #e5e7eb;
-            padding: 16px;
-            border-radius: 10px;
-            overflow: auto;
-            max-height: 420px;
-            white-space: pre-wrap;
-            font-family: Consolas, monospace;
-            font-size: 13px;
+            background: #1f2937;
         }
 
         .estado {
             display: inline-block;
-            padding: 5px 10px;
+            padding: 7px 12px;
             border-radius: 999px;
             font-size: 13px;
-            background: #e5e7eb;
-            margin-bottom: 12px;
+            margin: 8px 0 14px 0;
         }
 
         .estado-pendiente {
@@ -360,85 +439,194 @@ if ($ultimaOrden) {
             background: #fee2e2;
             color: #991b1b;
         }
+
+        .result-box {
+            background: #020617;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            overflow: auto;
+            max-height: 520px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .empty {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            text-align: left;
+            background: #e5e7eb;
+            padding: 10px;
+        }
+
+        td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .small {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1200px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-quick {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .grid-data {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .grid-quick {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+<div class="page">
 
-<h1>Respuesta ante eventos</h1>
-<p class="intro">Ejecutamos acciones rápidas de respuesta sobre este equipo mediante el Agente Zypher.</p>
+    <div class="header">
+        <h1>Respuesta ante eventos</h1>
+        <p>Ejecutamos acciones rápidas de respuesta sobre este equipo mediante el Agente Zypher.</p>
+    </div>
 
-<?php if ($mensaje): ?>
-    <div class="alert-ok"><?= h($mensaje) ?></div>
-<?php endif; ?>
+    <?php if ($mensaje): ?>
+        <div class="alert-ok"><?= h($mensaje) ?></div>
+    <?php endif; ?>
 
-<?php if ($error): ?>
-    <div class="alert-error"><?= h($error) ?></div>
-<?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert-error"><?= h($error) ?></div>
+    <?php endif; ?>
 
-<div class="section">
-    <h2>Acciones rápidas</h2>
+    <div class="layout">
 
-    <div class="grid">
-        <?php foreach ($accionesRapidas as $accion): ?>
-            <div class="action-card">
-                <h3><?= h($accion['nombre']) ?></h3>
-                <p><?= h($accion['desc']) ?></p>
+        <div>
+            <div class="card">
+                <h2>Acciones rápidas</h2>
 
-                <form method="POST">
-                    <input type="hidden" name="accion" value="<?= h($accion['codigo']) ?>">
-                    <button type="submit">Ejecutar</button>
-                </form>
+                <div class="grid-quick">
+                    <?php foreach ($accionesRapidas as $codigo => $accion): ?>
+                        <div class="action-box">
+                            <h3><?= h($accion['titulo']) ?></h3>
+                            <p><?= h($accion['descripcion']) ?></p>
+
+                            <form method="post">
+                                <input type="hidden" name="codigo" value="<?= h($codigo) ?>">
+                                <button type="submit">Ejecutar</button>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        <?php endforeach; ?>
+
+            <div class="card">
+                <h2>Acciones con dato necesario</h2>
+
+                <div class="grid-data">
+                    <?php foreach ($accionesConDato as $codigo => $accion): ?>
+                        <div class="action-box">
+                            <h3><?= h($accion['titulo']) ?></h3>
+                            <p><?= h($accion['descripcion']) ?></p>
+
+                            <form method="post">
+                                <input type="hidden" name="codigo" value="<?= h($codigo) ?>">
+                                <input
+                                    type="text"
+                                    name="<?= h($accion['campo']) ?>"
+                                    placeholder="<?= h($accion['placeholder']) ?>"
+                                    autocomplete="off"
+                                >
+                                <button type="submit">Ejecutar</button>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h2>Resultado de la última acción</h2>
+
+                <?php if (!$ultimaOrden): ?>
+                    <p class="empty">Todavía no hay acciones ejecutadas.</p>
+                <?php else: ?>
+                    <div>
+                        Acción: <?= h($ultimaOrden['nombre_accion'] ?: $ultimaOrden['codigo']) ?><br>
+                        Creado: <?= h($ultimaOrden['creado_en']) ?><br>
+                        Finalizado: <?= h($ultimaOrden['finalizado_en'] ?: '-') ?>
+                    </div>
+
+                    <div class="estado estado-<?= h($estadoUltima) ?>">
+                        <?= h($estadoUltima) ?>
+                    </div>
+
+                    <?php if ($estadoUltima === 'completada' && $resultadoLimpio !== ''): ?>
+                        <div class="result-box"><?= h($resultadoLimpio) ?></div>
+                    <?php elseif ($estadoUltima === 'error'): ?>
+                        <div class="result-box"><?= h($ultimaOrden['error'] ?: $resultadoLimpio ?: 'Error sin detalle.') ?></div>
+                    <?php else: ?>
+                        <div class="result-box">Todavía no hay resultado. Espera unos segundos. La página se recarga sola.</div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+
+            <div class="card">
+                <h2>Historial reciente</h2>
+
+                <?php if (!$historial): ?>
+                    <p class="empty">Sin historial.</p>
+                <?php else: ?>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Acción</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($historial as $item): ?>
+                            <tr>
+                                <td>
+                                    <?= h($item['nombre_accion'] ?: $item['codigo']) ?>
+                                    <?php if (!empty($item['error'])): ?>
+                                        <div class="small"><?= h($item['error']) ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= h($item['estado']) ?></td>
+                                <td>
+                                    <?= h($item['creado_en']) ?>
+                                    <div class="small">Fin: <?= h($item['finalizado_en'] ?: '-') ?></div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
+
     </div>
 </div>
-
-<div class="section">
-    <h2>Acciones con dato necesario</h2>
-
-    <div class="grid">
-        <?php foreach ($accionesConCampo as $accion): ?>
-            <div class="action-card">
-                <h3><?= h($accion['nombre']) ?></h3>
-                <p><?= h($accion['desc']) ?></p>
-
-                <form method="POST">
-                    <input type="hidden" name="accion" value="<?= h($accion['codigo']) ?>">
-                    <input
-                        type="text"
-                        name="<?= h($accion['campo']) ?>"
-                        placeholder="<?= h($accion['placeholder']) ?>"
-                        required
-                    >
-                    <button type="submit">Ejecutar</button>
-                </form>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<?php if ($ultimaOrden): ?>
-    <?php
-    $estado = (string)$ultimaOrden['estado'];
-    $estadoClass = 'estado-' . $estado;
-    ?>
-    <div class="section">
-        <h2>Resultado de la última acción</h2>
-
-        <p>
-            Acción: <?= h($ultimaOrden['accion_nombre']) ?><br>
-            Fecha: <?= h($ultimaOrden['creado_en']) ?>
-        </p>
-
-        <span class="estado <?= h($estadoClass) ?>"><?= h($estado) ?></span>
-
-        <?php if (!empty($ultimaOrden['error'])): ?>
-            <div class="alert-error"><?= h($ultimaOrden['error']) ?></div>
-        <?php endif; ?>
-
-        <div class="resultado-box"><?= h($resultadoTexto) ?></div>
-    </div>
-<?php endif; ?>
-
 </body>
 </html>
