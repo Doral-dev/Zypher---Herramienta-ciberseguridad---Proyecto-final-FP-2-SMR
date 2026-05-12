@@ -6,7 +6,7 @@
         <div class="submenu">
             <a href="/Escaneo Vulnerabilidades Modulo/detector_vulnerabilidades.php">Análisis de vulnerabilidades</a>
             <a href="/CIS módulo/cis.php">CIS Benchmark</a>
-            <a href="/CIS módulo/seguridad.php">Políticas de seguridad</a>
+            <a href="/Politicas seguridad Modulo/seguridad.php">Políticas de seguridad</a>
         </div>
     </div>
 
