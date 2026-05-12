@@ -5,84 +5,153 @@ require_once __DIR__ . '/conexion.php';
 
 $pdo = getPDO();
 
+$AGENTE_ID = 'windows-agent-001';
+
 $mensaje = '';
 $error = '';
 
+function h(?string $v): string {
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
+
+function crearOrden(PDO $pdo, string $agenteId, string $codigoAccion, array $parametros = []): void
+{
+    $stmtEquipo = $pdo->prepare("
+        SELECT id
+        FROM respuesta_equipos
+        WHERE agente_id = :agente_id
+          AND activo = TRUE
+        LIMIT 1
+    ");
+    $stmtEquipo->execute([':agente_id' => $agenteId]);
+    $equipo = $stmtEquipo->fetch();
+
+    if (!$equipo) {
+        throw new RuntimeException('No existe el equipo del agente en la base de datos.');
+    }
+
+    $stmtAccion = $pdo->prepare("
+        SELECT id
+        FROM respuesta_acciones
+        WHERE codigo = :codigo
+          AND activa = TRUE
+        LIMIT 1
+    ");
+    $stmtAccion->execute([':codigo' => $codigoAccion]);
+    $accion = $stmtAccion->fetch();
+
+    if (!$accion) {
+        throw new RuntimeException('Acción no disponible.');
+    }
+
+    $stmt = $pdo->prepare("
+        INSERT INTO respuesta_ordenes
+        (equipo_id, accion_id, parametros, estado)
+        VALUES
+        (:equipo_id, :accion_id, :parametros::jsonb, 'pendiente')
+    ");
+
+    $stmt->execute([
+        ':equipo_id' => (int)$equipo['id'],
+        ':accion_id' => (int)$accion['id'],
+        ':parametros' => json_encode($parametros, JSON_UNESCAPED_UNICODE),
+    ]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $equipoId = (int)($_POST['equipo_id'] ?? 0);
-        $accionId = (int)($_POST['accion_id'] ?? 0);
-        $parametrosTexto = trim($_POST['parametros'] ?? '');
+        $accion = trim($_POST['accion'] ?? '');
 
-        if ($equipoId <= 0 || $accionId <= 0) {
-            throw new RuntimeException('Faltan equipo o acción.');
+        if ($accion === '') {
+            throw new RuntimeException('No se ha seleccionado ninguna acción.');
         }
 
         $parametros = [];
 
-        if ($parametrosTexto !== '') {
-            $parametros = json_decode($parametrosTexto, true);
-            if (!is_array($parametros)) {
-                throw new RuntimeException('Los parámetros deben ser JSON válido.');
+        if ($accion === 'bloquear_dominio') {
+            $dominio = trim($_POST['dominio'] ?? '');
+            if ($dominio === '') {
+                throw new RuntimeException('Introduce un dominio.');
             }
+            $parametros = ['dominio' => $dominio];
         }
 
-        $stmt = $pdo->prepare("
-            INSERT INTO respuesta_ordenes
-            (equipo_id, accion_id, parametros, estado)
-            VALUES
-            (:equipo_id, :accion_id, :parametros::jsonb, 'pendiente')
-        ");
+        if ($accion === 'buscar_archivo') {
+            $nombre = trim($_POST['nombre_archivo'] ?? '');
+            if ($nombre === '') {
+                throw new RuntimeException('Introduce el nombre del archivo.');
+            }
+            $parametros = [
+                'ruta' => 'C:\\',
+                'nombre' => $nombre
+            ];
+        }
 
-        $stmt->execute([
-            ':equipo_id' => $equipoId,
-            ':accion_id' => $accionId,
-            ':parametros' => json_encode($parametros, JSON_UNESCAPED_UNICODE),
-        ]);
+        if ($accion === 'cuarentena_archivo') {
+            $ruta = trim($_POST['ruta_archivo'] ?? '');
+            if ($ruta === '') {
+                throw new RuntimeException('Introduce la ruta del archivo.');
+            }
+            $parametros = ['ruta' => $ruta];
+        }
 
-        $mensaje = 'Orden creada correctamente.';
+        if ($accion === 'remediar_tareas') {
+            $tarea = trim($_POST['nombre_tarea'] ?? '');
+            if ($tarea === '') {
+                throw new RuntimeException('Introduce el nombre de la tarea.');
+            }
+            $parametros = ['tarea' => $tarea];
+        }
+
+        crearOrden($pdo, $AGENTE_ID, $accion, $parametros);
+
+        $mensaje = 'Acción enviada al agente correctamente.';
     } catch (Throwable $e) {
         $error = $e->getMessage();
     }
 }
 
-$equipos = $pdo->query("
-    SELECT id, hostname, sistema, velociraptor_client_id, activo
-    FROM respuesta_equipos
-    WHERE activo = TRUE
-    ORDER BY hostname
-")->fetchAll();
+$accionesRapidas = [
+    ['codigo' => 'listar_procesos', 'nombre' => 'Listar procesos', 'desc' => 'Muestra los procesos activos del equipo.'],
+    ['codigo' => 'listar_conexiones', 'nombre' => 'Ver conexiones', 'desc' => 'Muestra conexiones de red activas.'],
+    ['codigo' => 'listar_servicios', 'nombre' => 'Ver servicios', 'desc' => 'Muestra servicios instalados.'],
+    ['codigo' => 'listar_tareas', 'nombre' => 'Ver tareas programadas', 'desc' => 'Muestra tareas programadas.'],
+    ['codigo' => 'listar_firewall', 'nombre' => 'Ver firewall', 'desc' => 'Muestra reglas del firewall.'],
+    ['codigo' => 'listar_usuarios', 'nombre' => 'Ver usuarios', 'desc' => 'Muestra usuarios locales.'],
+    ['codigo' => 'monitor_cuarentena', 'nombre' => 'Ver cuarentena', 'desc' => 'Muestra archivos en cuarentena.'],
+    ['codigo' => 'matar_psexec', 'nombre' => 'Eliminar PsExec', 'desc' => 'Intenta eliminar el servicio PsExec si existe.'],
+];
 
-$acciones = $pdo->query("
-    SELECT id, codigo, nombre, artefacto_velociraptor, descripcion, tipo, requiere_parametros
-    FROM respuesta_acciones
-    WHERE activa = TRUE
-    ORDER BY tipo DESC, nombre
-")->fetchAll();
-
-$ordenes = $pdo->query("
-    SELECT 
-        ro.id,
-        ro.estado,
-        ro.parametros,
-        ro.flow_id,
-        ro.error,
-        ro.creado_en,
-        ro.ejecutado_en,
-        ro.finalizado_en,
-        re.hostname,
-        ra.nombre AS accion_nombre,
-        ra.codigo AS accion_codigo
-    FROM respuesta_ordenes ro
-    JOIN respuesta_equipos re ON re.id = ro.equipo_id
-    JOIN respuesta_acciones ra ON ra.id = ro.accion_id
-    ORDER BY ro.id DESC
-    LIMIT 50
-")->fetchAll();
-
-function h(?string $v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
-}
+$accionesConCampo = [
+    [
+        'codigo' => 'bloquear_dominio',
+        'nombre' => 'Bloquear dominio',
+        'desc' => 'Bloquea un dominio en el archivo hosts.',
+        'campo' => 'dominio',
+        'placeholder' => 'ejemplo.com'
+    ],
+    [
+        'codigo' => 'buscar_archivo',
+        'nombre' => 'Buscar archivo',
+        'desc' => 'Busca un archivo por nombre en el disco C.',
+        'campo' => 'nombre_archivo',
+        'placeholder' => 'malware.exe'
+    ],
+    [
+        'codigo' => 'cuarentena_archivo',
+        'nombre' => 'Enviar archivo a cuarentena',
+        'desc' => 'Mueve un archivo sospechoso a la cuarentena del agente.',
+        'campo' => 'ruta_archivo',
+        'placeholder' => 'C:\\Users\\Usuario\\Desktop\\archivo.exe'
+    ],
+    [
+        'codigo' => 'remediar_tareas',
+        'nombre' => 'Desactivar tarea programada',
+        'desc' => 'Desactiva una tarea programada concreta.',
+        'campo' => 'nombre_tarea',
+        'placeholder' => '\\NombreTarea'
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -95,228 +164,147 @@ function h(?string $v): string {
             background: #f4f6f8;
             margin: 0;
             padding: 24px;
-            color: #1f2937;
+            color: #111827;
         }
 
         h1 {
             margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .intro {
+            margin-bottom: 24px;
+            color: #4b5563;
+        }
+
+        .alert-ok {
+            background: #dcfce7;
+            color: #166534;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
-        .card {
-            background: white;
+        .action-card {
+            border: 1px solid #e5e7eb;
             border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
+            padding: 16px;
+            background: #f9fafb;
         }
 
-        label {
-            display: block;
-            margin-top: 12px;
-            font-weight: bold;
+        .action-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 17px;
         }
 
-        select, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
+        .action-card p {
+            min-height: 40px;
+            margin: 0 0 14px 0;
+            color: #4b5563;
             font-size: 14px;
         }
 
-        textarea {
-            min-height: 90px;
-            font-family: monospace;
-        }
-
         button {
+            width: 100%;
+            border: none;
             background: #111827;
             color: white;
+            padding: 11px;
+            border-radius: 8px;
             cursor: pointer;
-            border: none;
-            margin-top: 16px;
+            font-size: 14px;
         }
 
         button:hover {
             background: #374151;
         }
 
-        table {
+        input {
             width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th, td {
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
             padding: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
+            margin-bottom: 12px;
             font-size: 14px;
         }
-
-        th {
-            background: #e5e7eb;
-        }
-
-        .ok {
-            background: #dcfce7;
-            color: #166534;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-        }
-
-        .error {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 12px;
-            background: #e5e7eb;
-        }
-
-        .pendiente { background: #fef3c7; }
-        .en_proceso { background: #dbeafe; }
-        .completada { background: #dcfce7; }
-        .error_estado { background: #fee2e2; }
     </style>
 </head>
 <body>
 
 <h1>Respuesta ante eventos</h1>
-
-<p>Módulo para lanzar acciones de respuesta sobre equipos gestionados por Velociraptor.</p>
+<p class="intro">Ejecutamos acciones rápidas de respuesta sobre este equipo mediante el Agente Zypher.</p>
 
 <?php if ($mensaje): ?>
-    <div class="ok"><?= h($mensaje) ?></div>
+    <div class="alert-ok"><?= h($mensaje) ?></div>
 <?php endif; ?>
 
 <?php if ($error): ?>
-    <div class="error"><?= h($error) ?></div>
+    <div class="alert-error"><?= h($error) ?></div>
 <?php endif; ?>
 
-<div class="grid">
-    <div class="card">
-        <h2>Lanzar acción</h2>
+<div class="section">
+    <h2>Acciones rápidas</h2>
 
-        <form method="POST">
-            <label>Equipo</label>
-            <select name="equipo_id" required>
-                <option value="">Seleccionar equipo</option>
-                <?php foreach ($equipos as $equipo): ?>
-                    <option value="<?= (int)$equipo['id'] ?>">
-                        <?= h($equipo['hostname']) ?> - <?= h($equipo['velociraptor_client_id']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+    <div class="grid">
+        <?php foreach ($accionesRapidas as $accion): ?>
+            <div class="action-card">
+                <h3><?= h($accion['nombre']) ?></h3>
+                <p><?= h($accion['desc']) ?></p>
 
-            <label>Acción</label>
-            <select name="accion_id" required>
-                <option value="">Seleccionar acción</option>
-                <?php foreach ($acciones as $accion): ?>
-                    <option value="<?= (int)$accion['id'] ?>">
-                        [<?= h($accion['tipo']) ?>] <?= h($accion['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-
-            <label>Parámetros JSON</label>
-            <textarea name="parametros" placeholder='Ejemplo: {"comando":"whoami"}'></textarea>
-
-            <button type="submit">Crear orden</button>
-        </form>
-    </div>
-
-    <div class="card">
-        <h2>Equipos disponibles</h2>
-
-        <table>
-            <thead>
-            <tr>
-                <th>Equipo</th>
-                <th>Sistema</th>
-                <th>Client ID</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($equipos as $equipo): ?>
-                <tr>
-                    <td><?= h($equipo['hostname']) ?></td>
-                    <td><?= h($equipo['sistema']) ?></td>
-                    <td><?= h($equipo['velociraptor_client_id']) ?></td>
-                </tr>
-            <?php endforeach; ?>
-
-            <?php if (!$equipos): ?>
-                <tr>
-                    <td colspan="3">No hay equipos sincronizados.</td>
-                </tr>
-            <?php endif; ?>
-            </tbody>
-        </table>
+                <form method="POST">
+                    <input type="hidden" name="accion" value="<?= h($accion['codigo']) ?>">
+                    <button type="submit">Ejecutar</button>
+                </form>
+            </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
-<div class="card">
-    <h2>Últimas órdenes</h2>
+<div class="section">
+    <h2>Acciones con dato necesario</h2>
 
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Equipo</th>
-            <th>Acción</th>
-            <th>Estado</th>
-            <th>Parámetros</th>
-            <th>Flow ID</th>
-            <th>Error</th>
-            <th>Creado</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($ordenes as $orden): ?>
-            <?php
-            $estado = (string)$orden['estado'];
-            $class = match ($estado) {
-                'pendiente' => 'pendiente',
-                'en_proceso' => 'en_proceso',
-                'completada' => 'completada',
-                'error' => 'error_estado',
-                default => ''
-            };
-            ?>
-            <tr>
-                <td><?= (int)$orden['id'] ?></td>
-                <td><?= h($orden['hostname']) ?></td>
-                <td><?= h($orden['accion_nombre']) ?></td>
-                <td><span class="badge <?= h($class) ?>"><?= h($estado) ?></span></td>
-                <td><code><?= h(json_encode($orden['parametros'], JSON_UNESCAPED_UNICODE)) ?></code></td>
-                <td><?= h($orden['flow_id']) ?></td>
-                <td><?= h($orden['error']) ?></td>
-                <td><?= h($orden['creado_en']) ?></td>
-            </tr>
+    <div class="grid">
+        <?php foreach ($accionesConCampo as $accion): ?>
+            <div class="action-card">
+                <h3><?= h($accion['nombre']) ?></h3>
+                <p><?= h($accion['desc']) ?></p>
+
+                <form method="POST">
+                    <input type="hidden" name="accion" value="<?= h($accion['codigo']) ?>">
+                    <input
+                        type="text"
+                        name="<?= h($accion['campo']) ?>"
+                        placeholder="<?= h($accion['placeholder']) ?>"
+                        required
+                    >
+                    <button type="submit">Ejecutar</button>
+                </form>
+            </div>
         <?php endforeach; ?>
-
-        <?php if (!$ordenes): ?>
-            <tr>
-                <td colspan="8">Todavía no hay órdenes.</td>
-            </tr>
-        <?php endif; ?>
-        </tbody>
-    </table>
+    </div>
 </div>
 
 </body>
