@@ -16,7 +16,7 @@
             <a href="/Escaneo archivos Modulo/escaneo.php">Escaneo de archivos y reputación</a>
             <a href="/Monitorizacion modulo/monitorizacion_eventos.php">Monitorización de eventos</a>
             <a href="/FIM Modulo/detector_fim.php">Monitorización de integridad de archivos</a>
-            <a href="/respuesta.php">Respuesta ante eventos</a>
+            <a href="/respuesta_eventos.php">Respuesta ante eventos</a>
         </div>
     </div>
 
