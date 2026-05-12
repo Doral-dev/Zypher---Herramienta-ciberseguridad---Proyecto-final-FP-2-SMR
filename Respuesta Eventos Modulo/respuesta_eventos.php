@@ -10,7 +10,8 @@ $AGENTE_ID = 'windows-agent-001';
 $mensaje = '';
 $error = '';
 
-function h(?string $v): string {
+function h(?string $v): string
+{
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
@@ -48,7 +49,7 @@ function crearOrden(PDO $pdo, string $agenteId, string $codigoAccion, array $par
         INSERT INTO respuesta_ordenes
         (equipo_id, accion_id, parametros, estado)
         VALUES
-        (:equipo_id, :accion_id, :parametros::jsonb, 'pendiente')
+        (:equipo_id, :accion_id, CAST(:parametros AS jsonb), 'pendiente')
     ");
 
     $stmt->execute([
@@ -112,14 +113,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $accionesRapidas = [
-    ['codigo' => 'listar_procesos', 'nombre' => 'Listar procesos', 'desc' => 'Muestra los procesos activos del equipo.'],
-    ['codigo' => 'listar_conexiones', 'nombre' => 'Ver conexiones', 'desc' => 'Muestra conexiones de red activas.'],
-    ['codigo' => 'listar_servicios', 'nombre' => 'Ver servicios', 'desc' => 'Muestra servicios instalados.'],
-    ['codigo' => 'listar_tareas', 'nombre' => 'Ver tareas programadas', 'desc' => 'Muestra tareas programadas.'],
-    ['codigo' => 'listar_firewall', 'nombre' => 'Ver firewall', 'desc' => 'Muestra reglas del firewall.'],
-    ['codigo' => 'listar_usuarios', 'nombre' => 'Ver usuarios', 'desc' => 'Muestra usuarios locales.'],
-    ['codigo' => 'monitor_cuarentena', 'nombre' => 'Ver cuarentena', 'desc' => 'Muestra archivos en cuarentena.'],
-    ['codigo' => 'matar_psexec', 'nombre' => 'Eliminar PsExec', 'desc' => 'Intenta eliminar el servicio PsExec si existe.'],
+    [
+        'codigo' => 'listar_procesos',
+        'nombre' => 'Listar procesos',
+        'desc' => 'Muestra los procesos activos del equipo.'
+    ],
+    [
+        'codigo' => 'listar_conexiones',
+        'nombre' => 'Ver conexiones',
+        'desc' => 'Muestra conexiones de red activas.'
+    ],
+    [
+        'codigo' => 'listar_servicios',
+        'nombre' => 'Ver servicios',
+        'desc' => 'Muestra servicios instalados.'
+    ],
+    [
+        'codigo' => 'listar_tareas',
+        'nombre' => 'Ver tareas programadas',
+        'desc' => 'Muestra tareas programadas.'
+    ],
+    [
+        'codigo' => 'listar_firewall',
+        'nombre' => 'Ver firewall',
+        'desc' => 'Muestra reglas del firewall.'
+    ],
+    [
+        'codigo' => 'listar_usuarios',
+        'nombre' => 'Ver usuarios',
+        'desc' => 'Muestra usuarios locales.'
+    ],
+    [
+        'codigo' => 'monitor_cuarentena',
+        'nombre' => 'Ver cuarentena',
+        'desc' => 'Muestra archivos en cuarentena.'
+    ],
+    [
+        'codigo' => 'matar_psexec',
+        'nombre' => 'Eliminar PsExec',
+        'desc' => 'Intenta eliminar el servicio PsExec si existe.'
+    ],
 ];
 
 $accionesConCampo = [
@@ -152,6 +185,42 @@ $accionesConCampo = [
         'placeholder' => '\\NombreTarea'
     ],
 ];
+
+$ultimaOrden = $pdo->query("
+    SELECT 
+        ro.estado,
+        ro.resultado,
+        ro.error,
+        ro.creado_en,
+        ro.finalizado_en,
+        ra.nombre AS accion_nombre
+    FROM respuesta_ordenes ro
+    JOIN respuesta_acciones ra ON ra.id = ro.accion_id
+    ORDER BY ro.id DESC
+    LIMIT 1
+")->fetch();
+
+$resultadoTexto = '';
+
+if ($ultimaOrden) {
+    $resultado = $ultimaOrden['resultado'];
+
+    if (is_string($resultado)) {
+        $json = json_decode($resultado, true);
+    } else {
+        $json = $resultado;
+    }
+
+    if (is_array($json) && isset($json['salida'])) {
+        $resultadoTexto = (string)$json['salida'];
+    } elseif (is_array($json)) {
+        $resultadoTexto = json_encode($json, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+    } elseif ($resultado !== null) {
+        $resultadoTexto = (string)$resultado;
+    } else {
+        $resultadoTexto = 'Todavía no hay resultado. Espera unos segundos y recarga la página.';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -250,6 +319,47 @@ $accionesConCampo = [
             margin-bottom: 12px;
             font-size: 14px;
         }
+
+        .resultado-box {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 10px;
+            overflow: auto;
+            max-height: 420px;
+            white-space: pre-wrap;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .estado {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            background: #e5e7eb;
+            margin-bottom: 12px;
+        }
+
+        .estado-pendiente {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .estado-en_proceso {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .estado-completada {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .estado-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
     </style>
 </head>
 <body>
@@ -306,6 +416,29 @@ $accionesConCampo = [
         <?php endforeach; ?>
     </div>
 </div>
+
+<?php if ($ultimaOrden): ?>
+    <?php
+    $estado = (string)$ultimaOrden['estado'];
+    $estadoClass = 'estado-' . $estado;
+    ?>
+    <div class="section">
+        <h2>Resultado de la última acción</h2>
+
+        <p>
+            Acción: <?= h($ultimaOrden['accion_nombre']) ?><br>
+            Fecha: <?= h($ultimaOrden['creado_en']) ?>
+        </p>
+
+        <span class="estado <?= h($estadoClass) ?>"><?= h($estado) ?></span>
+
+        <?php if (!empty($ultimaOrden['error'])): ?>
+            <div class="alert-error"><?= h($ultimaOrden['error']) ?></div>
+        <?php endif; ?>
+
+        <div class="resultado-box"><?= h($resultadoTexto) ?></div>
+    </div>
+<?php endif; ?>
 
 </body>
 </html>
