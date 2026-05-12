@@ -2,42 +2,40 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
-
 require_once __DIR__ . '/conexion.php';
 
-$TOKEN_VALIDO = 'ZYPHER_RESPUESTA_TOKEN_2026';
+const TOKEN = 'ZYPHER_RESPUESTA_TOKEN_2026';
 
-function responder(bool $ok, array $data = []): void {
-    echo json_encode(array_merge(['ok' => $ok], $data), JSON_UNESCAPED_UNICODE);
+function responder(array $data): void {
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-$raw = file_get_contents('php://input');
-$data = json_decode($raw, true);
-
-if (!is_array($data)) {
-    responder(false, ['error' => 'JSON inválido']);
-}
-
-$token = $data['token'] ?? '';
-$ordenId = (int)($data['orden_id'] ?? 0);
-$estado = $data['estado'] ?? '';
-$resultado = $data['resultado'] ?? '';
-$error = $data['error'] ?? '';
-
-if ($token !== $TOKEN_VALIDO) {
-    responder(false, ['error' => 'Token inválido']);
-}
-
-if ($ordenId <= 0) {
-    responder(false, ['error' => 'orden_id inválido']);
-}
-
-if (!in_array($estado, ['completada', 'error'], true)) {
-    responder(false, ['error' => 'Estado inválido']);
-}
-
 try {
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw, true);
+
+    if (!is_array($data)) {
+        responder(['ok' => false, 'error' => 'JSON inválido']);
+    }
+
+    if (($data['token'] ?? '') !== TOKEN) {
+        responder(['ok' => false, 'error' => 'Token inválido']);
+    }
+
+    $ordenId = (int)($data['orden_id'] ?? 0);
+    $estado = $data['estado'] ?? '';
+    $resultado = $data['resultado'] ?? null;
+    $error = $data['error'] ?? '';
+
+    if ($ordenId <= 0) {
+        responder(['ok' => false, 'error' => 'orden_id inválido']);
+    }
+
+    if (!in_array($estado, ['completada', 'error'], true)) {
+        responder(['ok' => false, 'error' => 'Estado inválido']);
+    }
+
     $pdo = getPDO();
 
     $stmt = $pdo->prepare("
@@ -46,22 +44,18 @@ try {
             resultado = :resultado::jsonb,
             error = :error,
             finalizado_en = CURRENT_TIMESTAMP
-        WHERE id = :orden_id
+        WHERE id = :id
     ");
-
-    $resultadoJson = json_encode([
-        'salida' => $resultado
-    ], JSON_UNESCAPED_UNICODE);
 
     $stmt->execute([
         ':estado' => $estado,
-        ':resultado' => $resultadoJson,
+        ':resultado' => json_encode($resultado, JSON_UNESCAPED_UNICODE),
         ':error' => $error,
-        ':orden_id' => $ordenId,
+        ':id' => $ordenId
     ]);
 
-    responder(true, ['mensaje' => 'Resultado guardado']);
+    responder(['ok' => true]);
 
 } catch (Throwable $e) {
-    responder(false, ['error' => $e->getMessage()]);
+    responder(['ok' => false, 'error' => $e->getMessage()]);
 }
