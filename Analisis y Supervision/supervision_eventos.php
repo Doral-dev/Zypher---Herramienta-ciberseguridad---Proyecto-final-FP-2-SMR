@@ -7,28 +7,246 @@ $AGENTE_ID = 'windows-agent-001';
 $mensaje = '';
 $error = '';
 
-$accionesDisponibles = [
-    'listar_procesos' => [
-        'nombre' => 'Listar procesos',
-        'descripcion' => 'Ejecuta Windows.System.Pslist con Velociraptor.',
-    ],
-    'listar_conexiones' => [
-        'nombre' => 'Listar conexiones',
-        'descripcion' => 'Ejecuta Windows.Network.Netstat con Velociraptor.',
-    ],
-    'listar_servicios' => [
-        'nombre' => 'Listar servicios',
-        'descripcion' => 'Ejecuta Windows.System.Services con Velociraptor.',
-    ],
-    'listar_tareas' => [
-        'nombre' => 'Listar tareas programadas',
-        'descripcion' => 'Ejecuta Windows.System.TaskScheduler con Velociraptor.',
-    ],
-    'listar_usuarios' => [
-        'nombre' => 'Listar usuarios',
-        'descripcion' => 'Ejecuta Windows.Sys.Users con Velociraptor.',
-    ],
-];
+$artefactosTexto = <<<'TXT'
+Windows.Analysis.EvidenceOfDownload
+Windows.Applications.ChocolateyPackages
+Windows.Applications.Chrome.Extensions
+Windows.Applications.Chrome.History
+Windows.Applications.Edge.History
+Windows.Applications.Firefox.Downloads
+Windows.Applications.Firefox.History
+Windows.Applications.IISLogs
+Windows.Applications.TeamViewer.Incoming
+Windows.Attack.ParentProcess
+Windows.Attack.Prefetch
+Windows.Attack.UnexpectedImagePath
+Windows.Detection.Amcache
+Windows.Detection.BinaryRename
+Windows.Detection.EnvironmentVariables
+Windows.Detection.Impersonation
+Windows.Detection.ProcessCreation
+Windows.Detection.PsexecService
+Windows.Detection.Registry
+Windows.Detection.Thumbdrives.List
+Windows.Detection.Usn
+Windows.Detection.WMIProcessCreation
+Windows.EventLogs.AlternateLogon
+Windows.EventLogs.Cleared
+Windows.EventLogs.DHCP
+Windows.EventLogs.Evtx
+Windows.EventLogs.ExplicitLogon
+Windows.EventLogs.Modifications
+Windows.EventLogs.PowershellModule
+Windows.EventLogs.PowershellScriptblock
+Windows.EventLogs.RDPAuth
+Windows.EventLogs.ScheduledTasks
+Windows.EventLogs.ServiceCreationComspec
+Windows.Forensics.Amcache
+Windows.Forensics.Bam
+Windows.Forensics.CertUtil
+Windows.Forensics.FilenameSearch
+Windows.Forensics.JumpLists
+Windows.Forensics.Lnk
+Windows.Forensics.Prefetch
+Windows.Forensics.RDPCache
+Windows.Forensics.RecentApps
+Windows.Forensics.RecycleBin
+Windows.Forensics.Shellbags
+Windows.Forensics.UserAccessLogs
+Windows.Network.ArpCache
+Windows.Network.InterfaceAddresses
+Windows.Network.ListeningPorts
+Windows.Network.Netstat
+Windows.Network.NetstatEnriched
+Windows.Persistence.PermanentWMIEvents
+Windows.Persistence.PowershellProfile
+Windows.Persistence.PowershellRegistry
+Windows.Registry.AppCompatCache
+Windows.Registry.MountPoints2
+Windows.Registry.PortProxy
+Windows.Registry.PuttyHostKeys
+Windows.Registry.RDP
+Windows.Registry.RecentDocs
+Windows.Registry.UserAssist
+Windows.Registry.WDigest
+Windows.Search.FileFinder
+Windows.Sys.AllUsers
+Windows.Sys.AppcompatShims
+Windows.Sys.CertificateAuthorities
+Windows.Sys.DiskInfo
+Windows.Sys.Drivers
+Windows.Sys.FirewallRules
+Windows.Sys.Interfaces
+Windows.Sys.Programs
+Windows.Sys.StartupItems
+Windows.Sys.Users
+Windows.System.AuditPolicy
+Windows.System.CriticalServices
+Windows.System.DLLs
+Windows.System.DNSCache
+Windows.System.DomainRole
+Windows.System.Handles
+Windows.System.HostsFile
+Windows.System.LocalAdmins
+Windows.System.Powershell.ModuleAnalysisCache
+Windows.System.Powershell.PSReadline
+Windows.System.Pslist
+Windows.System.RootCAStore
+Windows.System.SVCHost
+Windows.System.Services
+Windows.System.Shares
+Windows.System.Signers
+Windows.System.TaskScheduler
+Windows.System.Threads
+Windows.System.UntrustedBinaries
+Windows.System.WMIQuery
+Windows.Timeline.Prefetch
+Windows.Timeline.Registry.RunMRU
+TXT;
+
+function obtenerCategoria(string $artefacto): string
+{
+    if (str_contains($artefacto, '.Network.')) return 'Red';
+    if (str_contains($artefacto, '.EventLogs.') || str_contains($artefacto, '.Events.')) return 'Eventos Windows';
+    if (str_contains($artefacto, '.Persistence.')) return 'Persistencia';
+    if (str_contains($artefacto, '.Forensics.') || str_contains($artefacto, '.Timeline.')) return 'Forense básico';
+    if (str_contains($artefacto, '.Detection.') || str_contains($artefacto, '.Attack.') || str_contains($artefacto, '.Analysis.')) return 'Detección';
+    if (str_contains($artefacto, '.Applications.')) return 'Aplicaciones';
+    if (str_contains($artefacto, '.Registry.')) return 'Registro';
+    if (str_contains($artefacto, '.Search.')) return 'Búsqueda';
+    if (str_contains($artefacto, '.Sys.') || str_contains($artefacto, '.System.')) return 'Sistema';
+
+    return 'Otros';
+}
+
+function nombreBonito(string $artefacto): string
+{
+    $partes = explode('.', $artefacto);
+    $nombre = end($partes) ?: $artefacto;
+
+    $nombre = preg_replace('/(?<!^)([A-Z])/', ' $1', $nombre);
+    $nombre = str_replace(['R D P', 'D N S', 'W M I', 'D L Ls', 'P S Readline'], ['RDP', 'DNS', 'WMI', 'DLLs', 'PSReadline'], $nombre);
+
+    return trim((string)$nombre);
+}
+
+function descripcionArtefacto(string $artefacto): string
+{
+    $categoria = obtenerCategoria($artefacto);
+
+    return match ($categoria) {
+        'Sistema' => 'Recoge información del sistema usando Velociraptor.',
+        'Red' => 'Analiza información de red del equipo.',
+        'Eventos Windows' => 'Consulta eventos relevantes de Windows.',
+        'Persistencia' => 'Busca posibles mecanismos de persistencia.',
+        'Forense básico' => 'Recoge evidencias forenses básicas.',
+        'Detección' => 'Analiza indicadores o comportamientos sospechosos.',
+        'Aplicaciones' => 'Revisa datos de aplicaciones instaladas o usadas.',
+        'Registro' => 'Consulta claves del registro relevantes.',
+        'Búsqueda' => 'Busca archivos o evidencias en el equipo.',
+        default => 'Ejecuta análisis seguro con Velociraptor.',
+    };
+}
+
+function construirAcciones(string $texto): array
+{
+    $lineas = preg_split('/\R/', trim($texto));
+    $acciones = [];
+
+    foreach ($lineas as $linea) {
+        $artefacto = trim($linea);
+
+        if ($artefacto === '') {
+            continue;
+        }
+
+        $acciones[] = [
+            'codigo' => $artefacto,
+            'artefacto' => $artefacto,
+            'nombre' => nombreBonito($artefacto),
+            'categoria' => obtenerCategoria($artefacto),
+            'descripcion' => descripcionArtefacto($artefacto),
+        ];
+    }
+
+    usort($acciones, function ($a, $b) {
+        return [$a['categoria'], $a['nombre']] <=> [$b['categoria'], $b['nombre']];
+    });
+
+    return $acciones;
+}
+
+function pintarResultado(?string $resultado): string
+{
+    if (!$resultado) {
+        return '<span>Sin resultado.</span>';
+    }
+
+    $json = json_decode($resultado, true);
+
+    if (!is_array($json)) {
+        return '<pre>' . htmlspecialchars($resultado) . '</pre>';
+    }
+
+    if (!$json) {
+        return '<span>Velociraptor no devolvió filas.</span>';
+    }
+
+    $primerasFilas = array_slice($json, 0, 50);
+    $columnasPreferidas = ['Name', 'Pid', 'Ppid', 'Username', 'Exe', 'CommandLine', 'LocalAddr', 'LocalPort', 'RemoteAddr', 'RemotePort', 'State', 'ServiceName', 'DisplayName', 'StartMode', 'PathName'];
+
+    $columnas = [];
+
+    foreach ($columnasPreferidas as $columna) {
+        foreach ($primerasFilas as $fila) {
+            if (is_array($fila) && array_key_exists($columna, $fila)) {
+                $columnas[] = $columna;
+                break;
+            }
+        }
+    }
+
+    if (!$columnas) {
+        $columnas = array_keys($primerasFilas[0] ?? []);
+        $columnas = array_slice($columnas, 0, 8);
+    }
+
+    if (!$columnas) {
+        return '<pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
+    }
+
+    $html = '<div class="resultado-info">Mostrando ' . count($primerasFilas) . ' filas. Resultado completo debajo.</div>';
+    $html .= '<div class="tabla-scroll"><table class="tabla-resultado"><thead><tr>';
+
+    foreach ($columnas as $columna) {
+        $html .= '<th>' . htmlspecialchars($columna) . '</th>';
+    }
+
+    $html .= '</tr></thead><tbody>';
+
+    foreach ($primerasFilas as $fila) {
+        $html .= '<tr>';
+
+        foreach ($columnas as $columna) {
+            $valor = $fila[$columna] ?? '';
+
+            if (is_array($valor)) {
+                $valor = json_encode($valor, JSON_UNESCAPED_UNICODE);
+            }
+
+            $html .= '<td>' . htmlspecialchars((string)$valor) . '</td>';
+        }
+
+        $html .= '</tr>';
+    }
+
+    $html .= '</tbody></table></div>';
+    $html .= '<details class="detalle-json"><summary>Ver JSON completo</summary><pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre></details>';
+
+    return $html;
+}
+
+$acciones = construirAcciones($artefactosTexto);
 
 try {
     $pdo = getPDO();
@@ -36,7 +254,9 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $codigo = $_POST['codigo'] ?? '';
 
-        if (!isset($accionesDisponibles[$codigo])) {
+        $codigosValidos = array_column($acciones, 'codigo');
+
+        if (!in_array($codigo, $codigosValidos, true)) {
             throw new Exception('Acción no válida.');
         }
 
@@ -80,12 +300,18 @@ try {
     $error = $e->getMessage();
     $ordenes = [];
 }
+
+$accionesPorCategoria = [];
+
+foreach ($acciones as $accion) {
+    $accionesPorCategoria[$accion['categoria']][] = $accion;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Respuesta ante eventos - Zypher</title>
+    <title>Análisis y supervisión - Zypher</title>
     <style>
         body {
             margin: 0;
@@ -95,7 +321,7 @@ try {
         }
 
         .contenedor {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 30px auto;
             padding: 20px;
         }
@@ -134,30 +360,73 @@ try {
             margin-bottom: 16px;
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 18px;
-            margin-bottom: 30px;
-        }
-
-        .card {
+        .buscador {
             background: white;
             border-radius: 14px;
             padding: 18px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
             border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
         }
 
-        .card h3 {
-            margin: 0 0 10px;
+        .buscador input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 15px;
+        }
+
+        details.categoria {
+            background: white;
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+        }
+
+        details.categoria summary {
+            cursor: pointer;
             font-size: 18px;
+            font-weight: bold;
         }
 
-        .card p {
-            min-height: 48px;
-            font-size: 14px;
+        .acciones-lista {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 12px;
+        }
+
+        .accion {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            background: #f9fafb;
+        }
+
+        .accion h3 {
+            margin: 0 0 6px;
+            font-size: 16px;
+        }
+
+        .accion p {
+            margin: 0 0 8px;
+            font-size: 13px;
             color: #4b5563;
+        }
+
+        .artefacto {
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            background: #e5e7eb;
+            padding: 5px 7px;
+            border-radius: 7px;
+            display: inline-block;
+            margin-bottom: 10px;
+            word-break: break-all;
         }
 
         button {
@@ -165,7 +434,7 @@ try {
             border: 0;
             background: #2563eb;
             color: white;
-            padding: 11px;
+            padding: 10px;
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
@@ -179,6 +448,7 @@ try {
             background: white;
             border-radius: 14px;
             padding: 18px;
+            margin-top: 28px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.06);
             border: 1px solid #e5e7eb;
         }
@@ -216,10 +486,6 @@ try {
         .completada { background: #dcfce7; color: #166534; }
         .error { background: #fee2e2; color: #991b1b; }
 
-        details {
-            max-width: 620px;
-        }
-
         pre {
             white-space: pre-wrap;
             word-break: break-word;
@@ -227,8 +493,36 @@ try {
             color: #e5e7eb;
             padding: 12px;
             border-radius: 10px;
-            max-height: 360px;
+            max-height: 420px;
             overflow: auto;
+        }
+
+        .tabla-scroll {
+            max-width: 100%;
+            overflow: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .tabla-resultado th,
+        .tabla-resultado td {
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .resultado-info {
+            font-size: 13px;
+            color: #4b5563;
+            margin: 8px 0;
+        }
+
+        .detalle-json {
+            margin-top: 10px;
+        }
+
+        .oculto {
+            display: none !important;
         }
     </style>
 </head>
@@ -236,8 +530,8 @@ try {
 <div class="contenedor">
 
     <div class="cabecera">
-        <h1>Respuesta ante eventos</h1>
-        <p>Ejecutamos acciones con Velociraptor desde el agente Windows.</p>
+        <h1>Análisis y supervisión</h1>
+        <p>Ejecutamos análisis seguros sobre equipos Windows usando Velociraptor.</p>
     </div>
 
     <?php if ($mensaje): ?>
@@ -248,18 +542,31 @@ try {
         <div class="alerta-error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <div class="grid">
-        <?php foreach ($accionesDisponibles as $codigo => $accion): ?>
-            <div class="card">
-                <h3><?= htmlspecialchars($accion['nombre']) ?></h3>
-                <p><?= htmlspecialchars($accion['descripcion']) ?></p>
-                <form method="post">
-                    <input type="hidden" name="codigo" value="<?= htmlspecialchars($codigo) ?>">
-                    <button type="submit">Ejecutar</button>
-                </form>
-            </div>
-        <?php endforeach; ?>
+    <div class="buscador">
+        <input type="text" id="buscarAccion" placeholder="Buscar acción, categoría o artefacto...">
     </div>
+
+    <?php foreach ($accionesPorCategoria as $categoria => $lista): ?>
+        <details class="categoria">
+            <summary><?= htmlspecialchars($categoria) ?> (<?= count($lista) ?>)</summary>
+
+            <div class="acciones-lista">
+                <?php foreach ($lista as $accion): ?>
+                    <div class="accion"
+                         data-texto="<?= htmlspecialchars(strtolower($accion['nombre'] . ' ' . $accion['categoria'] . ' ' . $accion['artefacto'])) ?>">
+                        <h3><?= htmlspecialchars($accion['nombre']) ?></h3>
+                        <p><?= htmlspecialchars($accion['descripcion']) ?></p>
+                        <span class="artefacto"><?= htmlspecialchars($accion['artefacto']) ?></span>
+
+                        <form method="post">
+                            <input type="hidden" name="codigo" value="<?= htmlspecialchars($accion['codigo']) ?>">
+                            <button type="submit">Ejecutar</button>
+                        </form>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </details>
+    <?php endforeach; ?>
 
     <div class="bloque">
         <h2>Últimas acciones</h2>
@@ -281,23 +588,22 @@ try {
             <?php endif; ?>
 
             <?php foreach ($ordenes as $orden): ?>
-                <?php
-                $codigo = $orden['codigo'];
-                $nombreAccion = $accionesDisponibles[$codigo]['nombre'] ?? $codigo;
-                ?>
                 <tr>
                     <td><?= htmlspecialchars((string)$orden['creado_en']) ?></td>
-                    <td><?= htmlspecialchars($nombreAccion) ?></td>
                     <td>
-                        <span class="estado <?= htmlspecialchars($orden['estado']) ?>">
-                            <?= htmlspecialchars($orden['estado']) ?>
+                        <div><?= htmlspecialchars(nombreBonito((string)$orden['codigo'])) ?></div>
+                        <div class="artefacto"><?= htmlspecialchars((string)$orden['codigo']) ?></div>
+                    </td>
+                    <td>
+                        <span class="estado <?= htmlspecialchars((string)$orden['estado']) ?>">
+                            <?= htmlspecialchars((string)$orden['estado']) ?>
                         </span>
                     </td>
                     <td>
                         <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
                             <details>
                                 <summary>Ver resultado</summary>
-                                <pre><?= htmlspecialchars((string)$orden['resultado']) ?></pre>
+                                <?= pintarResultado((string)$orden['resultado']) ?>
                             </details>
                         <?php elseif ($orden['estado'] === 'error'): ?>
                             <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
@@ -312,5 +618,25 @@ try {
     </div>
 
 </div>
+
+<script>
+    const buscador = document.getElementById('buscarAccion');
+    const acciones = document.querySelectorAll('.accion');
+
+    buscador.addEventListener('input', function () {
+        const texto = this.value.toLowerCase().trim();
+
+        acciones.forEach(function (accion) {
+            const contenido = accion.getAttribute('data-texto') || '';
+            accion.classList.toggle('oculto', texto !== '' && !contenido.includes(texto));
+        });
+
+        document.querySelectorAll('details.categoria').forEach(function (categoria) {
+            if (texto !== '') {
+                categoria.open = true;
+            }
+        });
+    });
+</script>
 </body>
 </html>
