@@ -47,6 +47,7 @@ try {
             flow_id = NULLIF(:flow_id, ''),
             actualizado_en = CURRENT_TIMESTAMP
         WHERE id = :id
+          AND estado <> 'cancelada'
     ");
 
     $stmt->execute([
@@ -57,22 +58,24 @@ try {
         ':id' => $ordenId
     ]);
 
-    $stmtHistorial = $pdo->prepare("
-        INSERT INTO respuesta_historial
-        (orden_id, agente_id, accion, estado, resultado, error, fecha)
-        SELECT
-            id,
-            agente_id,
-            codigo,
-            estado,
-            resultado,
-            error,
-            CURRENT_TIMESTAMP
-        FROM respuesta_ordenes
-        WHERE id = :id
-    ");
+    if ($stmt->rowCount() > 0) {
+        $stmtHistorial = $pdo->prepare("
+            INSERT INTO respuesta_historial
+            (orden_id, agente_id, accion, estado, resultado, error, fecha)
+            SELECT
+                id,
+                agente_id,
+                codigo,
+                estado,
+                resultado,
+                error,
+                CURRENT_TIMESTAMP
+            FROM respuesta_ordenes
+            WHERE id = :id
+        ");
 
-    $stmtHistorial->execute([':id' => $ordenId]);
+        $stmtHistorial->execute([':id' => $ordenId]);
+    }
 
     responder(['ok' => true]);
 
