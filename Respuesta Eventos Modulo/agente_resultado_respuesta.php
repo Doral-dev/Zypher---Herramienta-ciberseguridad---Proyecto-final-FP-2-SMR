@@ -25,8 +25,9 @@ try {
 
     $ordenId = (int)($data['orden_id'] ?? 0);
     $estado = $data['estado'] ?? '';
-    $resultado = $data['resultado'] ?? null;
-    $error = $data['error'] ?? '';
+    $resultado = (string)($data['resultado'] ?? '');
+    $error = (string)($data['error'] ?? '');
+    $flowId = (string)($data['flow_id'] ?? '');
 
     if ($ordenId <= 0) {
         responder(['ok' => false, 'error' => 'orden_id inválido']);
@@ -41,18 +42,37 @@ try {
     $stmt = $pdo->prepare("
         UPDATE respuesta_ordenes
         SET estado = :estado,
-            resultado = :resultado::jsonb,
+            resultado = :resultado,
             error = :error,
-            finalizado_en = CURRENT_TIMESTAMP
+            flow_id = NULLIF(:flow_id, ''),
+            actualizado_en = CURRENT_TIMESTAMP
         WHERE id = :id
     ");
 
     $stmt->execute([
         ':estado' => $estado,
-        ':resultado' => json_encode($resultado, JSON_UNESCAPED_UNICODE),
+        ':resultado' => $resultado,
         ':error' => $error,
+        ':flow_id' => $flowId,
         ':id' => $ordenId
     ]);
+
+    $stmtHistorial = $pdo->prepare("
+        INSERT INTO respuesta_historial
+        (orden_id, agente_id, accion, estado, resultado, error, fecha)
+        SELECT
+            id,
+            agente_id,
+            codigo,
+            estado,
+            resultado,
+            error,
+            CURRENT_TIMESTAMP
+        FROM respuesta_ordenes
+        WHERE id = :id
+    ");
+
+    $stmtHistorial->execute([':id' => $ordenId]);
 
     responder(['ok' => true]);
 
