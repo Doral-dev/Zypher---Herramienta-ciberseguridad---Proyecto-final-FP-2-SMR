@@ -247,7 +247,7 @@ function pintarResultado(?string $resultado): string
         return '<pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
     }
 
-    $html = '<div class="resultado-info">Mostrando ' . count($primerasFilas) . ' filas. El JSON completo queda oculto debajo.</div>';
+    $html = '<div class="resultado-info">Mostrando ' . count($primerasFilas) . ' filas. Los detalles completos quedan ocultos debajo.</div>';
     $html .= '<div class="tabla-scroll"><table class="tabla-resultado"><thead><tr>';
 
     foreach ($columnas as $columna) {
@@ -273,12 +273,65 @@ function pintarResultado(?string $resultado): string
     }
 
     $html .= '</tbody></table></div>';
-    $html .= '<details class="detalle-json"><summary>Ver JSON completo</summary><pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre></details>';
+    $html .= '<details class="detalle-json"><summary>Ver detalles</summary><pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre></details>';
 
     return $html;
 }
 
+function pintarUltimasAcciones(array $ordenes): void
+{
+    ?>
+    <h2>Últimas acciones</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Acción</th>
+            <th>Estado</th>
+            <th>Resultado</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php if (!$ordenes): ?>
+            <tr>
+                <td colspan="4">No hay acciones todavía.</td>
+            </tr>
+        <?php endif; ?>
+
+        <?php foreach ($ordenes as $orden): ?>
+            <tr>
+                <td><?= htmlspecialchars((string)$orden['creado_en']) ?></td>
+                <td>
+                    <div><?= htmlspecialchars(nombreBonito((string)$orden['codigo'])) ?></div>
+                    <div class="artefacto"><?= htmlspecialchars((string)$orden['codigo']) ?></div>
+                </td>
+                <td>
+                    <span class="estado <?= htmlspecialchars((string)$orden['estado']) ?>">
+                        <?= htmlspecialchars((string)$orden['estado']) ?>
+                    </span>
+                </td>
+                <td>
+                    <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
+                        <details>
+                            <summary>Ver resultado</summary>
+                            <?= pintarResultado((string)$orden['resultado']) ?>
+                        </details>
+                    <?php elseif ($orden['estado'] === 'error'): ?>
+                        <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
+                    <?php else: ?>
+                        <span>Esperando al agente...</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php
+}
+
 $acciones = construirAcciones($artefactosTexto);
+$ordenes = [];
 
 try {
     $pdo = getPDO();
@@ -351,6 +404,11 @@ try {
     $ordenes = [];
 }
 
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'ultimas') {
+    pintarUltimasAcciones($ordenes);
+    exit;
+}
+
 $accionesPorCategoria = [];
 
 foreach ($acciones as $accion) {
@@ -410,24 +468,6 @@ foreach ($acciones as $accion) {
             margin-bottom: 16px;
         }
 
-        .buscador {
-            background: white;
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 20px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-        }
-
-        .buscador input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 13px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            font-size: 15px;
-        }
-
         details.categoria {
             background: white;
             border-radius: 14px;
@@ -452,20 +492,22 @@ foreach ($acciones as $accion) {
 
         .accion {
             border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 14px;
+            padding: 18px;
             background: #f9fafb;
+            min-height: 160px;
         }
 
         .accion h3 {
-            margin: 0 0 6px;
-            font-size: 16px;
+            margin: 0 0 8px;
+            font-size: 18px;
         }
 
         .accion p {
-            margin: 0 0 8px;
-            font-size: 13px;
+            margin: 0 0 10px;
+            font-size: 14px;
             color: #4b5563;
+            min-height: 36px;
         }
 
         .artefacto {
@@ -484,10 +526,11 @@ foreach ($acciones as $accion) {
             border: 0;
             background: #2563eb;
             color: white;
-            padding: 10px;
+            padding: 13px;
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 14px;
         }
 
         button:hover {
@@ -506,6 +549,16 @@ foreach ($acciones as $accion) {
             margin-top: 28px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.06);
             border: 1px solid #e5e7eb;
+        }
+
+        .bloque h2 {
+            margin-top: 0;
+        }
+
+        .actualizando {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 10px;
         }
 
         table {
@@ -575,10 +628,6 @@ foreach ($acciones as $accion) {
         .detalle-json {
             margin-top: 10px;
         }
-
-        .oculto {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -597,18 +646,13 @@ foreach ($acciones as $accion) {
         <div class="alerta-error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
-    <div class="buscador">
-        <input type="text" id="buscarAccion" placeholder="Buscar acción, categoría o artefacto...">
-    </div>
-
     <?php foreach ($accionesPorCategoria as $categoria => $lista): ?>
         <details class="categoria">
             <summary><?= htmlspecialchars($categoria) ?> (<?= count($lista) ?>)</summary>
 
             <div class="acciones-lista">
                 <?php foreach ($lista as $accion): ?>
-                    <div class="accion"
-                         data-texto="<?= htmlspecialchars(strtolower($accion['nombre'] . ' ' . $accion['categoria'] . ' ' . $accion['artefacto'])) ?>">
+                    <div class="accion">
                         <h3><?= htmlspecialchars($accion['nombre']) ?></h3>
                         <p><?= htmlspecialchars($accion['descripcion']) ?></p>
                         <span class="artefacto"><?= htmlspecialchars($accion['artefacto']) ?></span>
@@ -624,75 +668,15 @@ foreach ($acciones as $accion) {
     <?php endforeach; ?>
 
     <div class="bloque">
-        <h2>Últimas acciones</h2>
-
-        <table>
-            <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Acción</th>
-                <th>Estado</th>
-                <th>Resultado</th>
-            </tr>
-            </thead>
-            <tbody>
-            <?php if (!$ordenes): ?>
-                <tr>
-                    <td colspan="4">No hay acciones todavía.</td>
-                </tr>
-            <?php endif; ?>
-
-            <?php foreach ($ordenes as $orden): ?>
-                <tr>
-                    <td><?= htmlspecialchars((string)$orden['creado_en']) ?></td>
-                    <td>
-                        <div><?= htmlspecialchars(nombreBonito((string)$orden['codigo'])) ?></div>
-                        <div class="artefacto"><?= htmlspecialchars((string)$orden['codigo']) ?></div>
-                    </td>
-                    <td>
-                        <span class="estado <?= htmlspecialchars((string)$orden['estado']) ?>">
-                            <?= htmlspecialchars((string)$orden['estado']) ?>
-                        </span>
-                    </td>
-                    <td>
-                        <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
-                            <details>
-                                <summary>Ver resultado</summary>
-                                <?= pintarResultado((string)$orden['resultado']) ?>
-                            </details>
-                        <?php elseif ($orden['estado'] === 'error'): ?>
-                            <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
-                        <?php else: ?>
-                            <span>Esperando al agente...</span>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="actualizando">Últimas acciones se actualiza automáticamente cada 5 segundos.</div>
+        <div id="ultimasAcciones">
+            <?php pintarUltimasAcciones($ordenes); ?>
+        </div>
     </div>
 
 </div>
 
 <script>
-    const buscador = document.getElementById('buscarAccion');
-    const acciones = document.querySelectorAll('.accion');
-
-    buscador.addEventListener('input', function () {
-        const texto = this.value.toLowerCase().trim();
-
-        acciones.forEach(function (accion) {
-            const contenido = accion.getAttribute('data-texto') || '';
-            accion.classList.toggle('oculto', texto !== '' && !contenido.includes(texto));
-        });
-
-        document.querySelectorAll('details.categoria').forEach(function (categoria) {
-            if (texto !== '') {
-                categoria.open = true;
-            }
-        });
-    });
-
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function () {
             const boton = form.querySelector('button');
@@ -703,6 +687,27 @@ foreach ($acciones as $accion) {
             }
         });
     });
+
+    function actualizarUltimasAcciones() {
+        fetch(window.location.pathname + '?ajax=ultimas', {
+            cache: 'no-store'
+        })
+            .then(function (respuesta) {
+                return respuesta.text();
+            })
+            .then(function (html) {
+                const bloque = document.getElementById('ultimasAcciones');
+
+                if (bloque) {
+                    bloque.innerHTML = html;
+                }
+            })
+            .catch(function () {
+                console.log('No se pudo actualizar Últimas acciones');
+            });
+    }
+
+    setInterval(actualizarUltimasAcciones, 5000);
 </script>
 </body>
 </html>
