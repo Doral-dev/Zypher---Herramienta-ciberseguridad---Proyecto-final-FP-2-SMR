@@ -135,7 +135,6 @@ function nombreBonito(string $artefacto): string
 {
     $nombres = [
         'Windows.Analysis.EvidenceOfDownload' => 'Evidencias de descarga',
-
         'Windows.Applications.ChocolateyPackages' => 'Paquetes Chocolatey',
         'Windows.Applications.Chrome.Extensions' => 'Extensiones Chrome',
         'Windows.Applications.Chrome.History' => 'Historial Chrome',
@@ -144,11 +143,9 @@ function nombreBonito(string $artefacto): string
         'Windows.Applications.Firefox.History' => 'Historial Firefox',
         'Windows.Applications.IISLogs' => 'Logs IIS',
         'Windows.Applications.TeamViewer.Incoming' => 'Conexiones TeamViewer',
-
         'Windows.Attack.ParentProcess' => 'Procesos con padre sospechoso',
         'Windows.Attack.Prefetch' => 'Prefetch sospechoso',
         'Windows.Attack.UnexpectedImagePath' => 'Ruta de imagen inesperada',
-
         'Windows.Detection.Amcache' => 'Detección Amcache',
         'Windows.Detection.BinaryRename' => 'Binarios renombrados',
         'Windows.Detection.EnvironmentVariables' => 'Variables de entorno',
@@ -159,7 +156,6 @@ function nombreBonito(string $artefacto): string
         'Windows.Detection.Thumbdrives.List' => 'USB conectados',
         'Windows.Detection.Usn' => 'Actividad USN',
         'Windows.Detection.WMIProcessCreation' => 'Procesos creados por WMI',
-
         'Windows.EventLogs.AlternateLogon' => 'Inicios de sesión alternativos',
         'Windows.EventLogs.Cleared' => 'Logs borrados',
         'Windows.EventLogs.DHCP' => 'Eventos DHCP',
@@ -171,7 +167,6 @@ function nombreBonito(string $artefacto): string
         'Windows.EventLogs.RDPAuth' => 'Autenticaciones RDP',
         'Windows.EventLogs.ScheduledTasks' => 'Eventos de tareas programadas',
         'Windows.EventLogs.ServiceCreationComspec' => 'Servicios creados con ComSpec',
-
         'Windows.Forensics.Amcache' => 'Amcache forense',
         'Windows.Forensics.Bam' => 'BAM',
         'Windows.Forensics.CertUtil' => 'Uso de CertUtil',
@@ -184,17 +179,14 @@ function nombreBonito(string $artefacto): string
         'Windows.Forensics.RecycleBin' => 'Papelera de reciclaje',
         'Windows.Forensics.Shellbags' => 'Shellbags',
         'Windows.Forensics.UserAccessLogs' => 'User Access Logs',
-
         'Windows.Network.ArpCache' => 'Caché ARP',
         'Windows.Network.InterfaceAddresses' => 'Interfaces de red',
         'Windows.Network.ListeningPorts' => 'Puertos en escucha',
         'Windows.Network.Netstat' => 'Conexiones activas',
         'Windows.Network.NetstatEnriched' => 'Conexiones activas enriquecidas',
-
         'Windows.Persistence.PermanentWMIEvents' => 'Persistencia WMI',
         'Windows.Persistence.PowershellProfile' => 'Perfil PowerShell',
         'Windows.Persistence.PowershellRegistry' => 'PowerShell en registro',
-
         'Windows.Registry.AppCompatCache' => 'AppCompatCache',
         'Windows.Registry.MountPoints2' => 'Dispositivos montados',
         'Windows.Registry.PortProxy' => 'PortProxy',
@@ -203,9 +195,7 @@ function nombreBonito(string $artefacto): string
         'Windows.Registry.RecentDocs' => 'Documentos recientes',
         'Windows.Registry.UserAssist' => 'UserAssist',
         'Windows.Registry.WDigest' => 'WDigest',
-
         'Windows.Search.FileFinder' => 'Buscar archivos',
-
         'Windows.Sys.AllUsers' => 'Todos los usuarios',
         'Windows.Sys.AppcompatShims' => 'AppCompat Shims',
         'Windows.Sys.CertificateAuthorities' => 'Autoridades certificadoras',
@@ -216,7 +206,6 @@ function nombreBonito(string $artefacto): string
         'Windows.Sys.Programs' => 'Programas instalados',
         'Windows.Sys.StartupItems' => 'Elementos de inicio',
         'Windows.Sys.Users' => 'Usuarios locales',
-
         'Windows.System.AuditPolicy' => 'Política de auditoría',
         'Windows.System.CriticalServices' => 'Servicios críticos',
         'Windows.System.DLLs' => 'DLLs cargadas',
@@ -237,7 +226,6 @@ function nombreBonito(string $artefacto): string
         'Windows.System.Threads' => 'Hilos del sistema',
         'Windows.System.UntrustedBinaries' => 'Binarios no confiables',
         'Windows.System.WMIQuery' => 'Consultas WMI',
-
         'Windows.Timeline.Prefetch' => 'Línea temporal Prefetch',
         'Windows.Timeline.Registry.RunMRU' => 'RunMRU',
     ];
@@ -409,35 +397,12 @@ function pintarResultado(?string $resultado): string
     $primerasFilas = array_slice($json, 0, 50);
 
     $columnasPreferidas = [
-        'Name',
-        'Pid',
-        'Ppid',
-        'Username',
-        'Exe',
-        'CommandLine',
-        'LocalAddr',
-        'LocalPort',
-        'RemoteAddr',
-        'RemotePort',
-        'State',
-        'ServiceName',
-        'DisplayName',
-        'StartMode',
-        'PathName',
-        'FileName',
-        'FullPath',
-        'Key',
-        'Value',
-        'Timestamp',
-        'EventID',
-        'Message',
-        'url',
-        'name',
-        'id',
-        'User',
-        'startTime',
-        'endTime',
-        'last_modified'
+        'Name', 'Pid', 'Ppid', 'Username', 'Exe', 'CommandLine',
+        'LocalAddr', 'LocalPort', 'RemoteAddr', 'RemotePort', 'State',
+        'ServiceName', 'DisplayName', 'StartMode', 'PathName',
+        'FileName', 'FullPath', 'Key', 'Value', 'Timestamp',
+        'EventID', 'Message', 'url', 'name', 'id', 'User',
+        'startTime', 'endTime', 'last_modified'
     ];
 
     $columnas = [];
@@ -533,7 +498,14 @@ function pintarHistorialAcciones(array $ordenes): void
                     </span>
                 </td>
                 <td>
-                    <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
+                    <?php if (in_array($orden['estado'], ['pendiente', 'en_proceso'], true)): ?>
+                        <form method="post" class="form-cancelar" onsubmit="return confirm('¿Cancelar esta orden?');">
+                            <input type="hidden" name="cancelar_orden" value="1">
+                            <input type="hidden" name="orden_id" value="<?= (int)$orden['id'] ?>">
+                            <button type="submit" class="btn-cancelar-orden">Cancelar</button>
+                        </form>
+                        <span>Esperando al agente...</span>
+                    <?php elseif ($orden['estado'] === 'completada' && $orden['resultado']): ?>
                         <button type="button" class="btn-ver-resultado" data-target="<?= htmlspecialchars($resultadoId) ?>">
                             Ver resultado
                         </button>
@@ -541,10 +513,12 @@ function pintarHistorialAcciones(array $ordenes): void
                         <div id="<?= htmlspecialchars($resultadoId) ?>" class="resultado-oculto">
                             <?= pintarResultado((string)$orden['resultado']) ?>
                         </div>
+                    <?php elseif ($orden['estado'] === 'cancelada'): ?>
+                        <span>Orden cancelada.</span>
                     <?php elseif ($orden['estado'] === 'error'): ?>
                         <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
                     <?php else: ?>
-                        <span>Esperando al agente...</span>
+                        <span>Sin resultado.</span>
                     <?php endif; ?>
                 </td>
             </tr>
@@ -560,6 +534,30 @@ $ordenes = [];
 try {
     $pdo = getPDO();
 
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_orden'])) {
+        $ordenIdCancelar = (int)($_POST['orden_id'] ?? 0);
+
+        if ($ordenIdCancelar > 0) {
+            $stmtCancelar = $pdo->prepare("
+                UPDATE respuesta_ordenes
+                SET estado = 'cancelada',
+                    error = 'Orden cancelada por el usuario',
+                    actualizado_en = CURRENT_TIMESTAMP
+                WHERE id = :id
+                  AND agente_id = :agente_id
+                  AND estado IN ('pendiente', 'en_proceso')
+            ");
+
+            $stmtCancelar->execute([
+                ':id' => $ordenIdCancelar,
+                ':agente_id' => $AGENTE_ID,
+            ]);
+        }
+
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['borrar_historial'])) {
         $stmtBorrar = $pdo->prepare("
             DELETE FROM respuesta_ordenes
@@ -572,7 +570,7 @@ try {
         exit;
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['borrar_historial'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $codigo = $_POST['codigo'] ?? '';
         $codigosValidos = array_column($acciones, 'codigo');
 
@@ -680,6 +678,8 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'orden') {
         $html = pintarResultado((string)$orden['resultado']);
     } elseif ($orden['estado'] === 'error') {
         $html = '<pre>' . htmlspecialchars($orden['error'] ?: 'Error desconocido') . '</pre>';
+    } elseif ($orden['estado'] === 'cancelada') {
+        $html = '<span>Orden cancelada.</span>';
     }
 
     header('Content-Type: application/json; charset=utf-8');
@@ -827,6 +827,18 @@ foreach ($acciones as $accion) {
             font-size: 13px;
         }
 
+        .btn-cancelar-orden {
+            width: auto;
+            background: #f97316;
+            padding: 8px 12px;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .btn-cancelar-orden:hover {
+            background: #ea580c;
+        }
+
         .bloque {
             background: white;
             border-radius: 14px;
@@ -855,7 +867,8 @@ foreach ($acciones as $accion) {
             margin: 0;
         }
 
-        .form-borrar-historial {
+        .form-borrar-historial,
+        .form-cancelar {
             margin: 0;
         }
 
@@ -919,6 +932,7 @@ foreach ($acciones as $accion) {
         .en_proceso { background: #dbeafe; color: #1e40af; }
         .completada { background: #dcfce7; color: #166534; }
         .error { background: #fee2e2; color: #991b1b; }
+        .cancelada { background: #e5e7eb; color: #374151; }
 
         pre {
             white-space: pre-wrap;
@@ -1230,7 +1244,7 @@ foreach ($acciones as $accion) {
                         return;
                     }
 
-                    if (data.estado === 'completada' || data.estado === 'error') {
+                    if (data.estado === 'completada' || data.estado === 'error' || data.estado === 'cancelada') {
                         clearInterval(intervaloOrden);
                         intervaloOrden = null;
 
