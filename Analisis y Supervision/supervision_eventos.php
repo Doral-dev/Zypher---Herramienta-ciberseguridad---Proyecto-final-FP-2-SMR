@@ -7,6 +7,10 @@ $AGENTE_ID = 'windows-agent-001';
 $mensaje = '';
 $error = '';
 
+if (isset($_GET['ok'])) {
+    $mensaje = 'Orden creada correctamente.';
+}
+
 $artefactosTexto = <<<'TXT'
 Windows.Analysis.EvidenceOfDownload
 Windows.Applications.ChocolateyPackages
@@ -125,7 +129,11 @@ function nombreBonito(string $artefacto): string
     $nombre = end($partes) ?: $artefacto;
 
     $nombre = preg_replace('/(?<!^)([A-Z])/', ' $1', $nombre);
-    $nombre = str_replace(['R D P', 'D N S', 'W M I', 'D L Ls', 'P S Readline'], ['RDP', 'DNS', 'WMI', 'DLLs', 'PSReadline'], $nombre);
+    $nombre = str_replace(
+        ['R D P', 'D N S', 'W M I', 'D L Ls', 'P S Readline', 'S V C Host'],
+        ['RDP', 'DNS', 'WMI', 'DLLs', 'PSReadline', 'SVCHost'],
+        $nombre
+    );
 
     return trim((string)$nombre);
 }
@@ -189,11 +197,35 @@ function pintarResultado(?string $resultado): string
     }
 
     if (!$json) {
-        return '<span>Velociraptor no devolvió filas.</span>';
+        return '<span>Velociraptor ejecutó el análisis, pero no devolvió filas.</span>';
     }
 
     $primerasFilas = array_slice($json, 0, 50);
-    $columnasPreferidas = ['Name', 'Pid', 'Ppid', 'Username', 'Exe', 'CommandLine', 'LocalAddr', 'LocalPort', 'RemoteAddr', 'RemotePort', 'State', 'ServiceName', 'DisplayName', 'StartMode', 'PathName'];
+
+    $columnasPreferidas = [
+        'Name',
+        'Pid',
+        'Ppid',
+        'Username',
+        'Exe',
+        'CommandLine',
+        'LocalAddr',
+        'LocalPort',
+        'RemoteAddr',
+        'RemotePort',
+        'State',
+        'ServiceName',
+        'DisplayName',
+        'StartMode',
+        'PathName',
+        'FileName',
+        'FullPath',
+        'Key',
+        'Value',
+        'Timestamp',
+        'EventID',
+        'Message'
+    ];
 
     $columnas = [];
 
@@ -215,7 +247,7 @@ function pintarResultado(?string $resultado): string
         return '<pre>' . htmlspecialchars(json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
     }
 
-    $html = '<div class="resultado-info">Mostrando ' . count($primerasFilas) . ' filas. Resultado completo debajo.</div>';
+    $html = '<div class="resultado-info">Mostrando ' . count($primerasFilas) . ' filas. El JSON completo queda oculto debajo.</div>';
     $html .= '<div class="tabla-scroll"><table class="tabla-resultado"><thead><tr>';
 
     foreach ($columnas as $columna) {
@@ -253,26 +285,44 @@ try {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $codigo = $_POST['codigo'] ?? '';
-
         $codigosValidos = array_column($acciones, 'codigo');
 
         if (!in_array($codigo, $codigosValidos, true)) {
             throw new Exception('Acción no válida.');
         }
 
-        $stmt = $pdo->prepare("
-            INSERT INTO respuesta_ordenes
-            (agente_id, codigo, parametros, estado, creado_en, actualizado_en)
-            VALUES
-            (:agente_id, :codigo, '{}'::jsonb, 'pendiente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        $stmtExiste = $pdo->prepare("
+            SELECT id
+            FROM respuesta_ordenes
+            WHERE agente_id = :agente_id
+              AND codigo = :codigo
+              AND estado IN ('pendiente', 'en_proceso')
+            LIMIT 1
         ");
 
-        $stmt->execute([
+        $stmtExiste->execute([
             ':agente_id' => $AGENTE_ID,
             ':codigo' => $codigo,
         ]);
 
-        $mensaje = 'Orden creada correctamente.';
+        $ordenExistente = $stmtExiste->fetch();
+
+        if (!$ordenExistente) {
+            $stmt = $pdo->prepare("
+                INSERT INTO respuesta_ordenes
+                (agente_id, codigo, parametros, estado, creado_en, actualizado_en)
+                VALUES
+                (:agente_id, :codigo, '{}'::jsonb, 'pendiente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ");
+
+            $stmt->execute([
+                ':agente_id' => $AGENTE_ID,
+                ':codigo' => $codigo,
+            ]);
+        }
+
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=1');
+        exit;
     }
 
     $stmtOrdenes = $pdo->prepare("
@@ -442,6 +492,11 @@ foreach ($acciones as $accion) {
 
         button:hover {
             background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
         }
 
         .bloque {
@@ -634,6 +689,17 @@ foreach ($acciones as $accion) {
         document.querySelectorAll('details.categoria').forEach(function (categoria) {
             if (texto !== '') {
                 categoria.open = true;
+            }
+        });
+    });
+
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            const boton = form.querySelector('button');
+
+            if (boton) {
+                boton.disabled = true;
+                boton.innerText = 'Enviado...';
             }
         });
     });
