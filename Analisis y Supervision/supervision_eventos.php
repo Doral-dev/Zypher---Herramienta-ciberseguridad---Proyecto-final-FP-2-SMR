@@ -256,7 +256,6 @@ function descripcionArtefacto(string $artefacto): string
 {
     $descripciones = [
         'Windows.Analysis.EvidenceOfDownload' => 'Busca evidencias de archivos descargados desde Internet.',
-
         'Windows.Applications.ChocolateyPackages' => 'Lista paquetes instalados con Chocolatey si existe en el equipo.',
         'Windows.Applications.Chrome.Extensions' => 'Revisa extensiones instaladas en Google Chrome.',
         'Windows.Applications.Chrome.History' => 'Consulta historial de navegación de Google Chrome.',
@@ -265,11 +264,9 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.Applications.Firefox.History' => 'Consulta historial de navegación de Firefox.',
         'Windows.Applications.IISLogs' => 'Revisa logs de IIS si el servidor web está instalado.',
         'Windows.Applications.TeamViewer.Incoming' => 'Busca conexiones entrantes registradas por TeamViewer.',
-
         'Windows.Attack.ParentProcess' => 'Detecta procesos ejecutados desde procesos padre poco habituales.',
         'Windows.Attack.Prefetch' => 'Analiza Prefetch buscando ejecuciones sospechosas.',
         'Windows.Attack.UnexpectedImagePath' => 'Detecta ejecutables lanzados desde rutas inesperadas.',
-
         'Windows.Detection.Amcache' => 'Busca evidencias de ejecución en Amcache.',
         'Windows.Detection.BinaryRename' => 'Detecta binarios conocidos ejecutados con nombres cambiados.',
         'Windows.Detection.EnvironmentVariables' => 'Revisa variables de entorno relevantes para análisis.',
@@ -280,7 +277,6 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.Detection.Thumbdrives.List' => 'Lista dispositivos USB conectados al equipo.',
         'Windows.Detection.Usn' => 'Analiza actividad reciente en el journal USN.',
         'Windows.Detection.WMIProcessCreation' => 'Busca procesos creados mediante WMI.',
-
         'Windows.EventLogs.AlternateLogon' => 'Busca inicios de sesión alternativos en eventos Windows.',
         'Windows.EventLogs.Cleared' => 'Detecta eventos de borrado de logs.',
         'Windows.EventLogs.DHCP' => 'Revisa eventos relacionados con DHCP.',
@@ -292,7 +288,6 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.EventLogs.RDPAuth' => 'Consulta autenticaciones RDP.',
         'Windows.EventLogs.ScheduledTasks' => 'Busca eventos de tareas programadas.',
         'Windows.EventLogs.ServiceCreationComspec' => 'Detecta servicios creados usando ComSpec.',
-
         'Windows.Forensics.Amcache' => 'Extrae información forense de Amcache.',
         'Windows.Forensics.Bam' => 'Revisa BAM para ver ejecución de aplicaciones.',
         'Windows.Forensics.CertUtil' => 'Busca uso de CertUtil, útil para detectar descargas o abuso.',
@@ -305,17 +300,14 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.Forensics.RecycleBin' => 'Revisa contenido y actividad de la papelera.',
         'Windows.Forensics.Shellbags' => 'Analiza carpetas abiertas por el usuario.',
         'Windows.Forensics.UserAccessLogs' => 'Consulta User Access Logs si están disponibles.',
-
         'Windows.Network.ArpCache' => 'Muestra la caché ARP del equipo.',
         'Windows.Network.InterfaceAddresses' => 'Lista direcciones de las interfaces de red.',
         'Windows.Network.ListeningPorts' => 'Muestra puertos abiertos en escucha.',
         'Windows.Network.Netstat' => 'Muestra conexiones de red activas.',
         'Windows.Network.NetstatEnriched' => 'Muestra conexiones activas con información ampliada.',
-
         'Windows.Persistence.PermanentWMIEvents' => 'Busca persistencia mediante eventos WMI permanentes.',
         'Windows.Persistence.PowershellProfile' => 'Revisa perfiles PowerShell usados como persistencia.',
         'Windows.Persistence.PowershellRegistry' => 'Busca persistencia PowerShell en el registro.',
-
         'Windows.Registry.AppCompatCache' => 'Consulta AppCompatCache para evidencias de ejecución.',
         'Windows.Registry.MountPoints2' => 'Lista dispositivos montados por el usuario.',
         'Windows.Registry.PortProxy' => 'Revisa reglas PortProxy configuradas en Windows.',
@@ -324,9 +316,7 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.Registry.RecentDocs' => 'Consulta documentos recientes del usuario.',
         'Windows.Registry.UserAssist' => 'Analiza UserAssist para actividad de programas.',
         'Windows.Registry.WDigest' => 'Comprueba configuración WDigest.',
-
         'Windows.Search.FileFinder' => 'Busca archivos concretos en el sistema.',
-
         'Windows.Sys.AllUsers' => 'Lista todos los usuarios detectados en el equipo.',
         'Windows.Sys.AppcompatShims' => 'Revisa AppCompat Shims configurados.',
         'Windows.Sys.CertificateAuthorities' => 'Lista autoridades certificadoras instaladas.',
@@ -337,7 +327,6 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.Sys.Programs' => 'Muestra programas instalados.',
         'Windows.Sys.StartupItems' => 'Lista elementos de inicio automático.',
         'Windows.Sys.Users' => 'Lista usuarios locales.',
-
         'Windows.System.AuditPolicy' => 'Muestra la política de auditoría del sistema.',
         'Windows.System.CriticalServices' => 'Lista servicios críticos de Windows.',
         'Windows.System.DLLs' => 'Lista DLLs cargadas por procesos.',
@@ -358,16 +347,11 @@ function descripcionArtefacto(string $artefacto): string
         'Windows.System.Threads' => 'Muestra hilos de procesos.',
         'Windows.System.UntrustedBinaries' => 'Busca binarios sin confianza o firma válida.',
         'Windows.System.WMIQuery' => 'Ejecuta consultas WMI de análisis.',
-
         'Windows.Timeline.Prefetch' => 'Genera línea temporal basada en Prefetch.',
         'Windows.Timeline.Registry.RunMRU' => 'Muestra comandos ejecutados desde RunMRU.',
     ];
 
-    if (isset($descripciones[$artefacto])) {
-        return $descripciones[$artefacto];
-    }
-
-    return 'Ejecuta análisis seguro con Velociraptor.';
+    return $descripciones[$artefacto] ?? 'Ejecuta análisis seguro con Velociraptor.';
 }
 
 function construirAcciones(string $texto): array
@@ -507,10 +491,17 @@ function pintarResultado(?string $resultado): string
     return $html;
 }
 
-function pintarUltimasAcciones(array $ordenes): void
+function pintarHistorialAcciones(array $ordenes): void
 {
     ?>
-    <h2>Últimas acciones</h2>
+    <div class="historial-cabecera">
+        <h2>Historial Últimas acciones</h2>
+
+        <form method="post" class="form-borrar-historial" onsubmit="return confirm('¿Seguro que quieres borrar el historial?');">
+            <input type="hidden" name="borrar_historial" value="1">
+            <button type="submit" class="btn-borrar-historial">Borrar historial</button>
+        </form>
+    </div>
 
     <table class="tabla-principal">
         <thead>
@@ -569,7 +560,19 @@ $ordenes = [];
 try {
     $pdo = getPDO();
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['borrar_historial'])) {
+        $stmtBorrar = $pdo->prepare("
+            DELETE FROM respuesta_ordenes
+            WHERE agente_id = :agente_id
+        ");
+
+        $stmtBorrar->execute([':agente_id' => $AGENTE_ID]);
+
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['borrar_historial'])) {
         $codigo = $_POST['codigo'] ?? '';
         $codigosValidos = array_column($acciones, 'codigo');
 
@@ -643,7 +646,7 @@ try {
 }
 
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'ultimas') {
-    pintarUltimasAcciones($ordenes);
+    pintarHistorialAcciones($ordenes);
     exit;
 }
 
@@ -834,14 +837,37 @@ foreach ($acciones as $accion) {
             overflow: hidden;
         }
 
-        .bloque h2 {
-            margin-top: 0;
-        }
-
         .actualizando {
             font-size: 13px;
             color: #6b7280;
             margin-bottom: 10px;
+        }
+
+        .historial-cabecera {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .historial-cabecera h2 {
+            margin: 0;
+        }
+
+        .form-borrar-historial {
+            margin: 0;
+        }
+
+        .btn-borrar-historial {
+            width: auto;
+            background: #dc2626;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+
+        .btn-borrar-historial:hover {
+            background: #b91c1c;
         }
 
         .tabla-principal {
@@ -1050,9 +1076,9 @@ foreach ($acciones as $accion) {
     <?php endforeach; ?>
 
     <div class="bloque">
-        <div class="actualizando">Últimas acciones se actualiza automáticamente cada 5 segundos.</div>
+        <div class="actualizando">Historial Últimas acciones se actualiza automáticamente cada 5 segundos.</div>
         <div id="ultimasAcciones">
-            <?php pintarUltimasAcciones($ordenes); ?>
+            <?php pintarHistorialAcciones($ordenes); ?>
         </div>
     </div>
 
@@ -1152,7 +1178,7 @@ foreach ($acciones as $accion) {
                 }
             })
             .catch(function () {
-                console.log('No se pudo actualizar Últimas acciones');
+                console.log('No se pudo actualizar Historial Últimas acciones');
             });
     }
 
