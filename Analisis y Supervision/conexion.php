@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 function getPDO(): PDO
 {
-    $host = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
+    $host = 'dpg-d6rar2vafjfc73f3u5u0-a';
     $port = '5432';
     $dbname = 'zypher_db_g2sb';
     $user = 'zypher_db_g2sb_user';
