@@ -119,37 +119,255 @@ function obtenerCategoria(string $artefacto): string
     return 'Otros';
 }
 
-function nombreBonito(string $artefacto): string
+function separarCamelCase(string $texto): string
 {
-    $partes = explode('.', $artefacto);
-    $nombre = end($partes) ?: $artefacto;
-
-    $nombre = preg_replace('/(?<!^)([A-Z])/', ' $1', $nombre);
-    $nombre = str_replace(
-        ['R D P', 'D N S', 'W M I', 'D L Ls', 'P S Readline', 'S V C Host'],
-        ['RDP', 'DNS', 'WMI', 'DLLs', 'PSReadline', 'SVCHost'],
-        $nombre
+    $texto = preg_replace('/(?<!^)([A-Z])/', ' $1', $texto);
+    $texto = str_replace(
+        ['R D P', 'D N S', 'W M I', 'D L Ls', 'P S Readline', 'S V C Host', 'U S N', 'D H C P', 'E V T X'],
+        ['RDP', 'DNS', 'WMI', 'DLLs', 'PSReadline', 'SVCHost', 'USN', 'DHCP', 'EVTX'],
+        (string)$texto
     );
 
-    return trim((string)$nombre);
+    return trim((string)$texto);
+}
+
+function nombreBonito(string $artefacto): string
+{
+    $nombres = [
+        'Windows.Analysis.EvidenceOfDownload' => 'Evidencias de descarga',
+
+        'Windows.Applications.ChocolateyPackages' => 'Paquetes Chocolatey',
+        'Windows.Applications.Chrome.Extensions' => 'Extensiones Chrome',
+        'Windows.Applications.Chrome.History' => 'Historial Chrome',
+        'Windows.Applications.Edge.History' => 'Historial Edge',
+        'Windows.Applications.Firefox.Downloads' => 'Descargas Firefox',
+        'Windows.Applications.Firefox.History' => 'Historial Firefox',
+        'Windows.Applications.IISLogs' => 'Logs IIS',
+        'Windows.Applications.TeamViewer.Incoming' => 'Conexiones TeamViewer',
+
+        'Windows.Attack.ParentProcess' => 'Procesos con padre sospechoso',
+        'Windows.Attack.Prefetch' => 'Prefetch sospechoso',
+        'Windows.Attack.UnexpectedImagePath' => 'Ruta de imagen inesperada',
+
+        'Windows.Detection.Amcache' => 'Detección Amcache',
+        'Windows.Detection.BinaryRename' => 'Binarios renombrados',
+        'Windows.Detection.EnvironmentVariables' => 'Variables de entorno',
+        'Windows.Detection.Impersonation' => 'Impersonación',
+        'Windows.Detection.ProcessCreation' => 'Creación de procesos',
+        'Windows.Detection.PsexecService' => 'Servicio PsExec',
+        'Windows.Detection.Registry' => 'Registro sospechoso',
+        'Windows.Detection.Thumbdrives.List' => 'USB conectados',
+        'Windows.Detection.Usn' => 'Actividad USN',
+        'Windows.Detection.WMIProcessCreation' => 'Procesos creados por WMI',
+
+        'Windows.EventLogs.AlternateLogon' => 'Inicios de sesión alternativos',
+        'Windows.EventLogs.Cleared' => 'Logs borrados',
+        'Windows.EventLogs.DHCP' => 'Eventos DHCP',
+        'Windows.EventLogs.Evtx' => 'Eventos EVTX',
+        'Windows.EventLogs.ExplicitLogon' => 'Uso de credenciales explícitas',
+        'Windows.EventLogs.Modifications' => 'Cambios en logs',
+        'Windows.EventLogs.PowershellModule' => 'PowerShell Module Logs',
+        'Windows.EventLogs.PowershellScriptblock' => 'PowerShell ScriptBlock',
+        'Windows.EventLogs.RDPAuth' => 'Autenticaciones RDP',
+        'Windows.EventLogs.ScheduledTasks' => 'Eventos de tareas programadas',
+        'Windows.EventLogs.ServiceCreationComspec' => 'Servicios creados con ComSpec',
+
+        'Windows.Forensics.Amcache' => 'Amcache forense',
+        'Windows.Forensics.Bam' => 'BAM',
+        'Windows.Forensics.CertUtil' => 'Uso de CertUtil',
+        'Windows.Forensics.FilenameSearch' => 'Búsqueda por nombre de archivo',
+        'Windows.Forensics.JumpLists' => 'Jump Lists',
+        'Windows.Forensics.Lnk' => 'Archivos LNK',
+        'Windows.Forensics.Prefetch' => 'Prefetch forense',
+        'Windows.Forensics.RDPCache' => 'Caché RDP',
+        'Windows.Forensics.RecentApps' => 'Aplicaciones recientes',
+        'Windows.Forensics.RecycleBin' => 'Papelera de reciclaje',
+        'Windows.Forensics.Shellbags' => 'Shellbags',
+        'Windows.Forensics.UserAccessLogs' => 'User Access Logs',
+
+        'Windows.Network.ArpCache' => 'Caché ARP',
+        'Windows.Network.InterfaceAddresses' => 'Interfaces de red',
+        'Windows.Network.ListeningPorts' => 'Puertos en escucha',
+        'Windows.Network.Netstat' => 'Conexiones activas',
+        'Windows.Network.NetstatEnriched' => 'Conexiones activas enriquecidas',
+
+        'Windows.Persistence.PermanentWMIEvents' => 'Persistencia WMI',
+        'Windows.Persistence.PowershellProfile' => 'Perfil PowerShell',
+        'Windows.Persistence.PowershellRegistry' => 'PowerShell en registro',
+
+        'Windows.Registry.AppCompatCache' => 'AppCompatCache',
+        'Windows.Registry.MountPoints2' => 'Dispositivos montados',
+        'Windows.Registry.PortProxy' => 'PortProxy',
+        'Windows.Registry.PuttyHostKeys' => 'Claves PuTTY',
+        'Windows.Registry.RDP' => 'Registro RDP',
+        'Windows.Registry.RecentDocs' => 'Documentos recientes',
+        'Windows.Registry.UserAssist' => 'UserAssist',
+        'Windows.Registry.WDigest' => 'WDigest',
+
+        'Windows.Search.FileFinder' => 'Buscar archivos',
+
+        'Windows.Sys.AllUsers' => 'Todos los usuarios',
+        'Windows.Sys.AppcompatShims' => 'AppCompat Shims',
+        'Windows.Sys.CertificateAuthorities' => 'Autoridades certificadoras',
+        'Windows.Sys.DiskInfo' => 'Información de discos',
+        'Windows.Sys.Drivers' => 'Drivers',
+        'Windows.Sys.FirewallRules' => 'Reglas firewall',
+        'Windows.Sys.Interfaces' => 'Interfaces del sistema',
+        'Windows.Sys.Programs' => 'Programas instalados',
+        'Windows.Sys.StartupItems' => 'Elementos de inicio',
+        'Windows.Sys.Users' => 'Usuarios locales',
+
+        'Windows.System.AuditPolicy' => 'Política de auditoría',
+        'Windows.System.CriticalServices' => 'Servicios críticos',
+        'Windows.System.DLLs' => 'DLLs cargadas',
+        'Windows.System.DNSCache' => 'Caché DNS',
+        'Windows.System.DomainRole' => 'Rol de dominio',
+        'Windows.System.Handles' => 'Handles abiertos',
+        'Windows.System.HostsFile' => 'Archivo hosts',
+        'Windows.System.LocalAdmins' => 'Administradores locales',
+        'Windows.System.Powershell.ModuleAnalysisCache' => 'Caché de módulos PowerShell',
+        'Windows.System.Powershell.PSReadline' => 'Historial PSReadline',
+        'Windows.System.Pslist' => 'Procesos activos',
+        'Windows.System.RootCAStore' => 'Certificados raíz',
+        'Windows.System.SVCHost' => 'Servicios SVCHost',
+        'Windows.System.Services' => 'Servicios',
+        'Windows.System.Shares' => 'Recursos compartidos',
+        'Windows.System.Signers' => 'Firmantes del sistema',
+        'Windows.System.TaskScheduler' => 'Tareas programadas',
+        'Windows.System.Threads' => 'Hilos del sistema',
+        'Windows.System.UntrustedBinaries' => 'Binarios no confiables',
+        'Windows.System.WMIQuery' => 'Consultas WMI',
+
+        'Windows.Timeline.Prefetch' => 'Línea temporal Prefetch',
+        'Windows.Timeline.Registry.RunMRU' => 'RunMRU',
+    ];
+
+    if (isset($nombres[$artefacto])) {
+        return $nombres[$artefacto];
+    }
+
+    $partes = explode('.', $artefacto);
+    $ultimas = array_slice($partes, -2);
+
+    return separarCamelCase(implode(' ', $ultimas));
 }
 
 function descripcionArtefacto(string $artefacto): string
 {
-    $categoria = obtenerCategoria($artefacto);
+    $descripciones = [
+        'Windows.Analysis.EvidenceOfDownload' => 'Busca evidencias de archivos descargados desde Internet.',
 
-    return match ($categoria) {
-        'Sistema' => 'Recoge información del sistema usando Velociraptor.',
-        'Red' => 'Analiza información de red del equipo.',
-        'Eventos Windows' => 'Consulta eventos relevantes de Windows.',
-        'Persistencia' => 'Busca posibles mecanismos de persistencia.',
-        'Forense básico' => 'Recoge evidencias forenses básicas.',
-        'Detección' => 'Analiza indicadores o comportamientos sospechosos.',
-        'Aplicaciones' => 'Revisa datos de aplicaciones instaladas o usadas.',
-        'Registro' => 'Consulta claves del registro relevantes.',
-        'Búsqueda' => 'Busca archivos o evidencias en el equipo.',
-        default => 'Ejecuta análisis seguro con Velociraptor.',
-    };
+        'Windows.Applications.ChocolateyPackages' => 'Lista paquetes instalados con Chocolatey si existe en el equipo.',
+        'Windows.Applications.Chrome.Extensions' => 'Revisa extensiones instaladas en Google Chrome.',
+        'Windows.Applications.Chrome.History' => 'Consulta historial de navegación de Google Chrome.',
+        'Windows.Applications.Edge.History' => 'Consulta historial de navegación de Microsoft Edge.',
+        'Windows.Applications.Firefox.Downloads' => 'Muestra descargas registradas en Firefox.',
+        'Windows.Applications.Firefox.History' => 'Consulta historial de navegación de Firefox.',
+        'Windows.Applications.IISLogs' => 'Revisa logs de IIS si el servidor web está instalado.',
+        'Windows.Applications.TeamViewer.Incoming' => 'Busca conexiones entrantes registradas por TeamViewer.',
+
+        'Windows.Attack.ParentProcess' => 'Detecta procesos ejecutados desde procesos padre poco habituales.',
+        'Windows.Attack.Prefetch' => 'Analiza Prefetch buscando ejecuciones sospechosas.',
+        'Windows.Attack.UnexpectedImagePath' => 'Detecta ejecutables lanzados desde rutas inesperadas.',
+
+        'Windows.Detection.Amcache' => 'Busca evidencias de ejecución en Amcache.',
+        'Windows.Detection.BinaryRename' => 'Detecta binarios conocidos ejecutados con nombres cambiados.',
+        'Windows.Detection.EnvironmentVariables' => 'Revisa variables de entorno relevantes para análisis.',
+        'Windows.Detection.Impersonation' => 'Busca posibles señales de impersonación.',
+        'Windows.Detection.ProcessCreation' => 'Analiza eventos de creación de procesos.',
+        'Windows.Detection.PsexecService' => 'Busca señales de uso de PsExec.',
+        'Windows.Detection.Registry' => 'Revisa claves de registro usadas habitualmente por amenazas.',
+        'Windows.Detection.Thumbdrives.List' => 'Lista dispositivos USB conectados al equipo.',
+        'Windows.Detection.Usn' => 'Analiza actividad reciente en el journal USN.',
+        'Windows.Detection.WMIProcessCreation' => 'Busca procesos creados mediante WMI.',
+
+        'Windows.EventLogs.AlternateLogon' => 'Busca inicios de sesión alternativos en eventos Windows.',
+        'Windows.EventLogs.Cleared' => 'Detecta eventos de borrado de logs.',
+        'Windows.EventLogs.DHCP' => 'Revisa eventos relacionados con DHCP.',
+        'Windows.EventLogs.Evtx' => 'Consulta eventos EVTX del sistema.',
+        'Windows.EventLogs.ExplicitLogon' => 'Busca uso de credenciales explícitas.',
+        'Windows.EventLogs.Modifications' => 'Detecta modificaciones relacionadas con registros de eventos.',
+        'Windows.EventLogs.PowershellModule' => 'Revisa eventos de módulos PowerShell.',
+        'Windows.EventLogs.PowershellScriptblock' => 'Analiza comandos PowerShell registrados en ScriptBlock.',
+        'Windows.EventLogs.RDPAuth' => 'Consulta autenticaciones RDP.',
+        'Windows.EventLogs.ScheduledTasks' => 'Busca eventos de tareas programadas.',
+        'Windows.EventLogs.ServiceCreationComspec' => 'Detecta servicios creados usando ComSpec.',
+
+        'Windows.Forensics.Amcache' => 'Extrae información forense de Amcache.',
+        'Windows.Forensics.Bam' => 'Revisa BAM para ver ejecución de aplicaciones.',
+        'Windows.Forensics.CertUtil' => 'Busca uso de CertUtil, útil para detectar descargas o abuso.',
+        'Windows.Forensics.FilenameSearch' => 'Busca archivos por nombre como apoyo forense.',
+        'Windows.Forensics.JumpLists' => 'Revisa Jump Lists para actividad reciente del usuario.',
+        'Windows.Forensics.Lnk' => 'Analiza accesos directos LNK recientes.',
+        'Windows.Forensics.Prefetch' => 'Revisa Prefetch para ver programas ejecutados.',
+        'Windows.Forensics.RDPCache' => 'Busca evidencias en caché de sesiones RDP.',
+        'Windows.Forensics.RecentApps' => 'Muestra aplicaciones usadas recientemente.',
+        'Windows.Forensics.RecycleBin' => 'Revisa contenido y actividad de la papelera.',
+        'Windows.Forensics.Shellbags' => 'Analiza carpetas abiertas por el usuario.',
+        'Windows.Forensics.UserAccessLogs' => 'Consulta User Access Logs si están disponibles.',
+
+        'Windows.Network.ArpCache' => 'Muestra la caché ARP del equipo.',
+        'Windows.Network.InterfaceAddresses' => 'Lista direcciones de las interfaces de red.',
+        'Windows.Network.ListeningPorts' => 'Muestra puertos abiertos en escucha.',
+        'Windows.Network.Netstat' => 'Muestra conexiones de red activas.',
+        'Windows.Network.NetstatEnriched' => 'Muestra conexiones activas con información ampliada.',
+
+        'Windows.Persistence.PermanentWMIEvents' => 'Busca persistencia mediante eventos WMI permanentes.',
+        'Windows.Persistence.PowershellProfile' => 'Revisa perfiles PowerShell usados como persistencia.',
+        'Windows.Persistence.PowershellRegistry' => 'Busca persistencia PowerShell en el registro.',
+
+        'Windows.Registry.AppCompatCache' => 'Consulta AppCompatCache para evidencias de ejecución.',
+        'Windows.Registry.MountPoints2' => 'Lista dispositivos montados por el usuario.',
+        'Windows.Registry.PortProxy' => 'Revisa reglas PortProxy configuradas en Windows.',
+        'Windows.Registry.PuttyHostKeys' => 'Muestra claves de hosts guardadas por PuTTY.',
+        'Windows.Registry.RDP' => 'Revisa configuración y rastros RDP en registro.',
+        'Windows.Registry.RecentDocs' => 'Consulta documentos recientes del usuario.',
+        'Windows.Registry.UserAssist' => 'Analiza UserAssist para actividad de programas.',
+        'Windows.Registry.WDigest' => 'Comprueba configuración WDigest.',
+
+        'Windows.Search.FileFinder' => 'Busca archivos concretos en el sistema.',
+
+        'Windows.Sys.AllUsers' => 'Lista todos los usuarios detectados en el equipo.',
+        'Windows.Sys.AppcompatShims' => 'Revisa AppCompat Shims configurados.',
+        'Windows.Sys.CertificateAuthorities' => 'Lista autoridades certificadoras instaladas.',
+        'Windows.Sys.DiskInfo' => 'Muestra información de discos y particiones.',
+        'Windows.Sys.Drivers' => 'Lista drivers instalados.',
+        'Windows.Sys.FirewallRules' => 'Muestra reglas del firewall de Windows.',
+        'Windows.Sys.Interfaces' => 'Lista interfaces del sistema.',
+        'Windows.Sys.Programs' => 'Muestra programas instalados.',
+        'Windows.Sys.StartupItems' => 'Lista elementos de inicio automático.',
+        'Windows.Sys.Users' => 'Lista usuarios locales.',
+
+        'Windows.System.AuditPolicy' => 'Muestra la política de auditoría del sistema.',
+        'Windows.System.CriticalServices' => 'Lista servicios críticos de Windows.',
+        'Windows.System.DLLs' => 'Lista DLLs cargadas por procesos.',
+        'Windows.System.DNSCache' => 'Muestra la caché DNS local.',
+        'Windows.System.DomainRole' => 'Muestra el rol del equipo dentro del dominio o grupo.',
+        'Windows.System.Handles' => 'Lista handles abiertos por procesos.',
+        'Windows.System.HostsFile' => 'Muestra el contenido del archivo hosts.',
+        'Windows.System.LocalAdmins' => 'Lista miembros del grupo de administradores locales.',
+        'Windows.System.Powershell.ModuleAnalysisCache' => 'Revisa caché de análisis de módulos PowerShell.',
+        'Windows.System.Powershell.PSReadline' => 'Muestra historial de comandos PSReadline.',
+        'Windows.System.Pslist' => 'Lista procesos activos del equipo.',
+        'Windows.System.RootCAStore' => 'Lista certificados raíz confiables.',
+        'Windows.System.SVCHost' => 'Agrupa servicios ejecutados bajo SVCHost.',
+        'Windows.System.Services' => 'Lista servicios de Windows.',
+        'Windows.System.Shares' => 'Muestra recursos compartidos.',
+        'Windows.System.Signers' => 'Revisa firmantes de binarios del sistema.',
+        'Windows.System.TaskScheduler' => 'Lista tareas programadas.',
+        'Windows.System.Threads' => 'Muestra hilos de procesos.',
+        'Windows.System.UntrustedBinaries' => 'Busca binarios sin confianza o firma válida.',
+        'Windows.System.WMIQuery' => 'Ejecuta consultas WMI de análisis.',
+
+        'Windows.Timeline.Prefetch' => 'Genera línea temporal basada en Prefetch.',
+        'Windows.Timeline.Registry.RunMRU' => 'Muestra comandos ejecutados desde RunMRU.',
+    ];
+
+    if (isset($descripciones[$artefacto])) {
+        return $descripciones[$artefacto];
+    }
+
+    return 'Ejecuta análisis seguro con Velociraptor.';
 }
 
 function construirAcciones(string $texto): array
