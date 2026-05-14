@@ -7,81 +7,77 @@ $AGENTE_ID = 'windows-agent-001';
 $mensaje = '';
 $error = '';
 
+$accionesDisponibles = [
+    'listar_procesos' => [
+        'nombre' => 'Listar procesos',
+        'descripcion' => 'Ejecuta Windows.System.Pslist con Velociraptor.',
+    ],
+    'listar_conexiones' => [
+        'nombre' => 'Listar conexiones',
+        'descripcion' => 'Ejecuta Windows.Network.Netstat con Velociraptor.',
+    ],
+    'listar_servicios' => [
+        'nombre' => 'Listar servicios',
+        'descripcion' => 'Ejecuta Windows.System.Services con Velociraptor.',
+    ],
+    'listar_tareas' => [
+        'nombre' => 'Listar tareas programadas',
+        'descripcion' => 'Ejecuta Windows.System.TaskScheduler con Velociraptor.',
+    ],
+    'listar_usuarios' => [
+        'nombre' => 'Listar usuarios',
+        'descripcion' => 'Ejecuta Windows.Sys.Users con Velociraptor.',
+    ],
+];
+
 try {
     $pdo = getPDO();
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $codigo = $_POST['codigo'] ?? '';
 
-        $stmtEquipo = $pdo->prepare("
-            SELECT id
-            FROM respuesta_equipos
-            WHERE agente_id = :agente_id
-              AND activo = TRUE
-            LIMIT 1
-        ");
-        $stmtEquipo->execute([':agente_id' => $AGENTE_ID]);
-        $equipo = $stmtEquipo->fetch();
-
-        if (!$equipo) {
-            throw new Exception('No existe equipo activo para este agente.');
-        }
-
-        $stmtAccion = $pdo->prepare("
-            SELECT id
-            FROM respuesta_acciones
-            WHERE codigo = :codigo
-              AND activa = TRUE
-            LIMIT 1
-        ");
-        $stmtAccion->execute([':codigo' => $codigo]);
-        $accion = $stmtAccion->fetch();
-
-        if (!$accion) {
+        if (!isset($accionesDisponibles[$codigo])) {
             throw new Exception('Acción no válida.');
         }
 
-        $stmtInsert = $pdo->prepare("
+        $stmt = $pdo->prepare("
             INSERT INTO respuesta_ordenes
-            (equipo_id, accion_id, parametros, estado, creado_en)
+            (agente_id, codigo, parametros, estado, creado_en, actualizado_en)
             VALUES
-            (:equipo_id, :accion_id, '{}'::jsonb, 'pendiente', CURRENT_TIMESTAMP)
+            (:agente_id, :codigo, '{}'::jsonb, 'pendiente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ");
 
-        $stmtInsert->execute([
-            ':equipo_id' => $equipo['id'],
-            ':accion_id' => $accion['id'],
+        $stmt->execute([
+            ':agente_id' => $AGENTE_ID,
+            ':codigo' => $codigo,
         ]);
 
-        $mensaje = 'Acción enviada al agente correctamente.';
+        $mensaje = 'Orden creada correctamente.';
     }
 
-    $acciones = $pdo->query("
-        SELECT codigo, nombre, descripcion, tipo
-        FROM respuesta_acciones
-        WHERE activa = TRUE
-        ORDER BY tipo ASC, id ASC
-    ")->fetchAll();
-
-    $ordenes = $pdo->query("
+    $stmtOrdenes = $pdo->prepare("
         SELECT
-            ro.id,
-            ra.nombre AS accion,
-            ra.codigo,
-            ro.estado,
-            ro.resultado,
-            ro.error,
-            ro.creado_en,
-            ro.finalizado_en
-        FROM respuesta_ordenes ro
-        INNER JOIN respuesta_acciones ra ON ra.id = ro.accion_id
-        ORDER BY ro.id DESC
-        LIMIT 10
-    ")->fetchAll();
+            id,
+            agente_id,
+            codigo,
+            estado,
+            flow_id,
+            resultado,
+            error,
+            creado_en,
+            ejecutado_en,
+            actualizado_en
+        FROM respuesta_ordenes
+        WHERE agente_id = :agente_id
+        ORDER BY id DESC
+        LIMIT 20
+    ");
+
+    $stmtOrdenes->execute([':agente_id' => $AGENTE_ID]);
+    $ordenes = $stmtOrdenes->fetchAll();
 
 } catch (Throwable $e) {
     $error = $e->getMessage();
-    $acciones = [];
     $ordenes = [];
 }
 ?>
@@ -164,10 +160,6 @@ try {
             color: #4b5563;
         }
 
-        .card form {
-            margin: 0;
-        }
-
         button {
             width: 100%;
             border: 0;
@@ -225,7 +217,7 @@ try {
         .error { background: #fee2e2; color: #991b1b; }
 
         details {
-            max-width: 520px;
+            max-width: 620px;
         }
 
         pre {
@@ -235,7 +227,7 @@ try {
             color: #e5e7eb;
             padding: 12px;
             border-radius: 10px;
-            max-height: 300px;
+            max-height: 360px;
             overflow: auto;
         }
     </style>
@@ -245,7 +237,7 @@ try {
 
     <div class="cabecera">
         <h1>Respuesta ante eventos</h1>
-        <p>Ejecutamos acciones de respuesta usando Velociraptor desde el agente Zypher.</p>
+        <p>Ejecutamos acciones con Velociraptor desde el agente Windows.</p>
     </div>
 
     <?php if ($mensaje): ?>
@@ -257,12 +249,12 @@ try {
     <?php endif; ?>
 
     <div class="grid">
-        <?php foreach ($acciones as $accion): ?>
+        <?php foreach ($accionesDisponibles as $codigo => $accion): ?>
             <div class="card">
                 <h3><?= htmlspecialchars($accion['nombre']) ?></h3>
                 <p><?= htmlspecialchars($accion['descripcion']) ?></p>
                 <form method="post">
-                    <input type="hidden" name="codigo" value="<?= htmlspecialchars($accion['codigo']) ?>">
+                    <input type="hidden" name="codigo" value="<?= htmlspecialchars($codigo) ?>">
                     <button type="submit">Ejecutar</button>
                 </form>
             </div>
@@ -289,9 +281,13 @@ try {
             <?php endif; ?>
 
             <?php foreach ($ordenes as $orden): ?>
+                <?php
+                $codigo = $orden['codigo'];
+                $nombreAccion = $accionesDisponibles[$codigo]['nombre'] ?? $codigo;
+                ?>
                 <tr>
                     <td><?= htmlspecialchars((string)$orden['creado_en']) ?></td>
-                    <td><?= htmlspecialchars($orden['accion']) ?></td>
+                    <td><?= htmlspecialchars($nombreAccion) ?></td>
                     <td>
                         <span class="estado <?= htmlspecialchars($orden['estado']) ?>">
                             <?= htmlspecialchars($orden['estado']) ?>
@@ -301,10 +297,10 @@ try {
                         <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
                             <details>
                                 <summary>Ver resultado</summary>
-                                <pre><?= htmlspecialchars(json_encode(json_decode($orden['resultado'], true), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                                <pre><?= htmlspecialchars((string)$orden['resultado']) ?></pre>
                             </details>
                         <?php elseif ($orden['estado'] === 'error'): ?>
-                            <span><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></span>
+                            <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
                         <?php else: ?>
                             <span>Esperando al agente...</span>
                         <?php endif; ?>
