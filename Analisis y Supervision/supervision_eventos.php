@@ -1149,6 +1149,10 @@ foreach ($acciones as $accion) {
 
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function () {
+            if (form.classList.contains('form-cancelar')) {
+                return;
+            }
+
             guardarCategoriasAbiertas();
 
             const boton = form.querySelector('button');
@@ -1158,6 +1162,40 @@ foreach ($acciones as $accion) {
                 boton.innerText = 'Enviado...';
             }
         });
+    });
+
+    document.addEventListener('submit', function (e) {
+        const form = e.target.closest('.form-cancelar');
+
+        if (!form) {
+            return;
+        }
+
+        e.preventDefault();
+
+        if (!confirm('¿Cancelar esta orden?')) {
+            return;
+        }
+
+        const boton = form.querySelector('button');
+        const formData = new FormData(form);
+
+        if (boton) {
+            boton.disabled = true;
+            boton.innerText = 'Cancelando...';
+        }
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            cache: 'no-store'
+        })
+            .then(function () {
+                actualizarUltimasAcciones();
+            })
+            .catch(function () {
+                alert('No se pudo cancelar la orden.');
+            });
     });
 
     function abrirModal(titulo, html) {
