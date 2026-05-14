@@ -24,7 +24,7 @@ try {
     }
 
     $ordenId = (int)($data['orden_id'] ?? 0);
-    $estado = $data['estado'] ?? '';
+    $estado = (string)($data['estado'] ?? '');
     $resultado = (string)($data['resultado'] ?? '');
     $error = (string)($data['error'] ?? '');
     $flowId = (string)($data['flow_id'] ?? '');
