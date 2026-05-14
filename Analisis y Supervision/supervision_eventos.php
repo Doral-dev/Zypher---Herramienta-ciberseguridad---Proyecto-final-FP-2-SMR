@@ -4,12 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/conexion.php';
 
 $AGENTE_ID = 'windows-agent-001';
-$mensaje = '';
 $error = '';
-
-if (isset($_GET['ok'])) {
-    $mensaje = 'Orden creada correctamente.';
-}
+$ordenAutoAbrir = isset($_GET['orden']) ? (int)$_GET['orden'] : 0;
 
 $artefactosTexto = <<<'TXT'
 Windows.Analysis.EvidenceOfDownload
@@ -187,7 +183,15 @@ function construirAcciones(string $texto): array
 function pintarResultado(?string $resultado): string
 {
     if (!$resultado) {
-        return '<span>Sin resultado.</span>';
+        return '<span>No se encontraron resultados.</span>';
+    }
+
+    if (
+        str_contains($resultado, 'filas detectadas=0') ||
+        str_contains($resultado, 'source devolvió vacío') ||
+        trim($resultado) === '[]'
+    ) {
+        return '<span>No se encontraron resultados.</span>';
     }
 
     $json = json_decode($resultado, true);
@@ -197,7 +201,7 @@ function pintarResultado(?string $resultado): string
     }
 
     if (!$json) {
-        return '<span>Velociraptor ejecutó el análisis, pero no devolvió filas.</span>';
+        return '<span>No se encontraron resultados.</span>';
     }
 
     $primerasFilas = array_slice($json, 0, 50);
@@ -371,21 +375,26 @@ try {
 
         $ordenExistente = $stmtExiste->fetch();
 
-        if (!$ordenExistente) {
+        if ($ordenExistente) {
+            $ordenId = (int)$ordenExistente['id'];
+        } else {
             $stmt = $pdo->prepare("
                 INSERT INTO respuesta_ordenes
                 (agente_id, codigo, parametros, estado, creado_en, actualizado_en)
                 VALUES
                 (:agente_id, :codigo, '{}'::jsonb, 'pendiente', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                RETURNING id
             ");
 
             $stmt->execute([
                 ':agente_id' => $AGENTE_ID,
                 ':codigo' => $codigo,
             ]);
+
+            $ordenId = (int)$stmt->fetchColumn();
         }
 
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=1');
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?orden=' . $ordenId);
         exit;
     }
 
@@ -417,6 +426,48 @@ try {
 
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'ultimas') {
     pintarUltimasAcciones($ordenes);
+    exit;
+}
+
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'orden') {
+    $ordenId = (int)($_GET['id'] ?? 0);
+
+    $stmtOrden = $pdo->prepare("
+        SELECT id, codigo, estado, resultado, error
+        FROM respuesta_ordenes
+        WHERE id = :id
+          AND agente_id = :agente_id
+        LIMIT 1
+    ");
+
+    $stmtOrden->execute([
+        ':id' => $ordenId,
+        ':agente_id' => $AGENTE_ID,
+    ]);
+
+    $orden = $stmtOrden->fetch();
+
+    if (!$orden) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['ok' => false, 'error' => 'Orden no encontrada'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $html = '';
+
+    if ($orden['estado'] === 'completada') {
+        $html = pintarResultado((string)$orden['resultado']);
+    } elseif ($orden['estado'] === 'error') {
+        $html = '<pre>' . htmlspecialchars($orden['error'] ?: 'Error desconocido') . '</pre>';
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'estado' => $orden['estado'],
+        'titulo' => nombreBonito((string)$orden['codigo']),
+        'html' => $html,
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -461,14 +512,6 @@ foreach ($acciones as $accion) {
         .cabecera p {
             margin: 0;
             color: #d1d5db;
-        }
-
-        .alerta-ok {
-            background: #dcfce7;
-            color: #166534;
-            padding: 12px 16px;
-            border-radius: 10px;
-            margin-bottom: 16px;
         }
 
         .alerta-error {
@@ -747,6 +790,12 @@ foreach ($acciones as $accion) {
             padding: 18px;
             overflow: auto;
         }
+
+        .modal-cargando {
+            padding: 20px;
+            font-size: 15px;
+            color: #374151;
+        }
     </style>
 </head>
 <body>
@@ -757,16 +806,12 @@ foreach ($acciones as $accion) {
         <p>Ejecutamos análisis seguros sobre equipos Windows usando Velociraptor.</p>
     </div>
 
-    <?php if ($mensaje): ?>
-        <div class="alerta-ok"><?= htmlspecialchars($mensaje) ?></div>
-    <?php endif; ?>
-
     <?php if ($error): ?>
         <div class="alerta-error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
 
     <?php foreach ($accionesPorCategoria as $categoria => $lista): ?>
-        <details class="categoria">
+        <details class="categoria" data-categoria="<?= htmlspecialchars($categoria) ?>">
             <summary><?= htmlspecialchars($categoria) ?> (<?= count($lista) ?>)</summary>
 
             <div class="acciones-lista">
@@ -798,7 +843,7 @@ foreach ($acciones as $accion) {
 <div class="modal-fondo" id="modalResultado">
     <div class="modal-caja">
         <div class="modal-cabecera">
-            <h3>Resultado del análisis</h3>
+            <h3 id="modalTitulo">Resultado del análisis</h3>
             <button type="button" class="modal-cerrar" id="cerrarModal">X</button>
         </div>
         <div class="modal-contenido" id="modalContenido"></div>
@@ -806,8 +851,48 @@ foreach ($acciones as $accion) {
 </div>
 
 <script>
+    const ordenAutoAbrir = <?= (int)$ordenAutoAbrir ?>;
+    let modalAbierto = false;
+    let intervaloOrden = null;
+
+    function guardarCategoriasAbiertas() {
+        const abiertas = [];
+
+        document.querySelectorAll('details.categoria').forEach(function (item) {
+            if (item.open) {
+                abiertas.push(item.getAttribute('data-categoria'));
+            }
+        });
+
+        localStorage.setItem('zypher_categorias_abiertas', JSON.stringify(abiertas));
+    }
+
+    function restaurarCategoriasAbiertas() {
+        let abiertas = [];
+
+        try {
+            abiertas = JSON.parse(localStorage.getItem('zypher_categorias_abiertas') || '[]');
+        } catch (e) {
+            abiertas = [];
+        }
+
+        document.querySelectorAll('details.categoria').forEach(function (item) {
+            const categoria = item.getAttribute('data-categoria');
+
+            if (abiertas.includes(categoria)) {
+                item.open = true;
+            }
+
+            item.addEventListener('toggle', guardarCategoriasAbiertas);
+        });
+    }
+
+    restaurarCategoriasAbiertas();
+
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function () {
+            guardarCategoriasAbiertas();
+
             const boton = form.querySelector('button');
 
             if (boton) {
@@ -817,7 +902,18 @@ foreach ($acciones as $accion) {
         });
     });
 
-    let modalAbierto = false;
+    function abrirModal(titulo, html) {
+        document.getElementById('modalTitulo').innerText = titulo || 'Resultado del análisis';
+        document.getElementById('modalContenido').innerHTML = html;
+        document.getElementById('modalResultado').classList.add('activo');
+        modalAbierto = true;
+    }
+
+    function cerrarVentanaResultado() {
+        document.getElementById('modalResultado').classList.remove('activo');
+        document.getElementById('modalContenido').innerHTML = '';
+        modalAbierto = false;
+    }
 
     function actualizarUltimasAcciones() {
         if (modalAbierto) {
@@ -844,10 +940,6 @@ foreach ($acciones as $accion) {
 
     setInterval(actualizarUltimasAcciones, 5000);
 
-    const modal = document.getElementById('modalResultado');
-    const modalContenido = document.getElementById('modalContenido');
-    const cerrarModal = document.getElementById('cerrarModal');
-
     document.addEventListener('click', function (e) {
         const boton = e.target.closest('.btn-ver-resultado');
 
@@ -862,21 +954,13 @@ foreach ($acciones as $accion) {
             return;
         }
 
-        modalContenido.innerHTML = contenido.innerHTML;
-        modal.classList.add('activo');
-        modalAbierto = true;
+        abrirModal('Resultado del análisis', contenido.innerHTML);
     });
 
-    function cerrarVentanaResultado() {
-        modal.classList.remove('activo');
-        modalContenido.innerHTML = '';
-        modalAbierto = false;
-    }
+    document.getElementById('cerrarModal').addEventListener('click', cerrarVentanaResultado);
 
-    cerrarModal.addEventListener('click', cerrarVentanaResultado);
-
-    modal.addEventListener('click', function (e) {
-        if (e.target === modal) {
+    document.getElementById('modalResultado').addEventListener('click', function (e) {
+        if (e.target === this) {
             cerrarVentanaResultado();
         }
     });
@@ -886,6 +970,43 @@ foreach ($acciones as $accion) {
             cerrarVentanaResultado();
         }
     });
+
+    function vigilarOrden(id) {
+        abrirModal('Resultado del análisis', '<div class="modal-cargando">Ejecutando análisis, esperando resultado...</div>');
+
+        intervaloOrden = setInterval(function () {
+            fetch(window.location.pathname + '?ajax=orden&id=' + encodeURIComponent(id), {
+                cache: 'no-store'
+            })
+                .then(function (respuesta) {
+                    return respuesta.json();
+                })
+                .then(function (data) {
+                    if (!data.ok) {
+                        return;
+                    }
+
+                    if (data.estado === 'completada' || data.estado === 'error') {
+                        clearInterval(intervaloOrden);
+                        intervaloOrden = null;
+
+                        abrirModal(data.titulo || 'Resultado del análisis', data.html || '<span>No se encontraron resultados.</span>');
+                        actualizarUltimasAcciones();
+
+                        if (window.history.replaceState) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                })
+                .catch(function () {
+                    console.log('No se pudo consultar la orden');
+                });
+        }, 3000);
+    }
+
+    if (ordenAutoAbrir > 0) {
+        vigilarOrden(ordenAutoAbrir);
+    }
 </script>
 </body>
 </html>
