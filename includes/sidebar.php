@@ -23,7 +23,7 @@
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">💾 Continuidad</button>
         <div class="submenu">
-            <a href="/copias.php">Copias de seguridad</a>
+            <a href="/copias_seguridad.php">Copias de seguridad</a>
             <a href="/acceso-remoto.php">Acceso remoto desde la nube</a>
         </div>
     </div>
