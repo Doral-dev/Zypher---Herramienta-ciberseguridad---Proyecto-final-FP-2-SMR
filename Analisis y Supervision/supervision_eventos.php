@@ -224,7 +224,14 @@ function pintarResultado(?string $resultado): string
         'Value',
         'Timestamp',
         'EventID',
-        'Message'
+        'Message',
+        'url',
+        'name',
+        'id',
+        'User',
+        'startTime',
+        'endTime',
+        'last_modified'
     ];
 
     $columnas = [];
@@ -283,7 +290,7 @@ function pintarUltimasAcciones(array $ordenes): void
     ?>
     <h2>Últimas acciones</h2>
 
-    <table>
+    <table class="tabla-principal">
         <thead>
         <tr>
             <th>Fecha</th>
@@ -300,6 +307,7 @@ function pintarUltimasAcciones(array $ordenes): void
         <?php endif; ?>
 
         <?php foreach ($ordenes as $orden): ?>
+            <?php $resultadoId = 'resultado_' . (int)$orden['id']; ?>
             <tr>
                 <td><?= htmlspecialchars((string)$orden['creado_en']) ?></td>
                 <td>
@@ -313,10 +321,13 @@ function pintarUltimasAcciones(array $ordenes): void
                 </td>
                 <td>
                     <?php if ($orden['estado'] === 'completada' && $orden['resultado']): ?>
-                        <details>
-                            <summary>Ver resultado</summary>
+                        <button type="button" class="btn-ver-resultado" data-target="<?= htmlspecialchars($resultadoId) ?>">
+                            Ver resultado
+                        </button>
+
+                        <div id="<?= htmlspecialchars($resultadoId) ?>" class="resultado-oculto">
                             <?= pintarResultado((string)$orden['resultado']) ?>
-                        </details>
+                        </div>
                     <?php elseif ($orden['estado'] === 'error'): ?>
                         <pre><?= htmlspecialchars($orden['error'] ?: 'Error desconocido') ?></pre>
                     <?php else: ?>
@@ -518,7 +529,10 @@ foreach ($acciones as $accion) {
             border-radius: 7px;
             display: inline-block;
             margin-bottom: 10px;
-            word-break: break-all;
+            max-width: 100%;
+            box-sizing: border-box;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         button {
@@ -542,6 +556,13 @@ foreach ($acciones as $accion) {
             cursor: not-allowed;
         }
 
+        .btn-ver-resultado {
+            width: auto;
+            min-width: 130px;
+            padding: 9px 14px;
+            font-size: 13px;
+        }
+
         .bloque {
             background: white;
             border-radius: 14px;
@@ -549,6 +570,7 @@ foreach ($acciones as $accion) {
             margin-top: 28px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.06);
             border: 1px solid #e5e7eb;
+            overflow: hidden;
         }
 
         .bloque h2 {
@@ -561,12 +583,13 @@ foreach ($acciones as $accion) {
             margin-bottom: 10px;
         }
 
-        table {
+        .tabla-principal {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
-        th {
+        .tabla-principal th {
             text-align: left;
             background: #f9fafb;
             padding: 12px;
@@ -574,11 +597,27 @@ foreach ($acciones as $accion) {
             border-bottom: 1px solid #e5e7eb;
         }
 
-        td {
+        .tabla-principal td {
             padding: 12px;
             border-bottom: 1px solid #e5e7eb;
             vertical-align: top;
             font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .tabla-principal th:nth-child(1),
+        .tabla-principal td:nth-child(1) {
+            width: 130px;
+        }
+
+        .tabla-principal th:nth-child(2),
+        .tabla-principal td:nth-child(2) {
+            width: 210px;
+        }
+
+        .tabla-principal th:nth-child(3),
+        .tabla-principal td:nth-child(3) {
+            width: 110px;
         }
 
         .estado {
@@ -606,6 +645,7 @@ foreach ($acciones as $accion) {
         }
 
         .tabla-scroll {
+            width: 100%;
             max-width: 100%;
             overflow: auto;
             border: 1px solid #e5e7eb;
@@ -613,10 +653,28 @@ foreach ($acciones as $accion) {
             margin-top: 10px;
         }
 
+        .tabla-resultado {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
         .tabla-resultado th,
         .tabla-resultado td {
             font-size: 12px;
-            white-space: nowrap;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            max-width: 360px;
+            padding: 9px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .tabla-resultado th {
+            background: #f9fafb;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .resultado-info {
@@ -627,6 +685,67 @@ foreach ($acciones as $accion) {
 
         .detalle-json {
             margin-top: 10px;
+        }
+
+        .resultado-oculto {
+            display: none;
+        }
+
+        .modal-fondo {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.75);
+            z-index: 9999;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .modal-fondo.activo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-caja {
+            background: white;
+            width: min(1200px, 96vw);
+            max-height: 90vh;
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .modal-cabecera {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .modal-cabecera h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .modal-cerrar {
+            width: auto;
+            background: #ef4444;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .modal-cerrar:hover {
+            background: #dc2626;
+        }
+
+        .modal-contenido {
+            padding: 18px;
+            overflow: auto;
         }
     </style>
 </head>
@@ -676,6 +795,16 @@ foreach ($acciones as $accion) {
 
 </div>
 
+<div class="modal-fondo" id="modalResultado">
+    <div class="modal-caja">
+        <div class="modal-cabecera">
+            <h3>Resultado del análisis</h3>
+            <button type="button" class="modal-cerrar" id="cerrarModal">X</button>
+        </div>
+        <div class="modal-contenido" id="modalContenido"></div>
+    </div>
+</div>
+
 <script>
     document.querySelectorAll('form').forEach(function (form) {
         form.addEventListener('submit', function () {
@@ -688,7 +817,13 @@ foreach ($acciones as $accion) {
         });
     });
 
+    let modalAbierto = false;
+
     function actualizarUltimasAcciones() {
+        if (modalAbierto) {
+            return;
+        }
+
         fetch(window.location.pathname + '?ajax=ultimas', {
             cache: 'no-store'
         })
@@ -708,6 +843,49 @@ foreach ($acciones as $accion) {
     }
 
     setInterval(actualizarUltimasAcciones, 5000);
+
+    const modal = document.getElementById('modalResultado');
+    const modalContenido = document.getElementById('modalContenido');
+    const cerrarModal = document.getElementById('cerrarModal');
+
+    document.addEventListener('click', function (e) {
+        const boton = e.target.closest('.btn-ver-resultado');
+
+        if (!boton) {
+            return;
+        }
+
+        const targetId = boton.getAttribute('data-target');
+        const contenido = document.getElementById(targetId);
+
+        if (!contenido) {
+            return;
+        }
+
+        modalContenido.innerHTML = contenido.innerHTML;
+        modal.classList.add('activo');
+        modalAbierto = true;
+    });
+
+    function cerrarVentanaResultado() {
+        modal.classList.remove('activo');
+        modalContenido.innerHTML = '';
+        modalAbierto = false;
+    }
+
+    cerrarModal.addEventListener('click', cerrarVentanaResultado);
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+            cerrarVentanaResultado();
+        }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            cerrarVentanaResultado();
+        }
+    });
 </script>
 </body>
 </html>
