@@ -243,100 +243,111 @@ function nombreBonito(string $artefacto): string
 function descripcionArtefacto(string $artefacto): string
 {
     $descripciones = [
-        'Windows.Analysis.EvidenceOfDownload' => 'Busca evidencias de archivos descargados desde Internet.',
-        'Windows.Applications.ChocolateyPackages' => 'Lista paquetes instalados con Chocolatey si existe en el equipo.',
-        'Windows.Applications.Chrome.Extensions' => 'Revisa extensiones instaladas en Google Chrome.',
-        'Windows.Applications.Chrome.History' => 'Consulta historial de navegación de Google Chrome.',
-        'Windows.Applications.Edge.History' => 'Consulta historial de navegación de Microsoft Edge.',
-        'Windows.Applications.Firefox.Downloads' => 'Muestra descargas registradas en Firefox.',
-        'Windows.Applications.Firefox.History' => 'Consulta historial de navegación de Firefox.',
-        'Windows.Applications.IISLogs' => 'Revisa logs de IIS si el servidor web está instalado.',
-        'Windows.Applications.TeamViewer.Incoming' => 'Busca conexiones entrantes registradas por TeamViewer.',
-        'Windows.Attack.ParentProcess' => 'Detecta procesos ejecutados desde procesos padre poco habituales.',
-        'Windows.Attack.Prefetch' => 'Analiza Prefetch buscando ejecuciones sospechosas.',
-        'Windows.Attack.UnexpectedImagePath' => 'Detecta ejecutables lanzados desde rutas inesperadas.',
-        'Windows.Detection.Amcache' => 'Busca evidencias de ejecución en Amcache.',
-        'Windows.Detection.BinaryRename' => 'Detecta binarios conocidos ejecutados con nombres cambiados.',
-        'Windows.Detection.EnvironmentVariables' => 'Revisa variables de entorno relevantes para análisis.',
-        'Windows.Detection.Impersonation' => 'Busca posibles señales de impersonación.',
-        'Windows.Detection.ProcessCreation' => 'Analiza eventos de creación de procesos.',
-        'Windows.Detection.PsexecService' => 'Busca señales de uso de PsExec.',
-        'Windows.Detection.Registry' => 'Revisa claves de registro usadas habitualmente por amenazas.',
-        'Windows.Detection.Thumbdrives.List' => 'Lista dispositivos USB conectados al equipo.',
-        'Windows.Detection.Usn' => 'Analiza actividad reciente en el journal USN.',
-        'Windows.Detection.WMIProcessCreation' => 'Busca procesos creados mediante WMI.',
-        'Windows.EventLogs.AlternateLogon' => 'Busca inicios de sesión alternativos en eventos Windows.',
-        'Windows.EventLogs.Cleared' => 'Detecta eventos de borrado de logs.',
-        'Windows.EventLogs.DHCP' => 'Revisa eventos relacionados con DHCP.',
-        'Windows.EventLogs.Evtx' => 'Consulta eventos EVTX del sistema.',
-        'Windows.EventLogs.ExplicitLogon' => 'Busca uso de credenciales explícitas.',
-        'Windows.EventLogs.Modifications' => 'Detecta modificaciones relacionadas con registros de eventos.',
-        'Windows.EventLogs.PowershellModule' => 'Revisa eventos de módulos PowerShell.',
-        'Windows.EventLogs.PowershellScriptblock' => 'Analiza comandos PowerShell registrados en ScriptBlock.',
-        'Windows.EventLogs.RDPAuth' => 'Consulta autenticaciones RDP.',
-        'Windows.EventLogs.ScheduledTasks' => 'Busca eventos de tareas programadas.',
-        'Windows.EventLogs.ServiceCreationComspec' => 'Detecta servicios creados usando ComSpec.',
-        'Windows.Forensics.Amcache' => 'Extrae información forense de Amcache.',
-        'Windows.Forensics.Bam' => 'Revisa BAM para ver ejecución de aplicaciones.',
-        'Windows.Forensics.CertUtil' => 'Busca uso de CertUtil, útil para detectar descargas o abuso.',
-        'Windows.Forensics.FilenameSearch' => 'Busca archivos por nombre como apoyo forense.',
-        'Windows.Forensics.JumpLists' => 'Revisa Jump Lists para actividad reciente del usuario.',
-        'Windows.Forensics.Lnk' => 'Analiza accesos directos LNK recientes.',
-        'Windows.Forensics.Prefetch' => 'Revisa Prefetch para ver programas ejecutados.',
-        'Windows.Forensics.RDPCache' => 'Busca evidencias en caché de sesiones RDP.',
-        'Windows.Forensics.RecentApps' => 'Muestra aplicaciones usadas recientemente.',
-        'Windows.Forensics.RecycleBin' => 'Revisa contenido y actividad de la papelera.',
-        'Windows.Forensics.Shellbags' => 'Analiza carpetas abiertas por el usuario.',
-        'Windows.Forensics.UserAccessLogs' => 'Consulta User Access Logs si están disponibles.',
-        'Windows.Network.ArpCache' => 'Muestra la caché ARP del equipo.',
-        'Windows.Network.InterfaceAddresses' => 'Lista direcciones de las interfaces de red.',
-        'Windows.Network.ListeningPorts' => 'Muestra puertos abiertos en escucha.',
+        'Windows.Analysis.EvidenceOfDownload' => 'Busca archivos que pudieron descargarse desde Internet.',
+        'Windows.Applications.ChocolateyPackages' => 'Muestra paquetes instalados con Chocolatey, si existe en el equipo.',
+        'Windows.Applications.Chrome.Extensions' => 'Lista extensiones de Chrome para revisar complementos sospechosos.',
+        'Windows.Applications.Chrome.History' => 'Muestra páginas visitadas en Chrome.',
+        'Windows.Applications.Edge.History' => 'Muestra páginas visitadas en Microsoft Edge.',
+        'Windows.Applications.Firefox.Downloads' => 'Muestra archivos descargados desde Firefox.',
+        'Windows.Applications.Firefox.History' => 'Muestra páginas visitadas en Firefox.',
+        'Windows.Applications.IISLogs' => 'Revisa actividad web si el equipo usa IIS.',
+        'Windows.Applications.TeamViewer.Incoming' => 'Muestra accesos remotos entrantes por TeamViewer.',
+
+        'Windows.Attack.ParentProcess' => 'Busca programas lanzados desde sitios poco habituales.',
+        'Windows.Attack.Prefetch' => 'Ayuda a ver programas ejecutados recientemente.',
+        'Windows.Attack.UnexpectedImagePath' => 'Detecta programas ejecutándose desde rutas raras.',
+
+        'Windows.Detection.Amcache' => 'Busca programas ejecutados anteriormente en Windows.',
+        'Windows.Detection.BinaryRename' => 'Detecta herramientas conocidas usando nombres cambiados.',
+        'Windows.Detection.EnvironmentVariables' => 'Revisa variables del sistema que puedan afectar ejecuciones.',
+        'Windows.Detection.Impersonation' => 'Busca señales de procesos intentando hacerse pasar por otros.',
+        'Windows.Detection.ProcessCreation' => 'Revisa procesos creados para detectar ejecuciones raras.',
+        'Windows.Detection.PsexecService' => 'Busca señales de ejecución remota con PsExec.',
+        'Windows.Detection.Registry' => 'Revisa claves del registro usadas para ocultarse o persistir.',
+        'Windows.Detection.Thumbdrives.List' => 'Muestra memorias USB conectadas al equipo.',
+        'Windows.Detection.Usn' => 'Muestra cambios recientes en archivos del sistema.',
+        'Windows.Detection.WMIProcessCreation' => 'Busca procesos lanzados mediante WMI.',
+
+        'Windows.EventLogs.AlternateLogon' => 'Busca accesos iniciados de forma poco común.',
+        'Windows.EventLogs.Cleared' => 'Detecta si alguien ha borrado registros de Windows.',
+        'Windows.EventLogs.DHCP' => 'Muestra cambios o eventos relacionados con red DHCP.',
+        'Windows.EventLogs.Evtx' => 'Consulta registros de eventos de Windows.',
+        'Windows.EventLogs.ExplicitLogon' => 'Detecta uso directo de usuario y contraseña.',
+        'Windows.EventLogs.Modifications' => 'Busca cambios en la configuración de registros.',
+        'Windows.EventLogs.PowershellModule' => 'Muestra actividad registrada de módulos PowerShell.',
+        'Windows.EventLogs.PowershellScriptblock' => 'Muestra comandos PowerShell ejecutados.',
+        'Windows.EventLogs.RDPAuth' => 'Muestra intentos y accesos por Escritorio Remoto.',
+        'Windows.EventLogs.ScheduledTasks' => 'Muestra actividad relacionada con tareas programadas.',
+        'Windows.EventLogs.ServiceCreationComspec' => 'Busca servicios creados usando consola de comandos.',
+
+        'Windows.Forensics.Amcache' => 'Ayuda a saber qué programas se han ejecutado.',
+        'Windows.Forensics.Bam' => 'Muestra actividad reciente de aplicaciones.',
+        'Windows.Forensics.CertUtil' => 'Busca uso de CertUtil, usado a veces para descargar archivos.',
+        'Windows.Forensics.FilenameSearch' => 'Busca archivos por nombre dentro del equipo.',
+        'Windows.Forensics.JumpLists' => 'Muestra archivos o carpetas abiertas recientemente.',
+        'Windows.Forensics.Lnk' => 'Revisa accesos directos usados recientemente.',
+        'Windows.Forensics.Prefetch' => 'Muestra programas ejecutados y cuándo se usaron.',
+        'Windows.Forensics.RDPCache' => 'Busca rastros de sesiones de Escritorio Remoto.',
+        'Windows.Forensics.RecentApps' => 'Muestra aplicaciones utilizadas recientemente.',
+        'Windows.Forensics.RecycleBin' => 'Revisa archivos enviados a la papelera.',
+        'Windows.Forensics.Shellbags' => 'Muestra carpetas que el usuario ha abierto.',
+        'Windows.Forensics.UserAccessLogs' => 'Muestra rastros de acceso de usuarios si existen.',
+
+        'Windows.Network.ArpCache' => 'Muestra equipos vistos recientemente en la red local.',
+        'Windows.Network.InterfaceAddresses' => 'Muestra IPs y tarjetas de red del equipo.',
+        'Windows.Network.ListeningPorts' => 'Muestra servicios abiertos esperando conexiones.',
         'Windows.Network.Netstat' => 'Muestra conexiones de red activas.',
-        'Windows.Network.NetstatEnriched' => 'Muestra conexiones activas con información ampliada.',
-        'Windows.Persistence.PermanentWMIEvents' => 'Busca persistencia mediante eventos WMI permanentes.',
-        'Windows.Persistence.PowershellProfile' => 'Revisa perfiles PowerShell usados como persistencia.',
-        'Windows.Persistence.PowershellRegistry' => 'Busca persistencia PowerShell en el registro.',
-        'Windows.Registry.AppCompatCache' => 'Consulta AppCompatCache para evidencias de ejecución.',
-        'Windows.Registry.MountPoints2' => 'Lista dispositivos montados por el usuario.',
-        'Windows.Registry.PortProxy' => 'Revisa reglas PortProxy configuradas en Windows.',
-        'Windows.Registry.PuttyHostKeys' => 'Muestra claves de hosts guardadas por PuTTY.',
-        'Windows.Registry.RDP' => 'Revisa configuración y rastros RDP en registro.',
-        'Windows.Registry.RecentDocs' => 'Consulta documentos recientes del usuario.',
-        'Windows.Registry.UserAssist' => 'Analiza UserAssist para actividad de programas.',
-        'Windows.Registry.WDigest' => 'Comprueba configuración WDigest.',
-        'Windows.Search.FileFinder' => 'Busca archivos concretos en el sistema.',
-        'Windows.Sys.AllUsers' => 'Lista todos los usuarios detectados en el equipo.',
-        'Windows.Sys.AppcompatShims' => 'Revisa AppCompat Shims configurados.',
-        'Windows.Sys.CertificateAuthorities' => 'Lista autoridades certificadoras instaladas.',
-        'Windows.Sys.DiskInfo' => 'Muestra información de discos y particiones.',
-        'Windows.Sys.Drivers' => 'Lista drivers instalados.',
-        'Windows.Sys.FirewallRules' => 'Muestra reglas del firewall de Windows.',
-        'Windows.Sys.Interfaces' => 'Lista interfaces del sistema.',
-        'Windows.Sys.Programs' => 'Muestra programas instalados.',
-        'Windows.Sys.StartupItems' => 'Lista elementos de inicio automático.',
-        'Windows.Sys.Users' => 'Lista usuarios locales.',
-        'Windows.System.AuditPolicy' => 'Muestra la política de auditoría del sistema.',
-        'Windows.System.CriticalServices' => 'Lista servicios críticos de Windows.',
-        'Windows.System.DLLs' => 'Lista DLLs cargadas por procesos.',
-        'Windows.System.DNSCache' => 'Muestra la caché DNS local.',
-        'Windows.System.DomainRole' => 'Muestra el rol del equipo dentro del dominio o grupo.',
-        'Windows.System.Handles' => 'Lista handles abiertos por procesos.',
-        'Windows.System.HostsFile' => 'Muestra el contenido del archivo hosts.',
-        'Windows.System.LocalAdmins' => 'Lista miembros del grupo de administradores locales.',
-        'Windows.System.Powershell.ModuleAnalysisCache' => 'Revisa caché de análisis de módulos PowerShell.',
-        'Windows.System.Powershell.PSReadline' => 'Muestra historial de comandos PSReadline.',
-        'Windows.System.Pslist' => 'Lista procesos activos del equipo.',
+        'Windows.Network.NetstatEnriched' => 'Muestra conexiones activas con más detalle.',
+
+        'Windows.Persistence.PermanentWMIEvents' => 'Busca arranques ocultos configurados mediante WMI.',
+        'Windows.Persistence.PowershellProfile' => 'Revisa comandos que se cargan al abrir PowerShell.',
+        'Windows.Persistence.PowershellRegistry' => 'Busca configuraciones PowerShell guardadas en registro.',
+
+        'Windows.Registry.AppCompatCache' => 'Muestra rastros de programas ejecutados.',
+        'Windows.Registry.MountPoints2' => 'Muestra discos y USB usados por el usuario.',
+        'Windows.Registry.PortProxy' => 'Detecta redirecciones de puertos configuradas en Windows.',
+        'Windows.Registry.PuttyHostKeys' => 'Muestra servidores guardados en PuTTY.',
+        'Windows.Registry.RDP' => 'Revisa rastros y configuración de Escritorio Remoto.',
+        'Windows.Registry.RecentDocs' => 'Muestra documentos abiertos recientemente.',
+        'Windows.Registry.UserAssist' => 'Muestra programas abiertos por el usuario.',
+        'Windows.Registry.WDigest' => 'Comprueba una opción peligrosa relacionada con credenciales.',
+
+        'Windows.Search.FileFinder' => 'Busca archivos concretos en el equipo.',
+
+        'Windows.Sys.AllUsers' => 'Muestra usuarios encontrados en el sistema.',
+        'Windows.Sys.AppcompatShims' => 'Busca reglas que puedan alterar cómo arrancan programas.',
+        'Windows.Sys.CertificateAuthorities' => 'Muestra certificados raíz confiables instalados.',
+        'Windows.Sys.DiskInfo' => 'Muestra discos y particiones del equipo.',
+        'Windows.Sys.Drivers' => 'Lista controladores instalados.',
+        'Windows.Sys.FirewallRules' => 'Muestra qué permite o bloquea el firewall.',
+        'Windows.Sys.Interfaces' => 'Lista interfaces de red y sistema.',
+        'Windows.Sys.Programs' => 'Lista software instalado para detectar herramientas raras.',
+        'Windows.Sys.StartupItems' => 'Muestra programas que arrancan automáticamente.',
+        'Windows.Sys.Users' => 'Muestra usuarios locales del equipo.',
+
+        'Windows.System.AuditPolicy' => 'Muestra qué acciones de seguridad se están registrando.',
+        'Windows.System.CriticalServices' => 'Muestra servicios importantes de Windows.',
+        'Windows.System.DLLs' => 'Muestra librerías cargadas por procesos.',
+        'Windows.System.DNSCache' => 'Muestra dominios consultados recientemente.',
+        'Windows.System.DomainRole' => 'Indica si el equipo pertenece a dominio o grupo.',
+        'Windows.System.Handles' => 'Muestra archivos o recursos abiertos por procesos.',
+        'Windows.System.HostsFile' => 'Revisa redirecciones manuales en el archivo hosts.',
+        'Windows.System.LocalAdmins' => 'Muestra quién tiene permisos de administrador.',
+        'Windows.System.Powershell.ModuleAnalysisCache' => 'Muestra módulos PowerShell usados recientemente.',
+        'Windows.System.Powershell.PSReadline' => 'Muestra comandos escritos en PowerShell.',
+        'Windows.System.Pslist' => 'Muestra procesos activos del equipo.',
         'Windows.System.RootCAStore' => 'Lista certificados raíz confiables.',
-        'Windows.System.SVCHost' => 'Agrupa servicios ejecutados bajo SVCHost.',
-        'Windows.System.Services' => 'Lista servicios de Windows.',
-        'Windows.System.Shares' => 'Muestra recursos compartidos.',
-        'Windows.System.Signers' => 'Revisa firmantes de binarios del sistema.',
-        'Windows.System.TaskScheduler' => 'Lista tareas programadas.',
-        'Windows.System.Threads' => 'Muestra hilos de procesos.',
-        'Windows.System.UntrustedBinaries' => 'Busca binarios sin confianza o firma válida.',
-        'Windows.System.WMIQuery' => 'Ejecuta consultas WMI de análisis.',
-        'Windows.Timeline.Prefetch' => 'Genera línea temporal basada en Prefetch.',
-        'Windows.Timeline.Registry.RunMRU' => 'Muestra comandos ejecutados desde RunMRU.',
+        'Windows.System.SVCHost' => 'Muestra servicios agrupados bajo SVCHost.',
+        'Windows.System.Services' => 'Lista servicios instalados y su estado.',
+        'Windows.System.Shares' => 'Muestra carpetas compartidas en red.',
+        'Windows.System.Signers' => 'Revisa firmas digitales de componentes.',
+        'Windows.System.TaskScheduler' => 'Muestra tareas programadas del equipo.',
+        'Windows.System.Threads' => 'Muestra hilos internos de procesos.',
+        'Windows.System.UntrustedBinaries' => 'Busca ejecutables sin firma confiable.',
+        'Windows.System.WMIQuery' => 'Consulta información del sistema mediante WMI.',
+
+        'Windows.Timeline.Prefetch' => 'Ordena ejecuciones recientes usando Prefetch.',
+        'Windows.Timeline.Registry.RunMRU' => 'Muestra comandos ejecutados desde la ventana Ejecutar.',
     ];
 
     return $descripciones[$artefacto] ?? 'Ejecuta análisis seguro con Velociraptor.';
@@ -499,7 +510,7 @@ function pintarHistorialAcciones(array $ordenes): void
                 </td>
                 <td>
                     <?php if (in_array($orden['estado'], ['pendiente', 'en_proceso'], true)): ?>
-                        <form method="post" class="form-cancelar" onsubmit="return confirm('¿Cancelar esta orden?');">
+                        <form method="post" class="form-cancelar">
                             <input type="hidden" name="cancelar_orden" value="1">
                             <input type="hidden" name="orden_id" value="<?= (int)$orden['id'] ?>">
                             <button type="submit" class="btn-cancelar-orden">Cancelar</button>
@@ -552,6 +563,12 @@ try {
                 ':id' => $ordenIdCancelar,
                 ':agente_id' => $AGENTE_ID,
             ]);
+        }
+
+        if (isset($_POST['ajax'])) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true], JSON_UNESCAPED_UNICODE);
+            exit;
         }
 
         header('Location: ' . $_SERVER['PHP_SELF']);
@@ -611,6 +628,12 @@ try {
             ]);
 
             $ordenId = (int)$stmt->fetchColumn();
+        }
+
+        if (isset($_POST['ajax'])) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => true, 'orden_id' => $ordenId], JSON_UNESCAPED_UNICODE);
+            exit;
         }
 
         header('Location: ' . $_SERVER['PHP_SELF'] . '?orden=' . $ordenId);
@@ -1079,7 +1102,7 @@ foreach ($acciones as $accion) {
                         <p><?= htmlspecialchars($accion['descripcion']) ?></p>
                         <span class="artefacto"><?= htmlspecialchars($accion['artefacto']) ?></span>
 
-                        <form method="post">
+                        <form method="post" class="form-ejecutar">
                             <input type="hidden" name="codigo" value="<?= htmlspecialchars($accion['codigo']) ?>">
                             <button type="submit">Ejecutar</button>
                         </form>
@@ -1147,21 +1170,53 @@ foreach ($acciones as $accion) {
 
     restaurarCategoriasAbiertas();
 
-    document.querySelectorAll('form').forEach(function (form) {
-        form.addEventListener('submit', function () {
-            if (form.classList.contains('form-cancelar')) {
-                return;
-            }
+    document.addEventListener('submit', function (e) {
+        const formEjecutar = e.target.closest('.form-ejecutar');
 
-            guardarCategoriasAbiertas();
+        if (!formEjecutar) {
+            return;
+        }
 
-            const boton = form.querySelector('button');
+        e.preventDefault();
+        guardarCategoriasAbiertas();
 
-            if (boton) {
-                boton.disabled = true;
-                boton.innerText = 'Enviado...';
-            }
-        });
+        const boton = formEjecutar.querySelector('button');
+        const formData = new FormData(formEjecutar);
+        formData.append('ajax', '1');
+
+        if (boton) {
+            boton.disabled = true;
+            boton.innerText = 'Enviado...';
+        }
+
+        abrirModal('Resultado del análisis', '<div class="modal-cargando">Ejecutando análisis, esperando resultado...</div>');
+
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            cache: 'no-store'
+        })
+            .then(function (respuesta) {
+                return respuesta.json();
+            })
+            .then(function (data) {
+                if (!data.ok || !data.orden_id) {
+                    abrirModal('Resultado del análisis', '<span>No se pudo crear la orden.</span>');
+                    return;
+                }
+
+                actualizarUltimasAcciones();
+                vigilarOrden(data.orden_id);
+            })
+            .catch(function () {
+                abrirModal('Resultado del análisis', '<span>No se pudo ejecutar la acción.</span>');
+            })
+            .finally(function () {
+                if (boton) {
+                    boton.disabled = false;
+                    boton.innerText = 'Ejecutar';
+                }
+            });
     });
 
     document.addEventListener('submit', function (e) {
@@ -1179,6 +1234,7 @@ foreach ($acciones as $accion) {
 
         const boton = form.querySelector('button');
         const formData = new FormData(form);
+        formData.append('ajax', '1');
 
         if (boton) {
             boton.disabled = true;
@@ -1268,7 +1324,9 @@ foreach ($acciones as $accion) {
     });
 
     function vigilarOrden(id) {
-        abrirModal('Resultado del análisis', '<div class="modal-cargando">Ejecutando análisis, esperando resultado...</div>');
+        if (intervaloOrden) {
+            clearInterval(intervaloOrden);
+        }
 
         intervaloOrden = setInterval(function () {
             fetch(window.location.pathname + '?ajax=orden&id=' + encodeURIComponent(id), {
@@ -1301,6 +1359,7 @@ foreach ($acciones as $accion) {
     }
 
     if (ordenAutoAbrir > 0) {
+        abrirModal('Resultado del análisis', '<div class="modal-cargando">Ejecutando análisis, esperando resultado...</div>');
         vigilarOrden(ordenAutoAbrir);
     }
 </script>
