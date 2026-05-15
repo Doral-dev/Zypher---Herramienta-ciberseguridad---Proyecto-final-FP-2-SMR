@@ -176,41 +176,30 @@ function guardar_configuracion(PDO $pdo): void {
     }
 }
 
-function verificar_password_secundaria(PDO $pdo, string $email, string $password): bool {
-    $stmt = $pdo->prepare("
-        SELECT us.secundaria_hash, us.activa
-        FROM users u
-        INNER JOIN usuario_seguridad us ON us.user_id = u.id
-        WHERE u.email = :email
-        LIMIT 1
+function verificar_password_secundaria(PDO $pdo, string $password): bool {
+    if ($password === '') {
+        return false;
+    }
+
+    $stmt = $pdo->query("
+        SELECT secundaria_hash
+        FROM usuario_seguridad
+        WHERE activa = true
+          AND secundaria_hash IS NOT NULL
     ");
 
-    $stmt->execute([
-        ':email' => $email
-    ]);
-
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$row || empty($row['secundaria_hash'])) {
-        return false;
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (!empty($row['secundaria_hash']) && password_verify($password, $row['secundaria_hash'])) {
+            return true;
+        }
     }
 
-    if (!$row['activa']) {
-        return false;
-    }
-
-    return password_verify($password, $row['secundaria_hash']);
+    return false;
 }
 
 function validar_secundaria_post(PDO $pdo): bool {
-    $email = trim((string)($_POST['email_secundario'] ?? ''));
     $password = (string)($_POST['password_secundaria'] ?? '');
-
-    if ($email === '' || $password === '') {
-        return false;
-    }
-
-    return verificar_password_secundaria($pdo, $email, $password);
+    return verificar_password_secundaria($pdo, $password);
 }
 
 function clase_estado(string $estado): string {
@@ -516,25 +505,21 @@ $backup_en_proceso = $orden_activa ? true : false;
             transform: scale(1.2);
         }
 
-        input[type="email"],
         input[type="password"],
         select,
-        button,
-        a.btn {
+        button {
             padding: 8px 12px;
             border-radius: 8px;
             border: 0;
         }
 
-        button, a.btn {
+        button {
             background: #2563eb;
             color: white;
             cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
         }
 
-        button:hover, a.btn:hover {
+        button:hover {
             background: #1d4ed8;
         }
 
@@ -582,7 +567,7 @@ $backup_en_proceso = $orden_activa ? true : false;
         }
 
         .mini {
-            max-width: 170px;
+            max-width: 190px;
         }
     </style>
 </head>
@@ -674,7 +659,6 @@ $backup_en_proceso = $orden_activa ? true : false;
     <h2>Historial</h2>
 
     <form method="post" onsubmit="return confirm('¿Seguro que quieres limpiar el historial visual? No se borrarán los archivos de R2.');">
-        <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
         <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
         <button type="submit" name="limpiar_historial" class="danger">Limpiar historial</button>
     </form>
@@ -708,7 +692,6 @@ $backup_en_proceso = $orden_activa ? true : false;
                 <td>
                     <form method="post" onsubmit="return confirm('¿Seguro que quieres cancelar este backup?');">
                         <input type="hidden" name="orden_id" value="<?php echo (int)$orden_activa['id']; ?>">
-                        <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
                         <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                         <button type="submit" name="cancelar_backup" class="warning">Cancelar backup</button>
                     </form>
@@ -735,7 +718,6 @@ $backup_en_proceso = $orden_activa ? true : false;
                         <?php if ($estado === 'completada' && !empty($h['archivo_r2'])): ?>
                             <form method="post">
                                 <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
-                                <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
                                 <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                                 <button type="submit" name="descargar_backup">Descargar</button>
                             </form>
@@ -744,7 +726,6 @@ $backup_en_proceso = $orden_activa ? true : false;
                         <?php if (in_array($estado, ['completada', 'error', 'cancelada'], true)): ?>
                             <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este backup del historial y de R2 si existe?');">
                                 <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
-                                <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
                                 <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                                 <button type="submit" name="eliminar_backup" class="danger">Eliminar backup</button>
                             </form>
