@@ -32,6 +32,8 @@ $FRECUENCIAS = [
     365 => 'Cada año'
 ];
 
+$ESTADOS_ACTIVOS = ['pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo'];
+
 function db(): PDO {
     global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASSWORD;
 
@@ -54,9 +56,7 @@ function aws_signature_key(string $secret, string $date, string $region, string 
 }
 
 function r2_encode_path(string $path): string {
-    $parts = explode('/', $path);
-    $encoded = array_map('rawurlencode', $parts);
-    return implode('/', $encoded);
+    return implode('/', array_map('rawurlencode', explode('/', $path)));
 }
 
 function r2_request(string $method, string $object_key): string {
@@ -288,13 +288,33 @@ if (isset($_GET['download'])) {
         }
     }
 
-    $contenido = r2_request('GET', $backup['archivo_r2']);
-    $filename = basename($backup['archivo_r2']);
+    $contenido_enc = r2_request('GET', $backup['archivo_r2']);
+    $nombre_enc = basename($backup['archivo_r2']);
+    $nombre_zip = str_replace('.zip.zypher.enc', '', $nombre_enc) . '_cifrado.zip';
 
-    header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Content-Length: ' . strlen($contenido));
-    echo $contenido;
+    if (!class_exists('ZipArchive')) {
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="' . $nombre_enc . '"');
+        echo $contenido_enc;
+        exit;
+    }
+
+    $tmp = tempnam(sys_get_temp_dir(), 'zypher_backup_');
+    $zip = new ZipArchive();
+
+    if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
+        die('No se pudo preparar la descarga.');
+    }
+
+    $zip->addFromString($nombre_enc, $contenido_enc);
+    $zip->close();
+
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="' . $nombre_zip . '"');
+    header('Content-Length: ' . filesize($tmp));
+
+    readfile($tmp);
+    unlink($tmp);
     exit;
 }
 
@@ -312,22 +332,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         guardar_opciones($pdo);
 
         $stmt = $pdo->prepare("
-            UPDATE backup_ordenes
-            SET estado = 'error',
-                mensaje = 'Cancelada automáticamente por nueva orden manual',
-                updated_at = NOW()
+            SELECT id
+            FROM backup_ordenes
             WHERE agente_id = :agente_id
               AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
+            LIMIT 1
         ");
         $stmt->execute([':agente_id' => $AGENTE_ID]);
+        $activa = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $stmt = $pdo->prepare("
-            INSERT INTO backup_ordenes (agente_id, accion, estado, mensaje)
-            VALUES (:agente_id, 'backup_ahora', 'pendiente', 'Esperando al agente')
-        ");
-        $stmt->execute([':agente_id' => $AGENTE_ID]);
+        if (!$activa) {
+            $stmt = $pdo->prepare("
+                INSERT INTO backup_ordenes (agente_id, accion, estado, mensaje)
+                VALUES (:agente_id, 'backup_ahora', 'pendiente', 'Esperando al agente')
+            ");
+            $stmt->execute([':agente_id' => $AGENTE_ID]);
+        }
 
         header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=orden');
+        exit;
+    }
+
+    if (isset($_POST['cancelar_backup'])) {
+        $orden_id = (int)$_POST['orden_id'];
+
+        $stmt = $pdo->prepare("
+            UPDATE backup_ordenes
+            SET estado = 'cancelada',
+                mensaje = 'Cancelada por el usuario',
+                updated_at = NOW()
+            WHERE id = :id
+              AND agente_id = :agente_id
+              AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
+        ");
+        $stmt->execute([
+            ':id' => $orden_id,
+            ':agente_id' => $AGENTE_ID
+        ]);
+
+        $stmt = $pdo->prepare("
+            INSERT INTO backup_historial
+                (agente_id, estado, carpetas, archivo_r2, tamano_mb, mensaje)
+            VALUES
+                (:agente_id, 'cancelada', '-', NULL, NULL, 'Backup cancelado por el usuario')
+        ");
+        $stmt->execute([':agente_id' => $AGENTE_ID]);
+
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=cancelado');
         exit;
     }
 
@@ -404,11 +455,12 @@ $stmt = $pdo->prepare("
     SELECT id, estado, accion, mensaje, created_at, updated_at
     FROM backup_ordenes
     WHERE agente_id = :agente_id
+      AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
     ORDER BY id DESC
-    LIMIT 5
+    LIMIT 1
 ");
 $stmt->execute([':agente_id' => $AGENTE_ID]);
-$ordenes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$orden_activa = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $stmt = $pdo->prepare("
     SELECT id, estado, carpetas, archivo_r2, tamano_mb, mensaje, created_at
@@ -434,6 +486,7 @@ $opciones = $stmt->fetch(PDO::FETCH_ASSOC) ?: [
 
 $proteger_descarga = filter_var($opciones['proteger_descarga'] ?? false, FILTER_VALIDATE_BOOLEAN);
 $tiene_password = !empty($opciones['password_hash']);
+$backup_en_proceso = $orden_activa ? true : false;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -491,6 +544,12 @@ $tiene_password = !empty($opciones['password_hash']);
             border: 0;
         }
 
+        input:disabled {
+            background: #374151;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
         button, a.btn {
             background: #2563eb;
             color: white;
@@ -503,6 +562,11 @@ $tiene_password = !empty($opciones['password_hash']);
             background: #1d4ed8;
         }
 
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+
         .danger {
             background: #dc2626;
         }
@@ -511,10 +575,19 @@ $tiene_password = !empty($opciones['password_hash']);
             background: #b91c1c;
         }
 
+        .warning {
+            background: #ca8a04;
+        }
+
+        .warning:hover {
+            background: #a16207;
+        }
+
         .ok { color: #22c55e; }
         .error { color: #ef4444; }
         .pendiente { color: #facc15; }
         .progreso { color: #38bdf8; }
+        .cancelada { color: #f97316; }
         .muted { color: #9ca3af; }
 
         .acciones {
@@ -539,7 +612,11 @@ $tiene_password = !empty($opciones['password_hash']);
     <?php endif; ?>
 
     <?php if (isset($_GET['ok']) && $_GET['ok'] === 'orden'): ?>
-        <p class="ok">Configuración guardada y orden de copia creada correctamente.</p>
+        <p class="ok">Orden de copia gestionada correctamente.</p>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'cancelado'): ?>
+        <p class="ok">Backup cancelado correctamente.</p>
     <?php endif; ?>
 
     <?php if (isset($_GET['ok']) && $_GET['ok'] === 'eliminado'): ?>
@@ -596,59 +673,31 @@ $tiene_password = !empty($opciones['password_hash']);
 
         <p>
             <label>
-                <input type="checkbox" name="proteger_descarga" <?php echo $proteger_descarga ? 'checked' : ''; ?>>
+                <input type="checkbox" id="proteger_descarga" name="proteger_descarga" <?php echo $proteger_descarga ? 'checked' : ''; ?>>
                 Proteger descargas con contraseña
             </label>
         </p>
 
         <p>
-            <input type="password" name="password_descarga" placeholder="<?php echo $tiene_password ? 'Nueva contraseña opcional' : 'Contraseña de descarga'; ?>">
+            <input
+                type="password"
+                id="password_descarga"
+                name="password_descarga"
+                placeholder="<?php echo $tiene_password ? 'Nueva contraseña opcional' : 'Contraseña de descarga'; ?>"
+                <?php echo $proteger_descarga ? '' : 'disabled'; ?>
+            >
         </p>
 
         <br>
 
         <button type="submit" name="guardar_config">Guardar configuración</button>
-        <button type="submit" name="backup_ahora">Ejecutar copia ahora</button>
-    </form>
-</div>
 
-<div class="card">
-    <h2>Progreso</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Mensaje</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($ordenes as $o): ?>
-            <?php
-                $clase = 'pendiente';
-                if (in_array($o['estado'], ['preparando', 'comprimiendo', 'cifrando', 'subiendo', 'en_proceso'], true)) {
-                    $clase = 'progreso';
-                } elseif ($o['estado'] === 'completada') {
-                    $clase = 'ok';
-                } elseif ($o['estado'] === 'error') {
-                    $clase = 'error';
-                }
-            ?>
-            <tr>
-                <td><?php echo htmlspecialchars((string)$o['updated_at']); ?></td>
-                <td class="<?php echo $clase; ?>"><?php echo htmlspecialchars((string)$o['estado']); ?></td>
-                <td><?php echo htmlspecialchars((string)($o['mensaje'] ?? '-')); ?></td>
-            </tr>
-        <?php endforeach; ?>
-
-        <?php if (!$ordenes): ?>
-            <tr>
-                <td colspan="3" class="muted">Sin órdenes recientes.</td>
-            </tr>
+        <?php if ($backup_en_proceso): ?>
+            <button type="button" disabled>En proceso...</button>
+        <?php else: ?>
+            <button type="submit" name="backup_ahora">Ejecutar copia ahora</button>
         <?php endif; ?>
-        </tbody>
-    </table>
+    </form>
 </div>
 
 <div class="card">
@@ -671,20 +720,45 @@ $tiene_password = !empty($opciones['password_hash']);
             </tr>
         </thead>
         <tbody>
+
+        <?php if ($orden_activa): ?>
+            <?php
+                $estado = (string)$orden_activa['estado'];
+                $clase = in_array($estado, ['pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo'], true) ? 'progreso' : 'pendiente';
+            ?>
+            <tr>
+                <td><?php echo htmlspecialchars((string)$orden_activa['updated_at']); ?></td>
+                <td class="<?php echo $clase; ?>"><?php echo htmlspecialchars($estado); ?></td>
+                <td>-</td>
+                <td>-</td>
+                <td>-</td>
+                <td><?php echo htmlspecialchars((string)($orden_activa['mensaje'] ?? 'Backup en proceso')); ?></td>
+                <td>
+                    <form method="post" onsubmit="return confirm('¿Seguro que quieres cancelar este backup?');">
+                        <input type="hidden" name="orden_id" value="<?php echo (int)$orden_activa['id']; ?>">
+                        <button type="submit" name="cancelar_backup" class="warning">Cancelar backup</button>
+                    </form>
+                </td>
+            </tr>
+        <?php endif; ?>
+
         <?php foreach ($historial as $h): ?>
             <?php
+                $estado = (string)$h['estado'];
                 $estadoClase = 'pendiente';
 
-                if ($h['estado'] === 'completada') {
+                if ($estado === 'completada') {
                     $estadoClase = 'ok';
-                } elseif ($h['estado'] === 'error') {
+                } elseif ($estado === 'error') {
                     $estadoClase = 'error';
+                } elseif ($estado === 'cancelada') {
+                    $estadoClase = 'cancelada';
                 }
             ?>
             <tr>
                 <td><?php echo htmlspecialchars((string)$h['created_at']); ?></td>
                 <td class="<?php echo $estadoClase; ?>">
-                    <?php echo htmlspecialchars((string)$h['estado']); ?>
+                    <?php echo htmlspecialchars($estado); ?>
                 </td>
                 <td><?php echo htmlspecialchars((string)($h['carpetas'] ?? '-')); ?></td>
                 <td><?php echo htmlspecialchars((string)($h['tamano_mb'] ?? '-')); ?> MB</td>
@@ -692,27 +766,47 @@ $tiene_password = !empty($opciones['password_hash']);
                 <td><?php echo htmlspecialchars((string)($h['mensaje'] ?? '-')); ?></td>
                 <td>
                     <div class="acciones">
-                        <?php if ($h['estado'] === 'completada' && !empty($h['archivo_r2'])): ?>
+                        <?php if ($estado === 'completada' && !empty($h['archivo_r2'])): ?>
                             <a class="btn" href="?download=<?php echo (int)$h['id']; ?>">Descargar</a>
                         <?php endif; ?>
 
-                        <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este backup completo de R2 y del historial?');">
-                            <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
-                            <button type="submit" name="eliminar_backup" class="danger">Eliminar backup</button>
-                        </form>
+                        <?php if (in_array($estado, ['completada', 'error', 'cancelada'], true)): ?>
+                            <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este backup del historial y de R2 si existe?');">
+                                <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
+                                <button type="submit" name="eliminar_backup" class="danger">Eliminar backup</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
         <?php endforeach; ?>
 
-        <?php if (!$historial): ?>
+        <?php if (!$historial && !$orden_activa): ?>
             <tr>
                 <td colspan="7" class="muted">Todavía no hay copias registradas.</td>
             </tr>
         <?php endif; ?>
+
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const check = document.getElementById('proteger_descarga');
+    const input = document.getElementById('password_descarga');
+
+    function actualizarPassword() {
+        input.disabled = !check.checked;
+        if (!check.checked) {
+            input.value = '';
+        }
+    }
+
+    check.addEventListener('change', actualizarPassword);
+    actualizarPassword();
+});
+</script>
 
 </body>
 </html>
