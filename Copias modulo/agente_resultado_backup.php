@@ -53,11 +53,22 @@ if (!is_array($carpetas)) {
     $carpetas = [];
 }
 
-$estados_validos = ['pendiente', 'en_proceso', 'completada', 'error'];
+$estados_validos = [
+    'pendiente',
+    'en_proceso',
+    'preparando',
+    'comprimiendo',
+    'cifrando',
+    'subiendo',
+    'completada',
+    'error'
+];
 
 if (!in_array($estado, $estados_validos, true)) {
     $estado = 'error';
 }
+
+$es_final = in_array($estado, ['completada', 'error'], true);
 
 try {
     $pdo = db();
@@ -80,21 +91,23 @@ try {
         ]);
     }
 
-    $stmt = $pdo->prepare("
-        INSERT INTO backup_historial
-            (agente_id, estado, carpetas, archivo_r2, tamano_mb, mensaje)
-        VALUES
-            (:agente_id, :estado, :carpetas, :archivo_r2, :tamano_mb, :mensaje)
-    ");
+    if ($es_final) {
+        $stmt = $pdo->prepare("
+            INSERT INTO backup_historial
+                (agente_id, estado, carpetas, archivo_r2, tamano_mb, mensaje)
+            VALUES
+                (:agente_id, :estado, :carpetas, :archivo_r2, :tamano_mb, :mensaje)
+        ");
 
-    $stmt->execute([
-        ':agente_id' => $agente_id,
-        ':estado' => $estado,
-        ':carpetas' => implode(', ', $carpetas),
-        ':archivo_r2' => $archivo_r2,
-        ':tamano_mb' => $tamano_mb,
-        ':mensaje' => $mensaje
-    ]);
+        $stmt->execute([
+            ':agente_id' => $agente_id,
+            ':estado' => $estado,
+            ':carpetas' => implode(', ', $carpetas),
+            ':archivo_r2' => $archivo_r2,
+            ':tamano_mb' => $tamano_mb,
+            ':mensaje' => $mensaje
+        ]);
+    }
 
     if ($estado === 'completada') {
         foreach ($carpetas as $carpeta) {
@@ -113,7 +126,6 @@ try {
     }
 
     $pdo->commit();
-
     responder(true);
 
 } catch (Throwable $e) {
