@@ -40,6 +40,29 @@ if ($agente_id === '') {
 try {
     $pdo = db();
 
+    if (isset($_GET['orden_id'])) {
+        $orden_id = (int)$_GET['orden_id'];
+
+        $stmt = $pdo->prepare("
+            SELECT id, estado
+            FROM backup_ordenes
+            WHERE id = :id
+              AND agente_id = :agente_id
+            LIMIT 1
+        ");
+        $stmt->execute([
+            ':id' => $orden_id,
+            ':agente_id' => $agente_id
+        ]);
+
+        $orden = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        responder(true, [
+            'orden' => $orden ?: null,
+            'cancelada' => $orden && $orden['estado'] === 'cancelada'
+        ]);
+    }
+
     $stmt = $pdo->prepare("
         SELECT id, accion
         FROM backup_ordenes
