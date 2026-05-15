@@ -32,7 +32,14 @@ $FRECUENCIAS = [
     365 => 'Cada año'
 ];
 
-$ESTADOS_ACTIVOS = ['pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo'];
+$ESTADOS_ACTIVOS = [
+    'pendiente',
+    'en_proceso',
+    'preparando',
+    'comprimiendo',
+    'cifrando',
+    'subiendo'
+];
 
 function db(): PDO {
     global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASSWORD;
@@ -183,14 +190,23 @@ function guardar_opciones(PDO $pdo): void {
     $stmt->execute([':agente_id' => $AGENTE_ID]);
     $actual = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $hash = $actual['password_hash'] ?? null;
+    $hash_actual = $actual['password_hash'] ?? null;
 
-    if ($proteger && $password !== '') {
-        $hash = password_hash($password, PASSWORD_DEFAULT);
+    if ($hash_actual) {
+        $stmt = $pdo->prepare("
+            UPDATE backup_opciones
+            SET proteger_descarga = true,
+                updated_at = NOW()
+            WHERE agente_id = :agente_id
+        ");
+        $stmt->execute([':agente_id' => $AGENTE_ID]);
+        return;
     }
 
-    if (!$proteger) {
-        $hash = null;
+    $hash_nuevo = null;
+
+    if ($proteger && $password !== '') {
+        $hash_nuevo = password_hash($password, PASSWORD_DEFAULT);
     }
 
     $stmt = $pdo->prepare("
@@ -207,7 +223,7 @@ function guardar_opciones(PDO $pdo): void {
 
     $stmt->bindValue(':agente_id', $AGENTE_ID);
     $stmt->bindValue(':proteger_descarga', $proteger, PDO::PARAM_BOOL);
-    $stmt->bindValue(':password_hash', $hash);
+    $stmt->bindValue(':password_hash', $hash_nuevo);
     $stmt->execute();
 }
 
@@ -225,8 +241,8 @@ $opciones = $stmt->fetch(PDO::FETCH_ASSOC) ?: [
     'password_hash' => null
 ];
 
-if (isset($_GET['download'])) {
-    $id = (int)$_GET['download'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['descargar_backup'])) {
+    $id = (int)$_POST['backup_id'];
 
     $stmt = $pdo->prepare("
         SELECT id, archivo_r2
@@ -241,6 +257,7 @@ if (isset($_GET['download'])) {
         ':id' => $id,
         ':agente_id' => $AGENTE_ID
     ]);
+
     $backup = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$backup || empty($backup['archivo_r2'])) {
@@ -251,36 +268,6 @@ if (isset($_GET['download'])) {
     $hash = $opciones['password_hash'] ?? null;
 
     if ($proteger) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['password_confirmacion'])) {
-            ?>
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-                <meta charset="UTF-8">
-                <title>Confirmar descarga</title>
-                <style>
-                    body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; padding:40px; }
-                    .card { background:#111827; border:1px solid #1f2937; border-radius:14px; padding:22px; max-width:420px; }
-                    input, button { padding:10px; border-radius:8px; border:0; margin-top:10px; width:100%; }
-                    button { background:#2563eb; color:white; cursor:pointer; }
-                    a { color:#93c5fd; }
-                </style>
-            </head>
-            <body>
-                <div class="card">
-                    <h2>Contraseña de descarga</h2>
-                    <form method="post">
-                        <input type="password" name="password_confirmacion" placeholder="Contraseña" required>
-                        <button type="submit">Descargar backup</button>
-                    </form>
-                    <p><a href="copias_seguridad.php">Volver</a></p>
-                </div>
-            </body>
-            </html>
-            <?php
-            exit;
-        }
-
         $password = (string)($_POST['password_confirmacion'] ?? '');
 
         if (!$hash || !password_verify($password, $hash)) {
@@ -528,6 +515,7 @@ $backup_en_proceso = $orden_activa ? true : false;
             padding: 12px;
             border-bottom: 1px solid #374151;
             text-align: left;
+            vertical-align: middle;
         }
 
         th {
@@ -594,6 +582,18 @@ $backup_en_proceso = $orden_activa ? true : false;
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .acciones form {
+            margin: 0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .password-mini {
+            max-width: 140px;
         }
     </style>
 </head>
@@ -671,22 +671,28 @@ $backup_en_proceso = $orden_activa ? true : false;
 
         <h2>Seguridad de descarga</h2>
 
-        <p>
-            <label>
-                <input type="checkbox" id="proteger_descarga" name="proteger_descarga" <?php echo $proteger_descarga ? 'checked' : ''; ?>>
-                Proteger descargas con contraseña
-            </label>
-        </p>
+        <?php if ($tiene_password && $proteger_descarga): ?>
+            <p class="ok">Contraseña de descarga configurada.</p>
+            <p class="muted">Por seguridad, esta contraseña no se puede cambiar desde esta pantalla.</p>
+            <input type="hidden" name="proteger_descarga" value="1">
+        <?php else: ?>
+            <p>
+                <label>
+                    <input type="checkbox" id="proteger_descarga" name="proteger_descarga" <?php echo $proteger_descarga ? 'checked' : ''; ?>>
+                    Proteger descargas con contraseña
+                </label>
+            </p>
 
-        <p>
-            <input
-                type="password"
-                id="password_descarga"
-                name="password_descarga"
-                placeholder="<?php echo $tiene_password ? 'Nueva contraseña opcional' : 'Contraseña de descarga'; ?>"
-                <?php echo $proteger_descarga ? '' : 'disabled'; ?>
-            >
-        </p>
+            <p>
+                <input
+                    type="password"
+                    id="password_descarga"
+                    name="password_descarga"
+                    placeholder="Contraseña de descarga"
+                    <?php echo $proteger_descarga ? '' : 'disabled'; ?>
+                >
+            </p>
+        <?php endif; ?>
 
         <br>
 
@@ -767,7 +773,21 @@ $backup_en_proceso = $orden_activa ? true : false;
                 <td>
                     <div class="acciones">
                         <?php if ($estado === 'completada' && !empty($h['archivo_r2'])): ?>
-                            <a class="btn" href="?download=<?php echo (int)$h['id']; ?>">Descargar</a>
+                            <form method="post">
+                                <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
+
+                                <?php if ($proteger_descarga): ?>
+                                    <input
+                                        class="password-mini"
+                                        type="password"
+                                        name="password_confirmacion"
+                                        placeholder="Contraseña"
+                                        required
+                                    >
+                                <?php endif; ?>
+
+                                <button type="submit" name="descargar_backup">Descargar</button>
+                            </form>
                         <?php endif; ?>
 
                         <?php if (in_array($estado, ['completada', 'error', 'cancelada'], true)): ?>
@@ -796,8 +816,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const check = document.getElementById('proteger_descarga');
     const input = document.getElementById('password_descarga');
 
+    if (!check || !input) return;
+
     function actualizarPassword() {
         input.disabled = !check.checked;
+
         if (!check.checked) {
             input.value = '';
         }
