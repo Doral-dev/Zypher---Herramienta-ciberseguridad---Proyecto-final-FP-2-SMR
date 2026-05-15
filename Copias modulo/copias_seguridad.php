@@ -37,42 +37,60 @@ function db(): PDO {
     ]);
 }
 
+function guardar_configuracion(PDO $pdo): void {
+    global $AGENTE_ID, $CARPETAS, $FRECUENCIAS;
+
+    foreach ($CARPETAS as $codigo => $nombre) {
+        $activa = isset($_POST['carpetas'][$codigo]);
+        $frecuencia = (int)($_POST['frecuencia'][$codigo] ?? 7);
+
+        if (!array_key_exists($frecuencia, $FRECUENCIAS)) {
+            $frecuencia = 7;
+        }
+
+        $stmt = $pdo->prepare("
+            INSERT INTO backup_configuraciones
+                (agente_id, carpeta_codigo, activa, frecuencia_dias, updated_at)
+            VALUES
+                (:agente_id, :carpeta_codigo, :activa, :frecuencia_dias, NOW())
+            ON CONFLICT (agente_id, carpeta_codigo)
+            DO UPDATE SET
+                activa = EXCLUDED.activa,
+                frecuencia_dias = EXCLUDED.frecuencia_dias,
+                updated_at = NOW()
+        ");
+
+        $stmt->bindValue(':agente_id', $AGENTE_ID);
+        $stmt->bindValue(':carpeta_codigo', $codigo);
+        $stmt->bindValue(':activa', $activa, PDO::PARAM_BOOL);
+        $stmt->bindValue(':frecuencia_dias', $frecuencia, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+}
+
 $pdo = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['guardar_config'])) {
-        foreach ($CARPETAS as $codigo => $nombre) {
-            $activa = isset($_POST['carpetas'][$codigo]);
-            $frecuencia = (int)($_POST['frecuencia'][$codigo] ?? 7);
-
-            if (!array_key_exists($frecuencia, $FRECUENCIAS)) {
-                $frecuencia = 7;
-            }
-
-            $stmt = $pdo->prepare("
-                INSERT INTO backup_configuraciones
-                    (agente_id, carpeta_codigo, activa, frecuencia_dias, updated_at)
-                VALUES
-                    (:agente_id, :carpeta_codigo, :activa, :frecuencia_dias, NOW())
-                ON CONFLICT (agente_id, carpeta_codigo)
-                DO UPDATE SET
-                    activa = EXCLUDED.activa,
-                    frecuencia_dias = EXCLUDED.frecuencia_dias,
-                    updated_at = NOW()
-            ");
-
-            $stmt->bindValue(':agente_id', $AGENTE_ID);
-            $stmt->bindValue(':carpeta_codigo', $codigo);
-            $stmt->bindValue(':activa', $activa, PDO::PARAM_BOOL);
-            $stmt->bindValue(':frecuencia_dias', $frecuencia, PDO::PARAM_INT);
-            $stmt->execute();
-        }
+        guardar_configuracion($pdo);
 
         header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=config');
         exit;
     }
 
     if (isset($_POST['backup_ahora'])) {
+        guardar_configuracion($pdo);
+
+        $stmt = $pdo->prepare("
+            UPDATE backup_ordenes
+            SET estado = 'error',
+                mensaje = 'Cancelada automáticamente por nueva orden manual',
+                updated_at = NOW()
+            WHERE agente_id = :agente_id
+              AND estado IN ('pendiente', 'en_proceso')
+        ");
+        $stmt->execute([':agente_id' => $AGENTE_ID]);
+
         $stmt = $pdo->prepare("
             INSERT INTO backup_ordenes (agente_id, accion, estado)
             VALUES (:agente_id, 'backup_ahora', 'pendiente')
@@ -206,7 +224,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 
     <?php if (isset($_GET['ok']) && $_GET['ok'] === 'orden'): ?>
-        <p class="ok">Orden de copia creada correctamente.</p>
+        <p class="ok">Configuración guardada y orden de copia creada correctamente.</p>
     <?php endif; ?>
 </div>
 
