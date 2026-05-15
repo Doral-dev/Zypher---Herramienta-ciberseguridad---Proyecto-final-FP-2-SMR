@@ -16,7 +16,7 @@
             <a href="/Escaneo archivos Modulo/escaneo.php">Escaneo de archivos y reputación</a>
             <a href="/Monitorizacion modulo/monitorizacion_eventos.php">Monitorización de eventos</a>
             <a href="/FIM Modulo/detector_fim.php">Monitorización de integridad de archivos</a>
-            <a href="/Analisis y Supervision/supervision_eventos.php">Supervision de eventos</a>
+            <a href="/Analisis y Supervision/supervision_eventos.php">Supervisión de eventos</a>
         </div>
     </div>
 
@@ -33,6 +33,13 @@
         <div class="submenu">
             <a href="/guia.php">Guía Zypher</a>
             <a href="/informes.php">Informes</a>
+        </div>
+    </div>
+
+    <div class="menu-category">
+        <button type="button" class="menu-title" onclick="toggleMenu(this)">⚙️ Ajustes</button>
+        <div class="submenu">
+            <a href="/Ajustes/ajustes_contrasena_secundaria.php">Contraseña secundaria</a>
         </div>
     </div>
 </aside>
