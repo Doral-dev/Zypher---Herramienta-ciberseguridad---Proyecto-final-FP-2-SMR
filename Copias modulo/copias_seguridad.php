@@ -176,139 +176,131 @@ function guardar_configuracion(PDO $pdo): void {
     }
 }
 
-function guardar_opciones(PDO $pdo): void {
-    global $AGENTE_ID;
-
-    $proteger = isset($_POST['proteger_descarga']);
-    $password = (string)($_POST['password_descarga'] ?? '');
-
+function verificar_password_secundaria(PDO $pdo, string $email, string $password): bool {
     $stmt = $pdo->prepare("
-        SELECT password_hash
-        FROM backup_opciones
-        WHERE agente_id = :agente_id
-    ");
-    $stmt->execute([':agente_id' => $AGENTE_ID]);
-    $actual = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    $hash_actual = $actual['password_hash'] ?? null;
-
-    if ($hash_actual) {
-        $stmt = $pdo->prepare("
-            UPDATE backup_opciones
-            SET proteger_descarga = true,
-                updated_at = NOW()
-            WHERE agente_id = :agente_id
-        ");
-        $stmt->execute([':agente_id' => $AGENTE_ID]);
-        return;
-    }
-
-    $hash_nuevo = null;
-
-    if ($proteger && $password !== '') {
-        $hash_nuevo = password_hash($password, PASSWORD_DEFAULT);
-    }
-
-    $stmt = $pdo->prepare("
-        INSERT INTO backup_opciones
-            (agente_id, proteger_descarga, password_hash, updated_at)
-        VALUES
-            (:agente_id, :proteger_descarga, :password_hash, NOW())
-        ON CONFLICT (agente_id)
-        DO UPDATE SET
-            proteger_descarga = EXCLUDED.proteger_descarga,
-            password_hash = EXCLUDED.password_hash,
-            updated_at = NOW()
+        SELECT us.secundaria_hash, us.activa
+        FROM users u
+        INNER JOIN usuario_seguridad us ON us.user_id = u.id
+        WHERE u.email = :email
+        LIMIT 1
     ");
 
-    $stmt->bindValue(':agente_id', $AGENTE_ID);
-    $stmt->bindValue(':proteger_descarga', $proteger, PDO::PARAM_BOOL);
-    $stmt->bindValue(':password_hash', $hash_nuevo);
-    $stmt->execute();
+    $stmt->execute([
+        ':email' => $email
+    ]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row || empty($row['secundaria_hash'])) {
+        return false;
+    }
+
+    if (!$row['activa']) {
+        return false;
+    }
+
+    return password_verify($password, $row['secundaria_hash']);
+}
+
+function validar_secundaria_post(PDO $pdo): bool {
+    $email = trim((string)($_POST['email_secundario'] ?? ''));
+    $password = (string)($_POST['password_secundaria'] ?? '');
+
+    if ($email === '' || $password === '') {
+        return false;
+    }
+
+    return verificar_password_secundaria($pdo, $email, $password);
+}
+
+function clase_estado(string $estado): string {
+    if ($estado === 'completada') {
+        return 'ok';
+    }
+
+    if ($estado === 'error') {
+        return 'error';
+    }
+
+    if ($estado === 'cancelada') {
+        return 'cancelada';
+    }
+
+    if (in_array($estado, ['pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo'], true)) {
+        return 'progreso';
+    }
+
+    return 'pendiente';
 }
 
 $pdo = db();
 $error = '';
 
-$stmt = $pdo->prepare("
-    SELECT proteger_descarga, password_hash
-    FROM backup_opciones
-    WHERE agente_id = :agente_id
-");
-$stmt->execute([':agente_id' => $AGENTE_ID]);
-$opciones = $stmt->fetch(PDO::FETCH_ASSOC) ?: [
-    'proteger_descarga' => false,
-    'password_hash' => null
-];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['descargar_backup'])) {
-    $id = (int)$_POST['backup_id'];
+    if (!validar_secundaria_post($pdo)) {
+        $error = 'Contraseña secundaria incorrecta o no configurada.';
+    } else {
+        $id = (int)$_POST['backup_id'];
 
-    $stmt = $pdo->prepare("
-        SELECT id, archivo_r2
-        FROM backup_historial
-        WHERE id = :id
-          AND agente_id = :agente_id
-          AND estado = 'completada'
-          AND COALESCE(oculto, false) = false
-        LIMIT 1
-    ");
-    $stmt->execute([
-        ':id' => $id,
-        ':agente_id' => $AGENTE_ID
-    ]);
+        $stmt = $pdo->prepare("
+            SELECT id, archivo_r2
+            FROM backup_historial
+            WHERE id = :id
+              AND agente_id = :agente_id
+              AND estado = 'completada'
+              AND COALESCE(oculto, false) = false
+            LIMIT 1
+        ");
+        $stmt->execute([
+            ':id' => $id,
+            ':agente_id' => $AGENTE_ID
+        ]);
 
-    $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+        $backup = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$backup || empty($backup['archivo_r2'])) {
-        die('Backup no encontrado.');
-    }
+        if (!$backup || empty($backup['archivo_r2'])) {
+            $error = 'Backup no encontrado.';
+        } else {
+            try {
+                $contenido_enc = r2_request('GET', $backup['archivo_r2']);
+                $nombre_enc = basename($backup['archivo_r2']);
+                $nombre_zip = str_replace('.zip.zypher.enc', '', $nombre_enc) . '_cifrado.zip';
 
-    $proteger = filter_var($opciones['proteger_descarga'] ?? false, FILTER_VALIDATE_BOOLEAN);
-    $hash = $opciones['password_hash'] ?? null;
+                if (!class_exists('ZipArchive')) {
+                    header('Content-Type: application/octet-stream');
+                    header('Content-Disposition: attachment; filename="' . $nombre_enc . '"');
+                    echo $contenido_enc;
+                    exit;
+                }
 
-    if ($proteger) {
-        $password = (string)($_POST['password_confirmacion'] ?? '');
+                $tmp = tempnam(sys_get_temp_dir(), 'zypher_backup_');
+                $zip = new ZipArchive();
 
-        if (!$hash || !password_verify($password, $hash)) {
-            die('Contraseña incorrecta.');
+                if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
+                    throw new Exception('No se pudo preparar la descarga.');
+                }
+
+                $zip->addFromString($nombre_enc, $contenido_enc);
+                $zip->close();
+
+                header('Content-Type: application/zip');
+                header('Content-Disposition: attachment; filename="' . $nombre_zip . '"');
+                header('Content-Length: ' . filesize($tmp));
+
+                readfile($tmp);
+                unlink($tmp);
+                exit;
+
+            } catch (Throwable $e) {
+                $error = 'Error descargando backup: ' . $e->getMessage();
+            }
         }
     }
-
-    $contenido_enc = r2_request('GET', $backup['archivo_r2']);
-    $nombre_enc = basename($backup['archivo_r2']);
-    $nombre_zip = str_replace('.zip.zypher.enc', '', $nombre_enc) . '_cifrado.zip';
-
-    if (!class_exists('ZipArchive')) {
-        header('Content-Type: application/octet-stream');
-        header('Content-Disposition: attachment; filename="' . $nombre_enc . '"');
-        echo $contenido_enc;
-        exit;
-    }
-
-    $tmp = tempnam(sys_get_temp_dir(), 'zypher_backup_');
-    $zip = new ZipArchive();
-
-    if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
-        die('No se pudo preparar la descarga.');
-    }
-
-    $zip->addFromString($nombre_enc, $contenido_enc);
-    $zip->close();
-
-    header('Content-Type: application/zip');
-    header('Content-Disposition: attachment; filename="' . $nombre_zip . '"');
-    header('Content-Length: ' . filesize($tmp));
-
-    readfile($tmp);
-    unlink($tmp);
-    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['guardar_config'])) {
         guardar_configuracion($pdo);
-        guardar_opciones($pdo);
 
         header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=config');
         exit;
@@ -316,7 +308,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (isset($_POST['backup_ahora'])) {
         guardar_configuracion($pdo);
-        guardar_opciones($pdo);
 
         $stmt = $pdo->prepare("
             SELECT id
@@ -341,84 +332,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['cancelar_backup'])) {
-        $orden_id = (int)$_POST['orden_id'];
+        if (!validar_secundaria_post($pdo)) {
+            $error = 'Contraseña secundaria incorrecta o no configurada.';
+        } else {
+            $orden_id = (int)$_POST['orden_id'];
 
-        $stmt = $pdo->prepare("
-            UPDATE backup_ordenes
-            SET estado = 'cancelada',
-                mensaje = 'Cancelada por el usuario',
-                updated_at = NOW()
-            WHERE id = :id
-              AND agente_id = :agente_id
-              AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
-        ");
-        $stmt->execute([
-            ':id' => $orden_id,
-            ':agente_id' => $AGENTE_ID
-        ]);
+            $stmt = $pdo->prepare("
+                UPDATE backup_ordenes
+                SET estado = 'cancelada',
+                    mensaje = 'Cancelada por el usuario',
+                    updated_at = NOW()
+                WHERE id = :id
+                  AND agente_id = :agente_id
+                  AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
+            ");
+            $stmt->execute([
+                ':id' => $orden_id,
+                ':agente_id' => $AGENTE_ID
+            ]);
 
-        $stmt = $pdo->prepare("
-            INSERT INTO backup_historial
-                (agente_id, estado, carpetas, archivo_r2, tamano_mb, mensaje)
-            VALUES
-                (:agente_id, 'cancelada', '-', NULL, NULL, 'Backup cancelado por el usuario')
-        ");
-        $stmt->execute([':agente_id' => $AGENTE_ID]);
+            $stmt = $pdo->prepare("
+                INSERT INTO backup_historial
+                    (agente_id, estado, carpetas, archivo_r2, tamano_mb, mensaje)
+                VALUES
+                    (:agente_id, 'cancelada', '-', NULL, NULL, 'Backup cancelado por el usuario')
+            ");
+            $stmt->execute([':agente_id' => $AGENTE_ID]);
 
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=cancelado');
-        exit;
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=cancelado');
+            exit;
+        }
     }
 
     if (isset($_POST['eliminar_backup'])) {
-        $id = (int)$_POST['backup_id'];
+        if (!validar_secundaria_post($pdo)) {
+            $error = 'Contraseña secundaria incorrecta o no configurada.';
+        } else {
+            $id = (int)$_POST['backup_id'];
 
-        try {
-            $stmt = $pdo->prepare("
-                SELECT archivo_r2
-                FROM backup_historial
-                WHERE id = :id
-                  AND agente_id = :agente_id
-                LIMIT 1
-            ");
-            $stmt->execute([
-                ':id' => $id,
-                ':agente_id' => $AGENTE_ID
-            ]);
+            try {
+                $stmt = $pdo->prepare("
+                    SELECT archivo_r2
+                    FROM backup_historial
+                    WHERE id = :id
+                      AND agente_id = :agente_id
+                    LIMIT 1
+                ");
+                $stmt->execute([
+                    ':id' => $id,
+                    ':agente_id' => $AGENTE_ID
+                ]);
 
-            $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+                $backup = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($backup && !empty($backup['archivo_r2'])) {
-                r2_request('DELETE', $backup['archivo_r2']);
+                if ($backup && !empty($backup['archivo_r2'])) {
+                    r2_request('DELETE', $backup['archivo_r2']);
+                }
+
+                $stmt = $pdo->prepare("
+                    DELETE FROM backup_historial
+                    WHERE id = :id
+                      AND agente_id = :agente_id
+                ");
+                $stmt->execute([
+                    ':id' => $id,
+                    ':agente_id' => $AGENTE_ID
+                ]);
+
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado');
+                exit;
+
+            } catch (Throwable $e) {
+                $error = 'Error eliminando backup: ' . $e->getMessage();
             }
-
-            $stmt = $pdo->prepare("
-                DELETE FROM backup_historial
-                WHERE id = :id
-                  AND agente_id = :agente_id
-            ");
-            $stmt->execute([
-                ':id' => $id,
-                ':agente_id' => $AGENTE_ID
-            ]);
-
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado');
-            exit;
-
-        } catch (Throwable $e) {
-            $error = 'Error eliminando backup: ' . $e->getMessage();
         }
     }
 
     if (isset($_POST['limpiar_historial'])) {
-        $stmt = $pdo->prepare("
-            UPDATE backup_historial
-            SET oculto = true
-            WHERE agente_id = :agente_id
-        ");
-        $stmt->execute([':agente_id' => $AGENTE_ID]);
+        if (!validar_secundaria_post($pdo)) {
+            $error = 'Contraseña secundaria incorrecta o no configurada.';
+        } else {
+            $stmt = $pdo->prepare("
+                UPDATE backup_historial
+                SET oculto = true
+                WHERE agente_id = :agente_id
+            ");
+            $stmt->execute([':agente_id' => $AGENTE_ID]);
 
-        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=historial');
-        exit;
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=historial');
+            exit;
+        }
     }
 }
 
@@ -460,19 +463,6 @@ $stmt = $pdo->prepare("
 $stmt->execute([':agente_id' => $AGENTE_ID]);
 $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt = $pdo->prepare("
-    SELECT proteger_descarga, password_hash
-    FROM backup_opciones
-    WHERE agente_id = :agente_id
-");
-$stmt->execute([':agente_id' => $AGENTE_ID]);
-$opciones = $stmt->fetch(PDO::FETCH_ASSOC) ?: [
-    'proteger_descarga' => false,
-    'password_hash' => null
-];
-
-$proteger_descarga = filter_var($opciones['proteger_descarga'] ?? false, FILTER_VALIDATE_BOOLEAN);
-$tiene_password = !empty($opciones['password_hash']);
 $backup_en_proceso = $orden_activa ? true : false;
 ?>
 <!DOCTYPE html>
@@ -526,16 +516,14 @@ $backup_en_proceso = $orden_activa ? true : false;
             transform: scale(1.2);
         }
 
-        input[type="password"], select, button, a.btn {
+        input[type="email"],
+        input[type="password"],
+        select,
+        button,
+        a.btn {
             padding: 8px 12px;
             border-radius: 8px;
             border: 0;
-        }
-
-        input:disabled {
-            background: #374151;
-            color: #9ca3af;
-            cursor: not-allowed;
         }
 
         button, a.btn {
@@ -590,10 +578,11 @@ $backup_en_proceso = $orden_activa ? true : false;
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
-        .password-mini {
-            max-width: 140px;
+        .mini {
+            max-width: 170px;
         }
     </style>
 </head>
@@ -669,31 +658,6 @@ $backup_en_proceso = $orden_activa ? true : false;
             </tbody>
         </table>
 
-        <h2>Seguridad de descarga</h2>
-
-        <?php if ($tiene_password && $proteger_descarga): ?>
-            <p class="ok">Contraseña de descarga configurada.</p>
-            <p class="muted">Por seguridad, esta contraseña no se puede cambiar desde esta pantalla.</p>
-            <input type="hidden" name="proteger_descarga" value="1">
-        <?php else: ?>
-            <p>
-                <label>
-                    <input type="checkbox" id="proteger_descarga" name="proteger_descarga" <?php echo $proteger_descarga ? 'checked' : ''; ?>>
-                    Proteger descargas con contraseña
-                </label>
-            </p>
-
-            <p>
-                <input
-                    type="password"
-                    id="password_descarga"
-                    name="password_descarga"
-                    placeholder="Contraseña de descarga"
-                    <?php echo $proteger_descarga ? '' : 'disabled'; ?>
-                >
-            </p>
-        <?php endif; ?>
-
         <br>
 
         <button type="submit" name="guardar_config">Guardar configuración</button>
@@ -710,6 +674,8 @@ $backup_en_proceso = $orden_activa ? true : false;
     <h2>Historial</h2>
 
     <form method="post" onsubmit="return confirm('¿Seguro que quieres limpiar el historial visual? No se borrarán los archivos de R2.');">
+        <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
+        <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
         <button type="submit" name="limpiar_historial" class="danger">Limpiar historial</button>
     </form>
 
@@ -730,7 +696,7 @@ $backup_en_proceso = $orden_activa ? true : false;
         <?php if ($orden_activa): ?>
             <?php
                 $estado = (string)$orden_activa['estado'];
-                $clase = in_array($estado, ['pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo'], true) ? 'progreso' : 'pendiente';
+                $clase = clase_estado($estado);
             ?>
             <tr>
                 <td><?php echo htmlspecialchars((string)$orden_activa['updated_at']); ?></td>
@@ -742,6 +708,8 @@ $backup_en_proceso = $orden_activa ? true : false;
                 <td>
                     <form method="post" onsubmit="return confirm('¿Seguro que quieres cancelar este backup?');">
                         <input type="hidden" name="orden_id" value="<?php echo (int)$orden_activa['id']; ?>">
+                        <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
+                        <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                         <button type="submit" name="cancelar_backup" class="warning">Cancelar backup</button>
                     </form>
                 </td>
@@ -751,15 +719,7 @@ $backup_en_proceso = $orden_activa ? true : false;
         <?php foreach ($historial as $h): ?>
             <?php
                 $estado = (string)$h['estado'];
-                $estadoClase = 'pendiente';
-
-                if ($estado === 'completada') {
-                    $estadoClase = 'ok';
-                } elseif ($estado === 'error') {
-                    $estadoClase = 'error';
-                } elseif ($estado === 'cancelada') {
-                    $estadoClase = 'cancelada';
-                }
+                $estadoClase = clase_estado($estado);
             ?>
             <tr>
                 <td><?php echo htmlspecialchars((string)$h['created_at']); ?></td>
@@ -775,17 +735,8 @@ $backup_en_proceso = $orden_activa ? true : false;
                         <?php if ($estado === 'completada' && !empty($h['archivo_r2'])): ?>
                             <form method="post">
                                 <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
-
-                                <?php if ($proteger_descarga): ?>
-                                    <input
-                                        class="password-mini"
-                                        type="password"
-                                        name="password_confirmacion"
-                                        placeholder="Contraseña"
-                                        required
-                                    >
-                                <?php endif; ?>
-
+                                <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
+                                <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                                 <button type="submit" name="descargar_backup">Descargar</button>
                             </form>
                         <?php endif; ?>
@@ -793,6 +744,8 @@ $backup_en_proceso = $orden_activa ? true : false;
                         <?php if (in_array($estado, ['completada', 'error', 'cancelada'], true)): ?>
                             <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este backup del historial y de R2 si existe?');">
                                 <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
+                                <input class="mini" type="email" name="email_secundario" placeholder="Email" required>
+                                <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
                                 <button type="submit" name="eliminar_backup" class="danger">Eliminar backup</button>
                             </form>
                         <?php endif; ?>
@@ -810,26 +763,6 @@ $backup_en_proceso = $orden_activa ? true : false;
         </tbody>
     </table>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const check = document.getElementById('proteger_descarga');
-    const input = document.getElementById('password_descarga');
-
-    if (!check || !input) return;
-
-    function actualizarPassword() {
-        input.disabled = !check.checked;
-
-        if (!check.checked) {
-            input.value = '';
-        }
-    }
-
-    check.addEventListener('change', actualizarPassword);
-    actualizarPassword();
-});
-</script>
 
 </body>
 </html>
