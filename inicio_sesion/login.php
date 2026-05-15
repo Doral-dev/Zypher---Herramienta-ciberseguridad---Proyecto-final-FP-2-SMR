@@ -32,18 +32,18 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 try {
     $pdo = getPDO();
 
-    $stmt = $pdo->prepare('
-        SELECT id, email, password_hash, is_verified
+    $stmt = $pdo->prepare("
+        SELECT id, username, email, password_hash, is_verified
         FROM users
         WHERE email = :email
         LIMIT 1
-    ');
+    ");
 
     $stmt->execute([
-        'email' => $email
+        ':email' => $email
     ]);
 
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         exit('Correo o contraseña incorrectos');
@@ -58,12 +58,15 @@ try {
     }
 
     session_regenerate_id(true);
+
     $_SESSION['user_id'] = (int)$user['id'];
+    $_SESSION['username'] = $user['username'] ?? '';
     $_SESSION['email'] = $user['email'];
     $_SESSION['logged_in'] = true;
 
-    header('Location: /Dashboard/dashboard-inicio.php');
+    header('Location: /dashboard-inicio.php');
     exit;
+
 } catch (Throwable $e) {
     exit('Error al iniciar sesión: ' . $e->getMessage());
 }
