@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
         }
 
-        header('Location: copias_seguridad.php?ok=config');
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=config');
         exit;
     }
 
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ");
         $stmt->execute([':agente_id' => $AGENTE_ID]);
 
-        header('Location: copias_seguridad.php?ok=orden');
+        header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=orden');
         exit;
     }
 }
@@ -206,7 +206,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 
     <?php if (isset($_GET['ok']) && $_GET['ok'] === 'orden'): ?>
-        <p class="ok">Orden de backup creada correctamente.</p>
+        <p class="ok">Orden de copia creada correctamente.</p>
     <?php endif; ?>
 </div>
 
@@ -276,6 +276,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($historial as $h): ?>
             <?php
                 $estadoClase = 'pendiente';
+
                 if ($h['estado'] === 'completada') {
                     $estadoClase = 'ok';
                 } elseif ($h['estado'] === 'error') {
