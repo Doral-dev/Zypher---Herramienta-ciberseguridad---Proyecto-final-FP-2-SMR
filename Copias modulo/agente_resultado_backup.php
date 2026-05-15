@@ -61,6 +61,7 @@ $estados_validos = [
     'cifrando',
     'subiendo',
     'completada',
+    'cancelada',
     'error'
 ];
 
@@ -68,13 +69,32 @@ if (!in_array($estado, $estados_validos, true)) {
     $estado = 'error';
 }
 
-$es_final = in_array($estado, ['completada', 'error'], true);
+$es_final = in_array($estado, ['completada', 'error', 'cancelada'], true);
 
 try {
     $pdo = db();
     $pdo->beginTransaction();
 
     if ($orden_id !== null && $orden_id !== '') {
+        $stmt = $pdo->prepare("
+            SELECT estado
+            FROM backup_ordenes
+            WHERE id = :id
+              AND agente_id = :agente_id
+            LIMIT 1
+        ");
+        $stmt->execute([
+            ':id' => (int)$orden_id,
+            ':agente_id' => $agente_id
+        ]);
+
+        $actual = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($actual && $actual['estado'] === 'cancelada') {
+            $pdo->commit();
+            responder(true, ['cancelada' => true]);
+        }
+
         $stmt = $pdo->prepare("
             UPDATE backup_ordenes
             SET estado = :estado,
