@@ -55,6 +55,7 @@ try {
         $up = $pdo->prepare("
             UPDATE backup_ordenes
             SET estado = 'en_proceso',
+                mensaje = 'Orden recibida por el agente',
                 updated_at = NOW()
             WHERE id = :id
         ");
