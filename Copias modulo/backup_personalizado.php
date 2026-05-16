@@ -9,6 +9,11 @@ $DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
 $AGENTE_ID = 'windows-agent-001';
 
+$R2_ACCOUNT_ID = '78f4ace1f56a3935fd458fcddc18c673';
+$R2_ACCESS_KEY = '44e6bef699a6c87cdecc32610a535d32';
+$R2_SECRET_KEY = '84d3beed801df3551bd1c54258bb281bfff435688dce218d3d07e1d93dc37a96';
+$R2_BUCKET = 'zypher-modulo-copias';
+
 $FRECUENCIAS = [
     1 => 'Cada día',
     7 => 'Cada semana',
@@ -33,6 +38,147 @@ function h($txt): string {
     return htmlspecialchars((string)$txt, ENT_QUOTES, 'UTF-8');
 }
 
+function hmac_sha256_bin(string $key, string $data): string {
+    return hash_hmac('sha256', $data, $key, true);
+}
+
+function aws_signature_key(string $secret, string $date, string $region, string $service): string {
+    $kDate = hmac_sha256_bin('AWS4' . $secret, $date);
+    $kRegion = hmac_sha256_bin($kDate, $region);
+    $kService = hmac_sha256_bin($kRegion, $service);
+    return hmac_sha256_bin($kService, 'aws4_request');
+}
+
+function r2_encode_path(string $path): string {
+    return implode('/', array_map('rawurlencode', explode('/', $path)));
+}
+
+function r2_request(string $method, string $object_key): string {
+    global $R2_ACCOUNT_ID, $R2_ACCESS_KEY, $R2_SECRET_KEY, $R2_BUCKET;
+
+    $region = 'auto';
+    $service = 's3';
+    $host = $R2_ACCOUNT_ID . '.r2.cloudflarestorage.com';
+
+    $canonical_uri = '/' . r2_encode_path($R2_BUCKET . '/' . $object_key);
+    $url = 'https://' . $host . $canonical_uri;
+
+    $payload_hash = hash('sha256', '');
+    $amz_date = gmdate('Ymd\THis\Z');
+    $date_stamp = gmdate('Ymd');
+
+    $canonical_headers =
+        "host:$host\n" .
+        "x-amz-content-sha256:$payload_hash\n" .
+        "x-amz-date:$amz_date\n";
+
+    $signed_headers = 'host;x-amz-content-sha256;x-amz-date';
+
+    $canonical_request = implode("\n", [
+        $method,
+        $canonical_uri,
+        '',
+        $canonical_headers,
+        $signed_headers,
+        $payload_hash
+    ]);
+
+    $credential_scope = "$date_stamp/$region/$service/aws4_request";
+
+    $string_to_sign = implode("\n", [
+        'AWS4-HMAC-SHA256',
+        $amz_date,
+        $credential_scope,
+        hash('sha256', $canonical_request)
+    ]);
+
+    $signing_key = aws_signature_key($R2_SECRET_KEY, $date_stamp, $region, $service);
+    $signature = hash_hmac('sha256', $string_to_sign, $signing_key);
+
+    $authorization =
+        'AWS4-HMAC-SHA256 ' .
+        "Credential=$R2_ACCESS_KEY/$credential_scope, " .
+        "SignedHeaders=$signed_headers, " .
+        "Signature=$signature";
+
+    $headers = [
+        "Host: $host",
+        "x-amz-date: $amz_date",
+        "x-amz-content-sha256: $payload_hash",
+        "Authorization: $authorization",
+        "User-Agent: ZypherWeb/1.0"
+    ];
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => $method,
+            'header' => implode("\r\n", $headers),
+            'ignore_errors' => true,
+            'timeout' => 300
+        ]
+    ]);
+
+    $response = file_get_contents($url, false, $context);
+
+    $status = 0;
+    if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
+        $status = (int)$m[1];
+    }
+
+    if ($status < 200 || $status >= 300) {
+        throw new Exception("Error R2 HTTP $status: " . (string)$response);
+    }
+
+    return (string)$response;
+}
+
+function verificar_password_secundaria(PDO $pdo, string $password): bool {
+    if ($password === '') {
+        return false;
+    }
+
+    $stmt = $pdo->query("
+        SELECT secundaria_hash
+        FROM usuario_seguridad
+        WHERE activa = true
+          AND secundaria_hash IS NOT NULL
+    ");
+
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (!empty($row['secundaria_hash']) && password_verify($password, $row['secundaria_hash'])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function validar_secundaria_post(PDO $pdo): bool {
+    return verificar_password_secundaria($pdo, (string)($_POST['password_secundaria'] ?? ''));
+}
+
+function ultima_copia_ruta(PDO $pdo, string $agente_id, string $ruta): string {
+    $stmt = $pdo->prepare("
+        SELECT created_at
+        FROM backup_historial
+        WHERE agente_id = :agente_id
+          AND estado = 'completada'
+          AND COALESCE(oculto, false) = false
+          AND carpetas ILIKE :ruta
+        ORDER BY created_at DESC
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        ':agente_id' => $agente_id,
+        ':ruta' => '%' . $ruta . '%'
+    ]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    return $row ? (string)$row['created_at'] : '-';
+}
+
 $pdo = db();
 $error = '';
 
@@ -49,6 +195,79 @@ $pdo->exec("
     )
 ");
 
+$pdo->exec("
+    ALTER TABLE backup_personalizado_config
+    ALTER COLUMN nombre DROP NOT NULL
+");
+
+$pdo->exec("
+    ALTER TABLE backup_personalizado_config
+    ALTER COLUMN tipo DROP NOT NULL
+");
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['descargar_backup'])) {
+    if (!validar_secundaria_post($pdo)) {
+        $error = 'Contraseña secundaria incorrecta o no configurada.';
+    } else {
+        try {
+            $id = (int)$_POST['backup_id'];
+
+            $stmt = $pdo->prepare("
+                SELECT archivo_r2
+                FROM backup_historial
+                WHERE id = :id
+                  AND agente_id = :agente_id
+                  AND estado = 'completada'
+                  AND COALESCE(oculto, false) = false
+                LIMIT 1
+            ");
+
+            $stmt->execute([
+                ':id' => $id,
+                ':agente_id' => $AGENTE_ID
+            ]);
+
+            $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$backup || empty($backup['archivo_r2'])) {
+                throw new Exception('Backup no encontrado.');
+            }
+
+            $contenido_enc = r2_request('GET', $backup['archivo_r2']);
+            $nombre_enc = basename($backup['archivo_r2']);
+            $nombre_zip = str_replace('.zip.zypher.enc', '', $nombre_enc) . '_cifrado.zip';
+
+            if (!class_exists('ZipArchive')) {
+                header('Content-Type: application/octet-stream');
+                header('Content-Disposition: attachment; filename="' . $nombre_enc . '"');
+                echo $contenido_enc;
+                exit;
+            }
+
+            $tmp = tempnam(sys_get_temp_dir(), 'zypher_backup_');
+            $zip = new ZipArchive();
+
+            if ($zip->open($tmp, ZipArchive::OVERWRITE) !== true) {
+                throw new Exception('No se pudo preparar la descarga.');
+            }
+
+            $zip->addFromString($nombre_enc, $contenido_enc);
+            $zip->close();
+
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $nombre_zip . '"');
+            header('Content-Length: ' . filesize($tmp));
+
+            readfile($tmp);
+            unlink($tmp);
+            exit;
+
+        } catch (Throwable $e) {
+            $error = 'Error descargando backup: ' . $e->getMessage();
+        }
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if (isset($_POST['guardar_configuracion']) || isset($_POST['backup_ahora'])) {
@@ -58,6 +277,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             foreach ($rutas as $i => $ruta) {
                 $ruta = trim((string)$ruta);
+                $ruta = trim($ruta, "\"' ");
                 $id = (int)($ids[$i] ?? 0);
                 $frecuencia = (int)($frecuencias[$i] ?? 7);
                 $activa = isset($_POST['activa'][$i]);
@@ -146,8 +366,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':agente_id' => $AGENTE_ID
             ]);
 
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado');
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado_ruta');
             exit;
+        }
+
+        if (isset($_POST['eliminar_backup'])) {
+            if (!validar_secundaria_post($pdo)) {
+                $error = 'Contraseña secundaria incorrecta o no configurada.';
+            } else {
+                $id = (int)$_POST['backup_id'];
+
+                $stmt = $pdo->prepare("
+                    SELECT archivo_r2
+                    FROM backup_historial
+                    WHERE id = :id
+                      AND agente_id = :agente_id
+                    LIMIT 1
+                ");
+                $stmt->execute([
+                    ':id' => $id,
+                    ':agente_id' => $AGENTE_ID
+                ]);
+
+                $backup = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($backup && !empty($backup['archivo_r2'])) {
+                    r2_request('DELETE', $backup['archivo_r2']);
+                }
+
+                $stmt = $pdo->prepare("
+                    DELETE FROM backup_historial
+                    WHERE id = :id
+                      AND agente_id = :agente_id
+                ");
+                $stmt->execute([
+                    ':id' => $id,
+                    ':agente_id' => $AGENTE_ID
+                ]);
+
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado_backup');
+                exit;
+            }
+        }
+
+        if (isset($_POST['limpiar_historial'])) {
+            if (!validar_secundaria_post($pdo)) {
+                $error = 'Contraseña secundaria incorrecta o no configurada.';
+            } else {
+                $stmt = $pdo->prepare("
+                    UPDATE backup_historial
+                    SET oculto = true
+                    WHERE agente_id = :agente_id
+                ");
+                $stmt->execute([':agente_id' => $AGENTE_ID]);
+
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=historial');
+                exit;
+            }
         }
 
     } catch (Throwable $e) {
@@ -274,8 +549,6 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .ok { color: #22c55e; }
         .error { color: #ef4444; }
-        .progreso { color: #38bdf8; }
-        .cancelada { color: #f97316; }
         .muted { color: #9ca3af; }
 
         .acciones {
@@ -287,6 +560,10 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .acciones form {
             margin: 0;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .fila-botones {
@@ -311,16 +588,8 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <p class="error"><?php echo h($error); ?></p>
     <?php endif; ?>
 
-    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'config'): ?>
-        <p class="ok">Configuración guardada correctamente.</p>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'orden'): ?>
-        <p class="ok">Orden de copia personalizada enviada correctamente.</p>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'eliminado'): ?>
-        <p class="ok">Ruta eliminada correctamente.</p>
+    <?php if (isset($_GET['ok'])): ?>
+        <p class="ok">Acción realizada correctamente.</p>
     <?php endif; ?>
 </div>
 
@@ -379,7 +648,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?php endforeach; ?>
                             </select>
                         </td>
-                        <td><?php echo h($r['ultimo_backup_ok'] ?? '-'); ?></td>
+                        <td><?php echo h(ultima_copia_ruta($pdo, $AGENTE_ID, (string)$r['ruta'])); ?></td>
                         <td>
                             <button
                                 type="submit"
@@ -424,7 +693,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tr>
                 <th>Fecha</th>
                 <th>Estado</th>
-                <th>Carpetas</th>
+                <th>Ruta / contenido</th>
                 <th>Tamaño</th>
                 <th>Archivo R2</th>
                 <th>Mensaje</th>
@@ -445,7 +714,25 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?php echo h($h['tamano_mb'] ?? '-'); ?> MB</td>
                     <td><?php echo h($h['archivo_r2'] ?? '-'); ?></td>
                     <td><?php echo h($h['mensaje'] ?? '-'); ?></td>
-                    <td>-</td>
+                    <td>
+                        <div class="acciones">
+                            <?php if ($h['estado'] === 'completada' && !empty($h['archivo_r2'])): ?>
+                                <form method="post">
+                                    <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
+                                    <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
+                                    <button type="submit" name="descargar_backup">Descargar</button>
+                                </form>
+                            <?php endif; ?>
+
+                            <?php if (in_array($h['estado'], ['completada', 'error', 'cancelada'], true)): ?>
+                                <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este backup?');">
+                                    <input type="hidden" name="backup_id" value="<?php echo (int)$h['id']; ?>">
+                                    <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
+                                    <button type="submit" name="eliminar_backup" class="danger">Eliminar backup</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         <?php endif; ?>
