@@ -25,6 +25,7 @@
         <div class="submenu">
             <a href="/Copias modulo/backup_carpetas_personales.php">Backup carpetas personales</a>
             <a href="/Copias modulo/backup_personalizado.php">Backup personalizado</a>
+            <a href="/Copias modulo/proteccion_archivos.php">Protección de archivos</a>
         </div>
     </div>
 
