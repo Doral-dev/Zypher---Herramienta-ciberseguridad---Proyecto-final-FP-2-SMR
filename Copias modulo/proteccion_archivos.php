@@ -7,8 +7,8 @@ $DB_NAME = 'zypher_db_g2sb';
 $DB_USER = 'zypher_db_g2sb_user';
 $DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
-$MAX_UPLOAD_MB = 50;
-$RESULTADOS_DIR = __DIR__ . '/proteccion_resultados';
+$MAX_UPLOAD_MB = 200;
+$RESULTADOS_DIR = sys_get_temp_dir() . '/zypher_proteccion_resultados';
 
 $METODOS = [
     'aes256' => 'Cifrado AES-256 con contraseña',
@@ -26,6 +26,11 @@ $METODOS_CON_PASSWORD = [
     'pdf_aes'
 ];
 
+ini_set('upload_max_filesize', $MAX_UPLOAD_MB . 'M');
+ini_set('post_max_size', ($MAX_UPLOAD_MB + 20) . 'M');
+ini_set('max_execution_time', '600');
+ini_set('memory_limit', '512M');
+
 function db(): PDO {
     global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASSWORD;
 
@@ -42,18 +47,9 @@ function h($txt): string {
 }
 
 function bytes_humanos(int $bytes): string {
-    if ($bytes >= 1073741824) {
-        return round($bytes / 1073741824, 2) . ' GB';
-    }
-
-    if ($bytes >= 1048576) {
-        return round($bytes / 1048576, 2) . ' MB';
-    }
-
-    if ($bytes >= 1024) {
-        return round($bytes / 1024, 2) . ' KB';
-    }
-
+    if ($bytes >= 1073741824) return round($bytes / 1073741824, 2) . ' GB';
+    if ($bytes >= 1048576) return round($bytes / 1048576, 2) . ' MB';
+    if ($bytes >= 1024) return round($bytes / 1024, 2) . ' KB';
     return $bytes . ' B';
 }
 
@@ -61,14 +57,12 @@ function nombre_seguro(string $nombre): string {
     $nombre = basename($nombre);
     $nombre = preg_replace('/[^a-zA-Z0-9._-]+/', '_', $nombre);
     $nombre = trim((string)$nombre, '._-');
-
     return $nombre !== '' ? $nombre : 'archivo';
 }
 
 function base_sin_extension(string $nombre): string {
     $base = pathinfo($nombre, PATHINFO_FILENAME);
     $base = nombre_seguro($base);
-
     return $base !== '' ? $base : 'archivo';
 }
 
@@ -80,7 +74,9 @@ function asegurar_directorio_resultados(): void {
     global $RESULTADOS_DIR;
 
     if (!is_dir($RESULTADOS_DIR)) {
-        mkdir($RESULTADOS_DIR, 0755, true);
+        if (!mkdir($RESULTADOS_DIR, 0777, true) && !is_dir($RESULTADOS_DIR)) {
+            throw new Exception('No se pudo crear el directorio temporal de resultados.');
+        }
     }
 }
 
@@ -100,8 +96,14 @@ function crear_tabla_si_no_existe(PDO $pdo): void {
             sha256_resultado TEXT,
             estado VARCHAR(30) DEFAULT 'completado',
             mensaje TEXT,
+            oculto BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
         )
+    ");
+
+    $pdo->exec("
+        ALTER TABLE proteccion_archivos_historial
+        ADD COLUMN IF NOT EXISTS oculto BOOLEAN DEFAULT FALSE
     ");
 }
 
@@ -121,6 +123,7 @@ function guardar_historial(PDO $pdo, array $data): int {
                 sha256_resultado,
                 estado,
                 mensaje,
+                oculto,
                 created_at
             )
         VALUES
@@ -137,6 +140,7 @@ function guardar_historial(PDO $pdo, array $data): int {
                 :sha256_resultado,
                 :estado,
                 :mensaje,
+                false,
                 NOW()
             )
         RETURNING id
@@ -158,6 +162,31 @@ function guardar_historial(PDO $pdo, array $data): int {
     ]);
 
     return (int)$stmt->fetchColumn();
+}
+
+function verificar_password_secundaria(PDO $pdo, string $password): bool {
+    if ($password === '') {
+        return false;
+    }
+
+    $stmt = $pdo->query("
+        SELECT secundaria_hash
+        FROM usuario_seguridad
+        WHERE activa = true
+          AND secundaria_hash IS NOT NULL
+    ");
+
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        if (!empty($row['secundaria_hash']) && password_verify($password, $row['secundaria_hash'])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function validar_secundaria_post(PDO $pdo): bool {
+    return verificar_password_secundaria($pdo, (string)($_POST['password_secundaria'] ?? ''));
 }
 
 function cifrar_aes256(string $inputPath, string $outputPath, string $password, string $nombreOriginal): void {
@@ -206,7 +235,7 @@ function cifrar_aes256(string $inputPath, string $outputPath, string $password, 
     ], JSON_UNESCAPED_UNICODE);
 
     if ($header === false) {
-        throw new Exception('No se pudo generar cabecera de cifrado.');
+        throw new Exception('No se pudo generar la cabecera del cifrado.');
     }
 
     $mac = hash_hmac('sha256', $header . "\n" . $ciphertext, $macKey, true);
@@ -320,13 +349,14 @@ if (isset($_GET['download'])) {
         FROM proteccion_archivos_historial
         WHERE id = :id
           AND estado = 'completado'
+          AND COALESCE(oculto, false) = false
         LIMIT 1
     ");
     $stmt->execute([':id' => $id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$row || empty($row['ruta_resultado']) || !is_file($row['ruta_resultado'])) {
-        exit('Archivo no encontrado.');
+        exit('Archivo no encontrado. Puede haberse perdido por reinicio/deploy de Render.');
     }
 
     header('Content-Type: ' . ($row['mime_resultado'] ?: 'application/octet-stream'));
@@ -335,6 +365,49 @@ if (isset($_GET['download'])) {
 
     readfile($row['ruta_resultado']);
     exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['limpiar_historial'])) {
+        if (!validar_secundaria_post($pdo)) {
+            $error = 'Contraseña secundaria incorrecta o no configurada.';
+        } else {
+            $pdo->exec("UPDATE proteccion_archivos_historial SET oculto = true");
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=historial');
+            exit;
+        }
+    }
+
+    if (isset($_POST['eliminar_archivo'])) {
+        if (!validar_secundaria_post($pdo)) {
+            $error = 'Contraseña secundaria incorrecta o no configurada.';
+        } else {
+            $id = (int)($_POST['historial_id'] ?? 0);
+
+            $stmt = $pdo->prepare("
+                SELECT ruta_resultado
+                FROM proteccion_archivos_historial
+                WHERE id = :id
+                LIMIT 1
+            ");
+            $stmt->execute([':id' => $id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row && !empty($row['ruta_resultado']) && is_file($row['ruta_resultado'])) {
+                @unlink($row['ruta_resultado']);
+            }
+
+            $stmt = $pdo->prepare("
+                UPDATE proteccion_archivos_historial
+                SET oculto = true
+                WHERE id = :id
+            ");
+            $stmt->execute([':id' => $id]);
+
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado');
+            exit;
+        }
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar'])) {
@@ -505,6 +578,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ejecutar'])) {
 $stmt = $pdo->query("
     SELECT id, metodo_nombre, archivo_original, archivo_resultado, tamano_original, tamano_resultado, sha256_original, sha256_resultado, estado, mensaje, created_at
     FROM proteccion_archivos_historial
+    WHERE COALESCE(oculto, false) = false
     ORDER BY created_at DESC
     LIMIT 30
 ");
@@ -542,11 +616,16 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .dropzone {
             border: 2px dashed #3b82f6;
-            border-radius: 16px;
-            padding: 35px;
+            border-radius: 18px;
+            padding: 90px 30px;
+            min-height: 210px;
             text-align: center;
             background: #0b1220;
             cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .dropzone.dragover {
@@ -554,8 +633,9 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .file-name {
-            margin-top: 12px;
+            margin-top: 14px;
             color: #93c5fd;
+            font-size: 15px;
         }
 
         .metodos {
@@ -607,6 +687,14 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
             cursor: not-allowed;
         }
 
+        .danger {
+            background: #dc2626;
+        }
+
+        .danger:hover {
+            background: #b91c1c;
+        }
+
         .ok { color: #22c55e; }
         .error { color: #ef4444; }
         .muted { color: #9ca3af; }
@@ -631,26 +719,28 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
             display: inline-block;
             padding: 10px 12px;
             border-radius: 8px;
-            background: #16a34a;
+            background: #2563eb;
             color: white;
             text-decoration: none;
+            border: 0;
+            cursor: pointer;
         }
 
         .btn-download:hover {
-            background: #15803d;
+            background: #1d4ed8;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
+            margin-top: 18px;
         }
 
         th, td {
             padding: 12px;
             border-bottom: 1px solid #374151;
             text-align: left;
-            vertical-align: top;
+            vertical-align: middle;
         }
 
         th {
@@ -660,6 +750,33 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
         code {
             word-break: break-all;
             color: #bfdbfe;
+        }
+
+        .acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 300px;
+        }
+
+        .acciones form {
+            display: flex;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .acciones input[type="password"] {
+            min-width: 210px;
+        }
+
+        .historial-limpieza {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .historial-limpieza input[type="password"] {
+            min-width: 230px;
         }
     </style>
 </head>
@@ -671,6 +788,14 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <?php if ($error): ?>
         <p class="error"><?php echo h($error); ?></p>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'historial'): ?>
+        <p class="ok">Historial limpiado correctamente.</p>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'eliminado'): ?>
+        <p class="ok">Archivo eliminado correctamente.</p>
     <?php endif; ?>
 
     <form method="post" enctype="multipart/form-data" id="formProteccion">
@@ -720,6 +845,11 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <div class="card">
     <h2>Historial</h2>
 
+    <form method="post" class="historial-limpieza" onsubmit="return confirm('¿Seguro que quieres limpiar el historial?');">
+        <input type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
+        <button type="submit" name="limpiar_historial" class="danger">Limpiar historial</button>
+    </form>
+
     <table>
         <thead>
             <tr>
@@ -729,7 +859,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Resultado</th>
                 <th>Tamaño</th>
                 <th>Mensaje</th>
-                <th>Descarga</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -747,11 +877,17 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?php echo h(bytes_humanos((int)$item['tamano_resultado'])); ?></td>
                     <td><?php echo h($item['mensaje']); ?></td>
                     <td>
-                        <?php if ($item['estado'] === 'completado' && $item['archivo_resultado']): ?>
-                            <a class="btn-download" href="?download=<?php echo (int)$item['id']; ?>">Descargar</a>
-                        <?php else: ?>
-                            -
-                        <?php endif; ?>
+                        <div class="acciones">
+                            <?php if ($item['estado'] === 'completado' && $item['archivo_resultado']): ?>
+                                <a class="btn-download" href="?download=<?php echo (int)$item['id']; ?>">Descargar</a>
+                            <?php endif; ?>
+
+                            <form method="post" onsubmit="return confirm('¿Seguro que quieres eliminar este archivo del historial?');">
+                                <input type="hidden" name="historial_id" value="<?php echo (int)$item['id']; ?>">
+                                <input type="password" name="password_secundaria" placeholder="Contraseña secundaria" required>
+                                <button type="submit" name="eliminar_archivo" class="danger">Eliminar archivo</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>
