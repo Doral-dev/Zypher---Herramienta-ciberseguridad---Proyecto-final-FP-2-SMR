@@ -1,5 +1,5 @@
 <aside class="dashboard-sidebar" id="dashboardSidebar">
-    <a href="/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
+    <a href="/Dashboard/dashboard-inicio.php" class="menu-home">🏠 Inicio</a>
 
     <div class="menu-category">
         <button type="button" class="menu-title" onclick="toggleMenu(this)">🛡️ Evaluación y refuerzo</button>
@@ -24,6 +24,7 @@
         <button type="button" class="menu-title" onclick="toggleMenu(this)">💾 Copias de seguridad</button>
         <div class="submenu">
             <a href="/Copias modulo/backup_carpetas_personales.php">Backup carpetas personales</a>
+            <a href="/Copias modulo/backup_personalizado.php">Backup personalizado</a>
         </div>
     </div>
 
