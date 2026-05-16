@@ -62,14 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id > 0) {
                 $stmt = $pdo->prepare("
-                    UPDATE backup_rutas_personalizadas
-                    SET ruta = :ruta,
-                        activa = :activa,
-                        frecuencia_dias = :frecuencia_dias
-                    WHERE id = :id
-                      AND user_id = :user_id
-                      AND agente_id = :agente_id
-                ");
+                SELECT created_at, estado, carpetas, tamano_mb, archivo_r2, mensaje
+                FROM backup_historial
+                WHERE agente_id = :agente_id
+                ORDER BY created_at DESC
+                LIMIT 20
+            ");
                 $stmt->execute([
                     ':ruta' => $ruta,
                     ':activa' => $activa,
@@ -384,7 +382,7 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php else: ?>
                     <?php foreach ($historial as $item): ?>
                         <tr>
-                            <td><?= h($item['fecha']) ?></td>
+                            <td><?= h($item['created_at']) ?></td>
                             <td><?= h($item['estado']) ?></td>
                             <td><?= h($item['carpetas']) ?></td>
                             <td><?= h((string)$item['tamano_mb']) ?> MB</td>
