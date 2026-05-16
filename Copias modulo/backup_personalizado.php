@@ -1,163 +1,208 @@
 <?php
 declare(strict_types=1);
 
-session_start();
+$DB_HOST = 'dpg-d6rar2vafjfc73f3u5u0-a.oregon-postgres.render.com';
+$DB_PORT = '5432';
+$DB_NAME = 'zypher_db_g2sb';
+$DB_USER = 'zypher_db_g2sb_user';
+$DB_PASSWORD = 'MwoKyrgVtJaOKvqtd97QQ5yMxzvnyT86';
 
-if (!isset($_SESSION['user_id'])) {
-    exit('No hay sesión activa.');
+$AGENTE_ID = 'windows-agent-001';
+
+$FRECUENCIAS = [
+    1 => 'Cada día',
+    7 => 'Cada semana',
+    30 => 'Cada mes',
+    90 => 'Cada 3 meses',
+    180 => 'Cada 6 meses',
+    365 => 'Cada año'
+];
+
+function db(): PDO {
+    global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASSWORD;
+
+    return new PDO(
+        "pgsql:host=$DB_HOST;port=$DB_PORT;dbname=$DB_NAME",
+        $DB_USER,
+        $DB_PASSWORD,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
 }
 
-require_once __DIR__ . '/../db.php';
-
-$usuario_id = (int)$_SESSION['user_id'];
-$agente_id = 'windows-agent-001';
-
-function h(?string $v): string {
-    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+function h($txt): string {
+    return htmlspecialchars((string)$txt, ENT_QUOTES, 'UTF-8');
 }
 
-function texto_frecuencia(int $dias): string {
-    if ($dias <= 1) return 'Cada día';
-    if ($dias <= 7) return 'Cada semana';
-    if ($dias <= 30) return 'Cada mes';
-    return 'Personalizado';
-}
-
-$pdo = getPDO();
+$pdo = db();
+$error = '';
 
 $pdo->exec("
-    CREATE TABLE IF NOT EXISTS backup_rutas_personalizadas (
+    CREATE TABLE IF NOT EXISTS backup_personalizado_config (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
         agente_id VARCHAR(100) NOT NULL,
         ruta TEXT NOT NULL,
-        activa BOOLEAN NOT NULL DEFAULT FALSE,
-        frecuencia_dias INTEGER NOT NULL DEFAULT 7,
-        ultima_copia_ok TIMESTAMP NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+        activa BOOLEAN DEFAULT TRUE,
+        frecuencia_dias INTEGER DEFAULT 7,
+        ultimo_backup_ok TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
     )
 ");
 
-$mensaje_ok = '';
-$mensaje_error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $accion = $_POST['accion'] ?? '';
+    try {
+        if (isset($_POST['guardar_configuracion']) || isset($_POST['backup_ahora'])) {
+            $ids = $_POST['id'] ?? [];
+            $rutas = $_POST['ruta'] ?? [];
+            $frecuencias = $_POST['frecuencia'] ?? [];
 
-    if ($accion === 'guardar_configuracion') {
-        $ids = $_POST['ruta_id'] ?? [];
-        $rutas = $_POST['ruta'] ?? [];
-        $activas = $_POST['activa'] ?? [];
-        $frecuencias = $_POST['frecuencia_dias'] ?? [];
+            foreach ($rutas as $i => $ruta) {
+                $ruta = trim((string)$ruta);
+                $id = (int)($ids[$i] ?? 0);
+                $frecuencia = (int)($frecuencias[$i] ?? 7);
+                $activa = isset($_POST['activa'][$i]);
 
-        foreach ($ids as $i => $id) {
-            $id = (int)$id;
-            $ruta = trim($rutas[$i] ?? '');
-            $activa = isset($activas[$i]) ? 1 : 0;
-            $frecuencia = (int)($frecuencias[$i] ?? 7);
+                if ($ruta === '') {
+                    continue;
+                }
 
-            if ($ruta === '') {
-                continue;
+                if (!array_key_exists($frecuencia, $FRECUENCIAS)) {
+                    $frecuencia = 7;
+                }
+
+                if ($id > 0) {
+                    $stmt = $pdo->prepare("
+                        UPDATE backup_personalizado_config
+                        SET ruta = :ruta,
+                            activa = :activa,
+                            frecuencia_dias = :frecuencia_dias,
+                            updated_at = NOW()
+                        WHERE id = :id
+                          AND agente_id = :agente_id
+                    ");
+
+                    $stmt->bindValue(':ruta', $ruta);
+                    $stmt->bindValue(':activa', $activa, PDO::PARAM_BOOL);
+                    $stmt->bindValue(':frecuencia_dias', $frecuencia, PDO::PARAM_INT);
+                    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+                    $stmt->bindValue(':agente_id', $AGENTE_ID);
+                    $stmt->execute();
+                } else {
+                    $stmt = $pdo->prepare("
+                        INSERT INTO backup_personalizado_config
+                            (agente_id, ruta, activa, frecuencia_dias, updated_at)
+                        VALUES
+                            (:agente_id, :ruta, :activa, :frecuencia_dias, NOW())
+                    ");
+
+                    $stmt->bindValue(':agente_id', $AGENTE_ID);
+                    $stmt->bindValue(':ruta', $ruta);
+                    $stmt->bindValue(':activa', $activa, PDO::PARAM_BOOL);
+                    $stmt->bindValue(':frecuencia_dias', $frecuencia, PDO::PARAM_INT);
+                    $stmt->execute();
+                }
             }
 
-            if ($id > 0) {
+            if (isset($_POST['backup_ahora'])) {
                 $stmt = $pdo->prepare("
-                SELECT created_at, estado, carpetas, tamano_mb, archivo_r2, mensaje
-                FROM backup_historial
-                WHERE agente_id = :agente_id
-                ORDER BY created_at DESC
-                LIMIT 20
-            ");
-                $stmt->execute([
-                    ':ruta' => $ruta,
-                    ':activa' => $activa,
-                    ':frecuencia_dias' => $frecuencia,
-                    ':id' => $id,
-                    ':user_id' => $usuario_id,
-                    ':agente_id' => $agente_id
-                ]);
-            } else {
-                $stmt = $pdo->prepare("
-                    INSERT INTO backup_rutas_personalizadas
-                    (user_id, agente_id, ruta, activa, frecuencia_dias)
-                    VALUES
-                    (:user_id, :agente_id, :ruta, :activa, :frecuencia_dias)
+                    SELECT id
+                    FROM backup_ordenes
+                    WHERE agente_id = :agente_id
+                      AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
+                    LIMIT 1
                 ");
-                $stmt->execute([
-                    ':user_id' => $usuario_id,
-                    ':agente_id' => $agente_id,
-                    ':ruta' => $ruta,
-                    ':activa' => $activa,
-                    ':frecuencia_dias' => $frecuencia
-                ]);
+                $stmt->execute([':agente_id' => $AGENTE_ID]);
+                $orden_activa = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$orden_activa) {
+                    $stmt = $pdo->prepare("
+                        INSERT INTO backup_ordenes
+                            (agente_id, accion, estado, mensaje, created_at, updated_at)
+                        VALUES
+                            (:agente_id, 'backup_personalizado_ahora', 'pendiente', 'Backup personalizado pendiente', NOW(), NOW())
+                    ");
+                    $stmt->execute([':agente_id' => $AGENTE_ID]);
+                }
+
+                header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=orden');
+                exit;
             }
+
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=config');
+            exit;
         }
 
-        $mensaje_ok = 'Configuración guardada correctamente.';
-    }
+        if (isset($_POST['eliminar_ruta'])) {
+            $id = (int)($_POST['ruta_id'] ?? 0);
 
-    if ($accion === 'ejecutar_copia_ahora') {
-        $stmt = $pdo->prepare("
-            INSERT INTO backup_ordenes
-            (agente_id, accion, estado, created_at)
-            VALUES
-            (:agente_id, 'backup_personalizado_ahora', 'pendiente', NOW())
-        ");
-        $stmt->execute([
-            ':agente_id' => $agente_id
-        ]);
+            $stmt = $pdo->prepare("
+                DELETE FROM backup_personalizado_config
+                WHERE id = :id
+                  AND agente_id = :agente_id
+            ");
 
-        $mensaje_ok = 'Orden de backup personalizada enviada.';
+            $stmt->execute([
+                ':id' => $id,
+                ':agente_id' => $AGENTE_ID
+            ]);
+
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?ok=eliminado');
+            exit;
+        }
+
+    } catch (Throwable $e) {
+        $error = $e->getMessage();
     }
 }
 
 $stmt = $pdo->prepare("
-    SELECT id, ruta, activa, frecuencia_dias, ultima_copia_ok
-    FROM backup_rutas_personalizadas
-    WHERE user_id = :user_id
-      AND agente_id = :agente_id
+    SELECT id, ruta, activa, frecuencia_dias, ultimo_backup_ok
+    FROM backup_personalizado_config
+    WHERE agente_id = :agente_id
     ORDER BY id ASC
 ");
-$stmt->execute([
-    ':user_id' => $usuario_id,
-    ':agente_id' => $agente_id
-]);
-$rutas_personalizadas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->execute([':agente_id' => $AGENTE_ID]);
+$rutas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $stmt = $pdo->prepare("
-    SELECT fecha, estado, carpetas, tamano_mb, archivo_r2, mensaje
+    SELECT id
+    FROM backup_ordenes
+    WHERE agente_id = :agente_id
+      AND estado IN ('pendiente', 'en_proceso', 'preparando', 'comprimiendo', 'cifrando', 'subiendo')
+    LIMIT 1
+");
+$stmt->execute([':agente_id' => $AGENTE_ID]);
+$backup_en_proceso = (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->prepare("
+    SELECT id, estado, carpetas, archivo_r2, tamano_mb, mensaje, created_at
     FROM backup_historial
     WHERE agente_id = :agente_id
-    ORDER BY fecha DESC
-    LIMIT 20
+      AND COALESCE(oculto, false) = false
+    ORDER BY created_at DESC
+    LIMIT 30
 ");
-$stmt->execute([
-    ':agente_id' => $agente_id
-]);
+$stmt->execute([':agente_id' => $AGENTE_ID]);
 $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Backup personalizado - Zypher</title>
     <style>
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #07152b;
-            color: #ffffff;
-        }
-
-        .page {
-            padding: 24px;
+            background: #0f172a;
+            color: #e5e7eb;
+            margin: 0;
+            padding: 30px;
         }
 
         .card {
-            background: #091a36;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 18px;
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 14px;
             padding: 22px;
             margin-bottom: 24px;
         }
@@ -166,264 +211,280 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-top: 0;
         }
 
-        .muted {
-            color: #b8c7e0;
-            margin-bottom: 18px;
-        }
-
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
+        p {
+            color: #9ca3af;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 15px;
         }
 
         th, td {
-            padding: 14px 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.12);
+            padding: 12px;
+            border-bottom: 1px solid #374151;
             text-align: left;
             vertical-align: middle;
         }
 
         th {
-            color: #6cb2ff;
-            font-size: 15px;
-        }
-
-        input[type="text"], select, input[type="password"] {
-            width: 100%;
-            max-width: 320px;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: none;
-            outline: none;
-            font-size: 14px;
+            color: #93c5fd;
         }
 
         input[type="checkbox"] {
             transform: scale(1.2);
         }
 
-        .actions-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 16px;
+        input[type="text"],
+        input[type="password"],
+        select,
+        button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 0;
         }
 
-        .btn {
-            background: #2f6df6;
-            color: #fff;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
+        input[type="text"] {
+            width: 95%;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
             cursor: pointer;
-            font-size: 14px;
         }
 
-        .btn:hover {
-            opacity: 0.92;
+        button:hover {
+            background: #1d4ed8;
         }
 
-        .btn-danger {
-            background: #e53935;
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
         }
 
-        .top-inline {
+        .danger {
+            background: #dc2626;
+        }
+
+        .danger:hover {
+            background: #b91c1c;
+        }
+
+        .ok { color: #22c55e; }
+        .error { color: #ef4444; }
+        .progreso { color: #38bdf8; }
+        .cancelada { color: #f97316; }
+        .muted { color: #9ca3af; }
+
+        .acciones {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 14px;
         }
 
-        .msg-ok {
-            background: #12361f;
-            color: #8df0a3;
-            padding: 12px 14px;
-            border-radius: 10px;
-            margin-bottom: 14px;
+        .acciones form {
+            margin: 0;
         }
 
-        .msg-error {
-            background: #3a1515;
-            color: #ff9d9d;
-            padding: 12px 14px;
-            border-radius: 10px;
-            margin-bottom: 14px;
+        .fila-botones {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .small-input {
-            width: 220px;
-            max-width: 220px;
+        .mini {
+            max-width: 190px;
         }
     </style>
 </head>
 <body>
-<div class="page">
 
-    <div class="card">
-        <h1>Backup personalizado</h1>
-        <div class="muted">Equipo: <?= h($agente_id) ?></div>
+<div class="card">
+    <h1>Backup personalizado</h1>
+    <p>Equipo: <?php echo h($AGENTE_ID); ?></p>
 
-        <?php if ($mensaje_ok !== ''): ?>
-            <div class="msg-ok"><?= h($mensaje_ok) ?></div>
-        <?php endif; ?>
+    <?php if ($error): ?>
+        <p class="error"><?php echo h($error); ?></p>
+    <?php endif; ?>
 
-        <?php if ($mensaje_error !== ''): ?>
-            <div class="msg-error"><?= h($mensaje_error) ?></div>
-        <?php endif; ?>
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'config'): ?>
+        <p class="ok">Configuración guardada correctamente.</p>
+    <?php endif; ?>
 
-        <h2>Configuración automática</h2>
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'orden'): ?>
+        <p class="ok">Orden de copia personalizada enviada correctamente.</p>
+    <?php endif; ?>
 
-        <form method="POST" id="formBackupPersonalizado">
-            <input type="hidden" name="accion" id="accionFormulario" value="guardar_configuracion">
+    <?php if (isset($_GET['ok']) && $_GET['ok'] === 'eliminado'): ?>
+        <p class="ok">Ruta eliminada correctamente.</p>
+    <?php endif; ?>
+</div>
 
-            <div class="table-wrap">
-                <table id="tablaRutas">
-                    <thead>
-                        <tr>
-                            <th>Ruta</th>
-                            <th>Activar</th>
-                            <th>Frecuencia</th>
-                            <th>Última copia correcta</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php if (!$rutas_personalizadas): ?>
-                        <tr>
-                            <td>
-                                <input type="hidden" name="ruta_id[]" value="0">
-                                <input type="text" name="ruta[]" placeholder="Ej: C:\Users\alex\Documents">
-                            </td>
-                            <td>
-                                <input type="checkbox" name="activa[0]" value="1">
-                            </td>
-                            <td>
-                                <select name="frecuencia_dias[]">
-                                    <option value="1">Cada día</option>
-                                    <option value="7" selected>Cada semana</option>
-                                    <option value="30">Cada mes</option>
-                                </select>
-                            </td>
-                            <td>-</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($rutas_personalizadas as $i => $ruta): ?>
-                            <tr>
-                                <td>
-                                    <input type="hidden" name="ruta_id[]" value="<?= (int)$ruta['id'] ?>">
-                                    <input type="text" name="ruta[]" value="<?= h($ruta['ruta']) ?>">
-                                </td>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        name="activa[<?= (int)$i ?>]"
-                                        value="1"
-                                        <?= !empty($ruta['activa']) ? 'checked' : '' ?>
-                                    >
-                                </td>
-                                <td>
-                                    <select name="frecuencia_dias[]">
-                                        <option value="1" <?= (int)$ruta['frecuencia_dias'] === 1 ? 'selected' : '' ?>>Cada día</option>
-                                        <option value="7" <?= (int)$ruta['frecuencia_dias'] === 7 ? 'selected' : '' ?>>Cada semana</option>
-                                        <option value="30" <?= (int)$ruta['frecuencia_dias'] === 30 ? 'selected' : '' ?>>Cada mes</option>
-                                    </select>
-                                </td>
-                                <td><?= $ruta['ultima_copia_ok'] ? h($ruta['ultima_copia_ok']) : '-' ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+<div class="card">
+    <h2>Configuración automática</h2>
 
-            <div class="actions-row">
-                <button type="button" class="btn" onclick="anadirRuta()">Añadir ruta</button>
-                <button type="submit" class="btn" onclick="document.getElementById('accionFormulario').value='guardar_configuracion'">
-                    Guardar configuración
-                </button>
-                <button type="submit" class="btn" onclick="document.getElementById('accionFormulario').value='ejecutar_copia_ahora'">
-                    Ejecutar copia ahora
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div class="card">
-        <h2>Historial</h2>
-
-        <div class="top-inline">
-            <input type="password" class="small-input" placeholder="Contraseña secundaria">
-            <button type="button" class="btn btn-danger">Limpiar historial</button>
-        </div>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
+    <form method="post" id="formBackup">
+        <table id="tablaRutas">
+            <thead>
+                <tr>
+                    <th>Ruta</th>
+                    <th>Activar</th>
+                    <th>Frecuencia</th>
+                    <th>Última copia correcta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php if (!$rutas): ?>
+                <tr>
+                    <td>
+                        <input type="hidden" name="id[]" value="0">
+                        <input type="text" name="ruta[]" placeholder="Ej: C:\Users\alex\Documents\Proyecto">
+                    </td>
+                    <td>
+                        <input type="checkbox" name="activa[0]" checked>
+                    </td>
+                    <td>
+                        <select name="frecuencia[]">
+                            <?php foreach ($FRECUENCIAS as $dias => $label): ?>
+                                <option value="<?php echo (int)$dias; ?>" <?php echo $dias === 7 ? 'selected' : ''; ?>>
+                                    <?php echo h($label); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($rutas as $i => $r): ?>
                     <tr>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Carpetas</th>
-                        <th>Tamaño</th>
-                        <th>Archivo R2</th>
-                        <th>Mensaje</th>
-                        <th>Acciones</th>
+                        <td>
+                            <input type="hidden" name="id[]" value="<?php echo (int)$r['id']; ?>">
+                            <input type="text" name="ruta[]" value="<?php echo h($r['ruta']); ?>">
+                        </td>
+                        <td>
+                            <input type="checkbox" name="activa[<?php echo (int)$i; ?>]" <?php echo $r['activa'] ? 'checked' : ''; ?>>
+                        </td>
+                        <td>
+                            <select name="frecuencia[]">
+                                <?php foreach ($FRECUENCIAS as $dias => $label): ?>
+                                    <option value="<?php echo (int)$dias; ?>" <?php echo ((int)$r['frecuencia_dias'] === (int)$dias) ? 'selected' : ''; ?>>
+                                        <?php echo h($label); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                        <td><?php echo h($r['ultimo_backup_ok'] ?? '-'); ?></td>
+                        <td>
+                            <button
+                                type="submit"
+                                name="eliminar_ruta"
+                                class="danger"
+                                onclick="document.getElementById('ruta_id').value='<?php echo (int)$r['id']; ?>'; return confirm('¿Eliminar esta ruta?');"
+                            >
+                                Eliminar
+                            </button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                <?php if (!$historial): ?>
-                    <tr>
-                        <td colspan="7">Todavía no hay copias registradas.</td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($historial as $item): ?>
-                        <tr>
-                            <td><?= h($item['created_at']) ?></td>
-                            <td><?= h($item['estado']) ?></td>
-                            <td><?= h($item['carpetas']) ?></td>
-                            <td><?= h((string)$item['tamano_mb']) ?> MB</td>
-                            <td><?= h($item['archivo_r2']) ?></td>
-                            <td><?= h($item['mensaje']) ?></td>
-                            <td>-</td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+            </tbody>
+        </table>
 
+        <input type="hidden" name="ruta_id" id="ruta_id" value="">
+
+        <div class="fila-botones">
+            <button type="button" onclick="anadirRuta()">Añadir ruta</button>
+            <button type="submit" name="guardar_configuracion">Guardar configuración</button>
+
+            <?php if ($backup_en_proceso): ?>
+                <button type="button" disabled>En proceso...</button>
+            <?php else: ?>
+                <button type="submit" name="backup_ahora">Ejecutar copia ahora</button>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Historial</h2>
+
+    <form method="post" onsubmit="return confirm('¿Seguro que quieres limpiar el historial visual?');">
+        <input class="mini" type="password" name="password_secundaria" placeholder="Contraseña secundaria">
+        <button type="submit" name="limpiar_historial" class="danger">Limpiar historial</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Carpetas</th>
+                <th>Tamaño</th>
+                <th>Archivo R2</th>
+                <th>Mensaje</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php if (!$historial): ?>
+            <tr>
+                <td colspan="7" class="muted">Todavía no hay copias registradas.</td>
+            </tr>
+        <?php else: ?>
+            <?php foreach ($historial as $h): ?>
+                <tr>
+                    <td><?php echo h($h['created_at']); ?></td>
+                    <td><?php echo h($h['estado']); ?></td>
+                    <td><?php echo h($h['carpetas']); ?></td>
+                    <td><?php echo h($h['tamano_mb'] ?? '-'); ?> MB</td>
+                    <td><?php echo h($h['archivo_r2'] ?? '-'); ?></td>
+                    <td><?php echo h($h['mensaje'] ?? '-'); ?></td>
+                    <td>-</td>
+                </tr>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        </tbody>
+    </table>
 </div>
 
 <script>
 function anadirRuta() {
     const tbody = document.querySelector('#tablaRutas tbody');
+    const index = tbody.querySelectorAll('tr').length;
+
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
         <td>
-            <input type="hidden" name="ruta_id[]" value="0">
-            <input type="text" name="ruta[]" placeholder="Ej: C:\\Users\\alex\\Desktop">
+            <input type="hidden" name="id[]" value="0">
+            <input type="text" name="ruta[]" placeholder="Ej: C:\\Users\\alex\\Desktop\\Proyecto">
         </td>
         <td>
-            <input type="checkbox" name="activa[]" value="1">
+            <input type="checkbox" name="activa[${index}]" checked>
         </td>
         <td>
-            <select name="frecuencia_dias[]">
+            <select name="frecuencia[]">
                 <option value="1">Cada día</option>
                 <option value="7" selected>Cada semana</option>
                 <option value="30">Cada mes</option>
+                <option value="90">Cada 3 meses</option>
+                <option value="180">Cada 6 meses</option>
+                <option value="365">Cada año</option>
             </select>
         </td>
+        <td>-</td>
         <td>-</td>
     `;
 
     tbody.appendChild(tr);
 }
 </script>
+
 </body>
 </html>
